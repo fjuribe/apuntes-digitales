@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking Essentials — TryHackMe Room 2/4</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08081a;--bg-header:linear-gradient(135deg,#0d0d2b,#1a0a2e 50%,#0d0d2b);
+  --text:#fff;--muted:#bbb;--dim:#888;--faint:#666;--subtle:#555;
+  --border:rgba(255,255,255,0.07);--border-light:rgba(255,255,255,0.05);
+  --card-bg:rgba(255,255,255,0.035);--card-bg2:rgba(255,255,255,0.025);
+  --overlay:rgba(0,0,0,0.3);--overlay-dark:rgba(0,0,0,0.35);
+  --cyan:#00f5d4;--yellow:#fee440;--pink:#f15bb5;--purple:#9b5de5;
+  --blue:#00bbf9;--red:#ff6b6b;--green:#06d6a0;--orange:#ffa726;--lime:#8bc34a;
+  --mono:'JetBrains Mono',monospace;--ui:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.5}
+
+/* Header */
+.header{background:var(--bg-header);padding:28px 20px 18px;border-bottom:1px solid var(--border-light)}
+.header-inner{max-width:860px;margin:0 auto}
+.header-tag{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+.header h1{font-size:26px;font-weight:900;margin:0 0 2px;background:linear-gradient(90deg,#fee440,#ff6b6b,#9b5de5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:var(--subtle);font-size:13px}
+
+/* Nav */
+.nav{background:rgba(8,8,26,0.96);border-bottom:1px solid var(--border-light);padding:10px 20px;overflow-x:auto;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.nav-inner{max-width:860px;margin:0 auto;display:flex;gap:4px;min-width:max-content}
+.nav-btn{background:transparent;color:var(--subtle);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .3s;font-family:var(--mono)}
+.nav-btn.active{border:none}
+
+/* Content */
+.content{max-width:860px;margin:0 auto;padding:24px 20px 80px}
+.section-title{font-size:22px;font-weight:900;margin:0 0 2px}
+
+/* Box */
+.box{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all .3s}
+
+/* Terminal */
+.terminal{background:#0c0c1d;border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;margin:12px 0}
+.terminal-bar{background:rgba(255,255,255,0.04);padding:6px 14px;font-size:11px;color:var(--faint);display:flex;align-items:center;gap:8px}
+.terminal-dots{display:flex;gap:5px}
+.terminal-dots span{width:10px;height:10px;border-radius:50%}
+.terminal pre{padding:16px;margin:0;font-size:12px;line-height:1.6;font-family:var(--mono);color:#aaa;overflow-x:auto}
+
+/* Tip */
+.tip{border-left-width:3px;border-left-style:solid;border-radius:0 10px 10px 0;padding:12px 16px;margin:12px 0}
+.tip-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.tip-body{color:var(--muted);font-size:13px;line-height:1.6}
+.tip-body strong{color:#fff}
+
+/* Badge */
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:.5px;display:inline-block}
+
+/* Shared */
+.intro{color:var(--muted);line-height:1.8;font-size:14px}
+.intro strong{color:#fff}
+.toggle-btn{border-radius:12px;padding:10px 22px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--mono);transition:all .3s}
+
+/* Expandable items */
+.expand-item{border:2px solid var(--border-light);border-radius:14px;padding:14px 18px;cursor:pointer;transition:all .3s}
+.expand-header{display:flex;align-items:center;justify-content:space-between}
+.expand-arrow{color:var(--subtle)}
+
+/* Quiz */
+.quiz-progress{background:var(--card-bg);height:4px;border-radius:4px;margin-bottom:20px;overflow:hidden}
+.quiz-bar{background:var(--orange);height:100%;border-radius:4px;transition:width .4s}
+.quiz-opt{background:var(--card-bg);border:2px solid var(--border);border-radius:12px;padding:12px 18px;color:#ccc;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all .3s;font-family:var(--ui);width:100%;display:block}
+.quiz-next{background:var(--orange);color:#0a0a1a;border:none;border-radius:12px;padding:12px 28px;font-weight:700;font-size:14px;cursor:pointer;margin-top:20px;font-family:var(--mono);display:block;width:100%}
+.quiz-reset{background:var(--green);color:#0a0a1a;border:none;border-radius:12px;padding:12px 30px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--mono)}
+
+/* Utility */
+.flex-col{display:flex;flex-direction:column}
+.gap-6{gap:6px}.gap-8{gap:8px}.gap-10{gap:10px}
+.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}.mt-24{margin-top:24px}
+.mb-8{margin-bottom:8px}.mb-10{margin-bottom:10px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
+
+/* Scrollbar */
+::-webkit-scrollbar{height:4px;width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+
+/* Grid */
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.grid-auto-180{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+
+input[type=range]{width:100%;accent-color:var(--pink)}
+code{font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-tag">TryHackMe · Room 2/4</div>
+    <h1>Networking Essentials</h1>
+    <p>DHCP · ARP · ICMP · Routing · NAT — Aprende jugando 🏴‍☠️</p>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+  <div class="nav-inner" id="nav"></div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div id="section-header"></div>
+  <div id="section-content"></div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const TABS=[
+  {id:"intro",icon:"🏠",label:"Inicio",color:"#00f5d4"},
+  {id:"dhcp",icon:"📡",label:"DHCP",color:"#fee440"},
+  {id:"arp",icon:"🔗",label:"ARP",color:"#9b5de5"},
+  {id:"icmp",icon:"🏓",label:"ICMP",color:"#00bbf9"},
+  {id:"routing",icon:"🗺️",label:"Routing",color:"#f15bb5"},
+  {id:"nat",icon:"🎭",label:"NAT",color:"#ff6b6b"},
+  {id:"tools",icon:"🛠️",label:"Tools",color:"#06d6a0"},
+  {id:"quiz",icon:"🧠",label:"Quiz",color:"#ffa726"},
+];
+
+const QUESTIONS=[
+  {q:"¿Qué significa DORA en DHCP?",opts:["Discover, Offer, Request, Acknowledge","Data, Open, Route, Accept","Detect, Observe, Reply, Ack"],correct:0},
+  {q:"¿En qué puertos UDP opera DHCP?",opts:["80 y 443","67 (server) y 68 (client)","53 y 53","22 y 23"],correct:1},
+  {q:"¿Qué protocolo traduce IP a MAC address?",opts:["DNS","DHCP","ARP","ICMP"],correct:2},
+  {q:"¿A qué MAC address se envía un ARP Request?",opts:["00:00:00:00:00:00","ff:ff:ff:ff:ff:ff","La MAC del destino","La MAC del router"],correct:1},
+  {q:"¿Qué tipo ICMP es un Echo Request (ping)?",opts:["Type 0","Type 3","Type 8","Type 11"],correct:2},
+  {q:"¿Qué tipo ICMP usa traceroute para descubrir routers?",opts:["Echo Reply (Type 0)","Time Exceeded (Type 11)","Redirect (Type 5)","Echo Request (Type 8)"],correct:1},
+  {q:"¿Qué campo IP manipula traceroute?",opts:["Source IP","TTL (Time-to-Live)","Protocol","Checksum"],correct:1},
+  {q:"¿Qué hace NAT?",opts:["Cifra el tráfico","Traduce IPs privadas a pública","Asigna IPs automáticamente","Resuelve nombres de dominio"],correct:1},
+  {q:"¿Qué protocolo de routing es el principal de Internet?",opts:["OSPF","RIP","BGP","EIGRP"],correct:2},
+  {q:"ARP se encapsula dentro de...",opts:["Un paquete IP","Un segmento TCP","Directamente en un frame Ethernet","Un datagrama UDP"],correct:2},
+  {q:"Si ping no responde, ¿el host está necesariamente apagado?",opts:["Sí, siempre","No, un firewall puede bloquear ICMP"],correct:1},
+  {q:"¿Qué comando muestra tu tabla ARP?",opts:["arp -a","ip a s","ifconfig","netstat"],correct:0},
+];
+
+// ==================== STATE ====================
+let activeTab="intro";
+let doraStep=-1;
+let showARPFlow=false;
+let icmpTab="ping";
+let ttlValue=4;
+let routingExpanded=null;
+let showNATTable=false;
+let toolExpanded=null;
+let quizCurrent=0, quizSelected=null, quizAnswered=false, quizScore=0, quizDone=false;
+
+// ==================== HELPERS ====================
+function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function badge(text,color){return `<span class="badge" style="background:${color}20;color:${color}">${text}</span>`}
+function box(content,glow,extraStyle=""){
+  const border=glow?glow+"44":"rgba(255,255,255,0.07)";
+  const shadow=glow?`box-shadow:0 0 40px ${glow}15;`:"";
+  return `<div class="box" style="border-color:${border};${shadow}${extraStyle}">${content}</div>`;
+}
+function terminal(content,title="Terminal"){
+  return `<div class="terminal">
+    <div class="terminal-bar"><span class="terminal-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></span>${title}</div>
+    <pre>${esc(content)}</pre>
+  </div>`;
+}
+function tip(type,content){
+  const styles={
+    tip:{icon:"💡",color:"#fee440",label:"Tip"},
+    hacker:{icon:"🏴‍☠️",color:"#ff6b6b",label:"Nota Hacker"},
+    key:{icon:"🔑",color:"#06d6a0",label:"Concepto Clave"},
+    warning:{icon:"⚠️",color:"#ffa726",label:"Atención"},
+    deeper:{icon:"🔬",color:"#9b5de5",label:"Profundizar"},
+  };
+  const s=styles[type]||styles.tip;
+  return `<div class="tip" style="background:${s.color}08;border-left-color:${s.color}">
+    <div class="tip-label" style="color:${s.color}">${s.icon} ${s.label}</div>
+    <div class="tip-body">${content}</div>
+  </div>`;
+}
+
+// ==================== NAV ====================
+function renderNav(){
+  document.getElementById("nav").innerHTML=TABS.map(t=>{
+    const active=activeTab===t.id;
+    const st=active?`background:${t.color};color:#0a0a1a;border:none;`:"";
+    return `<button class="nav-btn ${active?'active':''}" style="${st}" onclick="setTab('${t.id}')">${t.icon} ${t.label}</button>`;
+  }).join("");
+}
+function setTab(id){activeTab=id;renderNav();renderContent()}
+
+// ==================== RENDER ====================
+function renderContent(){
+  const t=TABS.find(t=>t.id===activeTab);
+  document.getElementById("section-header").innerHTML=`<h2 class="section-title" style="color:${t.color}">${t.icon} ${t.label}</h2><div style="height:20px"></div>`;
+  const el=document.getElementById("section-content");
+  switch(activeTab){
+    case"intro":el.innerHTML=renderIntro();break;
+    case"dhcp":el.innerHTML=renderDHCP();break;
+    case"arp":el.innerHTML=renderARP();break;
+    case"icmp":el.innerHTML=renderICMP();break;
+    case"routing":el.innerHTML=renderRouting();break;
+    case"nat":el.innerHTML=renderNAT();break;
+    case"tools":el.innerHTML=renderTools();break;
+    case"quiz":el.innerHTML=renderQuiz();break;
+  }
+}
+
+// ==================== INTRO ====================
+function renderIntro(){
+  const topics=[
+    {icon:"📡",title:"DHCP",desc:"Configuración automática de red",color:"#fee440"},
+    {icon:"🔗",title:"ARP",desc:"De IP a MAC address",color:"#9b5de5"},
+    {icon:"🏓",title:"ICMP",desc:"Ping, Traceroute y diagnóstico",color:"#00bbf9"},
+    {icon:"🗺️",title:"Routing",desc:"Cómo viajan los paquetes",color:"#f15bb5"},
+    {icon:"🎭",title:"NAT",desc:"Una IP pública, muchos dispositivos",color:"#ff6b6b"},
+  ];
+  const grid=topics.map(t=>box(`<div style="font-size:28px;margin-bottom:6px">${t.icon}</div><div style="color:#fff;font-weight:800;font-size:15px">${t.title}</div><div style="color:#888;font-size:12px;margin-top:4px">${t.desc}</div>`,t.color)).join("");
+  const rooms=["1. Networking Concepts ✅","2. Networking Essentials ← Estás aquí","3. Networking Core Protocols","4. Networking Secure Protocols"];
+  const roomsList=rooms.map((r,i)=>`<div style="color:${i===1?'#00f5d4':'#666'};font-size:13px;padding:4px 0;font-weight:${i===1?700:400};font-family:var(--mono)">${r}</div>`).join("");
+
+  return `
+    <p style="color:#bbb;line-height:1.8;font-size:15px">Bienvenido al <strong style="color:#00f5d4">segundo módulo</strong> de la serie de networking de TryHackMe. Aquí aprenderás los protocolos y tecnologías que hacen que todo funcione en una red real.</p>
+    <div class="grid-auto mt-20">${grid}</div>
+    ${tip("key",'<strong style="color:#fff">Prerrequisitos:</strong> Deberías conocer el modelo OSI, TCP/IP, direcciones IP y los protocolos Ethernet, IP y TCP del room anterior (Networking Concepts).')}
+    ${box(`<div style="color:#00f5d4;font-weight:700;font-size:13px;margin-bottom:8px">📚 Serie completa de rooms</div>${roomsList}`,"#00f5d4","margin-top:16px;")}`;
+}
+
+// ==================== DHCP ====================
+function renderDHCP(){
+  const doraSteps=[
+    {letter:"D",name:"Discover",from:"Cliente → Broadcast",fromIP:"0.0.0.0 → 255.255.255.255",desc:"El cliente no tiene IP. Grita a toda la red: '¡¿Hay algún servidor DHCP por aquí?!' Envía al broadcast MAC ff:ff:ff:ff:ff:ff.",color:"#ff6b6b",emoji:"📢"},
+    {letter:"O",name:"Offer",from:"Servidor → Cliente",fromIP:"192.168.66.1 → 192.168.66.133",desc:"El servidor responde: 'Sí, aquí estoy. Te ofrezco la IP 192.168.66.133, con gateway y DNS incluidos.'",color:"#ffa726",emoji:"🎁"},
+    {letter:"R",name:"Request",from:"Cliente → Broadcast",fromIP:"0.0.0.0 → 255.255.255.255",desc:"El cliente acepta: '¡Perfecto, quiero esa IP!' Todavía envía al broadcast porque aún no ha activado la IP.",color:"#fee440",emoji:"✋"},
+    {letter:"A",name:"Acknowledge",from:"Servidor → Cliente",fromIP:"192.168.66.1 → 192.168.66.133",desc:"El servidor confirma: 'Listo, esa IP es tuya por un tiempo (lease). ¡Bienvenido a la red!'",color:"#06d6a0",emoji:"✅"},
+  ];
+
+  const dhcpGives=[
+    {icon:"🏠",label:"Dirección IP",detail:"Tu identidad en la red"},
+    {icon:"🚪",label:"Gateway/Router",detail:"Puerta de salida a Internet"},
+    {icon:"📖",label:"Servidor DNS",detail:"Para resolver nombres de dominio"},
+    {icon:"🎭",label:"Subnet Mask",detail:"Define tu segmento de red"},
+  ];
+  const givesGrid=dhcpGives.map(c=>`<div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:12px"><div style="font-size:22px">${c.icon}</div><div style="color:#fff;font-weight:700;font-size:13px;margin-top:4px">${c.label}</div><div style="color:#666;font-size:11px">${c.detail}</div></div>`).join("");
+
+  const stepsHTML=doraSteps.map((s,i)=>{
+    const open=doraStep===i;
+    const detail=open?`<div style="margin-top:14px;padding-left:52px">
+      <p style="color:#ccc;font-size:13px;line-height:1.7;margin:0 0 10px">${s.desc}</p>
+      <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px;color:${s.color}">IP: ${s.fromIP}</div>
+    </div>`:"";
+    return `<div onclick="toggleDora(${i})" style="background:${open?s.color+'12':'rgba(255,255,255,0.02)'};border:2px solid ${open?s.color:'rgba(255,255,255,0.05)'};border-radius:14px;padding:14px 18px;cursor:pointer;transition:all .3s">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:${s.color};color:#0a0a1a;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;font-family:var(--mono);flex-shrink:0">${s.letter}</div>
+        <div style="flex:1">
+          <div style="color:#fff;font-weight:700;font-size:15px">${s.emoji} DHCP ${s.name}</div>
+          <div style="color:#555;font-size:12px;font-family:var(--mono)">${s.from}</div>
+        </div>
+      </div>${detail}
+    </div>`;
+  }).join("");
+
+  return `
+    <p class="intro">¿Te conectaste al WiFi de tu café favorito y automáticamente todo funcionó? Eso es gracias a <strong style="color:#fee440">DHCP</strong> (Dynamic Host Configuration Protocol). Configura tu dispositivo automáticamente con todo lo que necesita.</p>
+    ${box(`<div style="color:#fee440;font-weight:800;font-size:14px;margin-bottom:10px">¿Qué te da DHCP?</div><div class="grid-auto-180">${givesGrid}</div>`,"#fee440","margin-top:16px;")}
+    ${tip("key",'DHCP usa <strong style="color:#fff">UDP</strong> (no TCP). El servidor escucha en el <strong style="color:#fee440">puerto 67</strong> y el cliente envía desde el <strong style="color:#fee440">puerto 68</strong>. Es un protocolo de capa de Aplicación.')}
+
+    <div class="mt-24 mb-8">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="color:#fee440;font-weight:800;font-size:16px;font-family:var(--mono)">D.O.R.A.</div>
+        <div style="color:#888;font-size:13px">— Haz clic en cada paso para ver la explicación</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 20px">
+        <div style="text-align:center"><div style="font-size:32px">💻</div><div style="color:#888;font-size:11px;margin-top:4px">Cliente</div><div style="color:#555;font-size:10px">Sin IP aún...</div></div>
+        <div style="flex:1;height:2px;background:rgba(255,255,255,0.06);margin:0 20px"></div>
+        <div style="text-align:center"><div style="font-size:32px">🖥️</div><div style="color:#888;font-size:11px;margin-top:4px">Servidor DHCP</div><div style="color:#555;font-size:10px">Puerto UDP 67</div></div>
+      </div>
+      <div class="flex-col gap-6">${stepsHTML}</div>
+    </div>
+
+    ${terminal(`$ tshark -r DHCP-G5000.pcap -n
+1  0.000000  0.0.0.0 → 255.255.255.255  DHCP Discover
+2  0.013904  192.168.66.1 → 192.168.66.133  DHCP Offer
+3  4.115318  0.0.0.0 → 255.255.255.255  DHCP Request
+4  4.228117  192.168.66.1 → 192.168.66.133  DHCP ACK`,"tshark — Captura DHCP real")}
+
+    ${tip("hacker",'En pentesting, un atacante puede levantar un <strong style="color:#fff">rogue DHCP server</strong> para asignar su propia IP como gateway y así capturar todo el tráfico de la red (MITM). Por eso es importante monitorear DHCP en la red.')}
+    ${tip("deeper",'<strong style="color:#fff">Para profundizar:</strong> Investiga sobre DHCP Starvation attacks, DHCP Snooping (defensa en switches), y cómo configurar un servidor DHCP en Linux con <code style="color:#fee440">isc-dhcp-server</code>.')}`;
+}
+function toggleDora(i){doraStep=doraStep===i?-1:i;renderContent()}
+
+// ==================== ARP ====================
+function renderARP(){
+  const flowSteps=[
+    {step:1,title:"ARP Request (Broadcast)",icon:"📢",color:"#ff6b6b",from:"cc:5e:f8:02:21:a7 → ff:ff:ff:ff:ff:ff",desc:"El host grita a TODA la red: '¿Quién tiene la IP 192.168.66.1? ¡Dígamelo a mí (192.168.66.89)!' Se envía al broadcast MAC (ff:ff:ff:ff:ff:ff) porque no sabe quién tiene esa IP."},
+    {step:2,title:"ARP Reply (Unicast)",icon:"✉️",color:"#06d6a0",from:"44:df:65:d8:fe:6c → cc:5e:f8:02:21:a7",desc:"El dueño de esa IP responde directamente: '¡Soy yo! Mi MAC es 44:df:65:d8:fe:6c'. Ahora el host original puede enviar frames directamente."},
+    {step:3,title:"Caché ARP",icon:"💾",color:"#00bbf9",from:"Tabla local",desc:"La MAC se guarda en la tabla ARP local por un tiempo. Así no necesita preguntar cada vez. Puedes verla con el comando 'arp -a'."},
+  ];
+
+  const flowHTML=showARPFlow?`<div class="mt-16 flex-col gap-10">${flowSteps.map(s=>box(`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="background:${s.color};color:#0a0a1a;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px">${s.step}</div>
+      <div><div style="color:#fff;font-weight:700;font-size:14px">${s.icon} ${s.title}</div><div style="font-family:var(--mono);font-size:11px;color:${s.color}">${s.from}</div></div>
+    </div>
+    <p style="color:#aaa;font-size:13px;line-height:1.7;margin:0;padding-left:44px">${s.desc}</p>`,s.color)).join("")}</div>`:"";
+
+  return `
+    <p class="intro">Ya sabes que los dispositivos se comunican por IP (Capa 3). Pero en la red local, los frames Ethernet necesitan <strong style="color:#9b5de5">direcciones MAC</strong> (Capa 2). <strong style="color:#9b5de5">ARP</strong> (Address Resolution Protocol) es el traductor entre estas dos capas.</p>
+    ${box(`<div style="color:#9b5de5;font-weight:800;font-size:14px;margin-bottom:10px">🎯 El problema que resuelve ARP</div>
+      <p style="color:#ccc;font-size:13px;line-height:1.7;margin:0">Tu PC conoce la IP del router (ej: <code style="color:#fee440">192.168.66.1</code>), pero para enviar un frame Ethernet necesita su <strong style="color:#fff">MAC address</strong>. ¿Cómo la obtiene? ¡Con ARP!</p>`,"#9b5de5","margin-top:16px;")}
+
+    <div class="mt-20">
+      <button class="toggle-btn" onclick="toggleARPFlow()" style="background:${showARPFlow?'#9b5de5':'transparent'};color:${showARPFlow?'#0a0a1a':'#9b5de5'};border:2px solid #9b5de5">
+        ${showARPFlow?"Ocultar":"Ver"} flujo ARP paso a paso
+      </button>
+    </div>
+    ${flowHTML}
+
+    ${terminal(`$ tshark -r arp.pcapng -Nn
+1  0.000  cc:5e:f8:02:21:a7 → ff:ff:ff:ff:ff:ff  ARP
+   Who has 192.168.66.1? Tell 192.168.66.89
+2  0.003  44:df:65:d8:fe:6c → cc:5e:f8:02:21:a7  ARP
+   192.168.66.1 is at 44:df:65:d8:fe:6c`,"tshark — Captura ARP")}
+
+    ${tip("key",'ARP <strong style="color:#fff">NO se encapsula dentro de IP ni UDP</strong>. Va directamente dentro del frame Ethernet. Por eso algunos dicen que es Capa 2 y otros Capa 3 — está en el límite entre ambas.')}
+    ${tip("hacker",'<strong style="color:#fff">ARP Spoofing / ARP Poisoning:</strong> Un atacante puede enviar ARP Replies falsos para asociar su MAC con la IP del gateway. Así intercepta todo el tráfico (Man-in-the-Middle). Herramientas: <code style="color:#ff6b6b">arpspoof</code>, <code style="color:#ff6b6b">ettercap</code>, <code style="color:#ff6b6b">bettercap</code>.')}
+    ${tip("deeper",'Investiga: <strong style="color:#fff">Dynamic ARP Inspection (DAI)</strong> en switches como defensa, y el comando <code style="color:#9b5de5">arp -a</code> para ver tu tabla ARP local.')}`;
+}
+function toggleARPFlow(){showARPFlow=!showARPFlow;renderContent()}
+
+// ==================== ICMP ====================
+function renderICMP(){
+  const tabBtn=(id,label,color)=>{
+    const active=icmpTab===id;
+    return `<button onclick="setICMPTab('${id}')" style="background:${active?color:'transparent'};color:${active?'#0a0a1a':color};border:2px solid ${color};border-radius:10px;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--mono);transition:all .3s">${label}</button>`;
+  };
+
+  let tabContent="";
+  if(icmpTab==="ping"){
+    tabContent=`
+      ${box(`<div style="color:#06d6a0;font-weight:800;font-size:16px;margin-bottom:10px">🏓 Ping — "¿Estás vivo?"</div>
+        <p style="color:#ccc;font-size:13px;line-height:1.7;margin:0"><code style="color:#06d6a0">ping</code> envía un <strong style="color:#fff">ICMP Echo Request (Type 8)</strong> al destino. Si el destino está vivo y no hay firewall bloqueando, responde con un <strong style="color:#fff">ICMP Echo Reply (Type 0)</strong>.</p>
+        <p style="color:#888;font-size:13px;margin-top:8px;margin-bottom:0">Analogía: Es como gritar "¡¿Hay alguien ahí?!" en una cueva y escuchar el eco de vuelta. El tiempo que tarda es el <strong style="color:#06d6a0">RTT</strong> (Round-Trip Time).</p>`,"#06d6a0")}
+      ${terminal(`$ ping 192.168.11.1 -c 4
+PING 192.168.11.1 (192.168.11.1) 56(84) bytes of data.
+64 bytes from 192.168.11.1: icmp_seq=1 ttl=63 time=11.2 ms
+64 bytes from 192.168.11.1: icmp_seq=2 ttl=63 time=3.81 ms
+64 bytes from 192.168.11.1: icmp_seq=3 ttl=63 time=3.99 ms
+64 bytes from 192.168.11.1: icmp_seq=4 ttl=63 time=23.4 ms
+
+--- ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss
+rtt min/avg/max/mdev = 3.8/10.6/23.4/7.9 ms`,"ping — Probando conectividad")}
+      ${tip("tip",'<strong style="color:#fff">-c 4</strong> limita a 4 paquetes. Sin esta flag, ping corre indefinidamente en Linux. En Windows se detiene solo después de 4.')}
+      ${tip("warning",'Que <strong style="color:#fff">ping no responda NO significa que el host esté apagado</strong>. Un firewall puede estar bloqueando ICMP. Muchos servidores bloquean ping por seguridad.')}`;
+  } else if(icmpTab==="traceroute"){
+    // TTL simulator
+    const hops=[1,2,3,4,5];
+    const hopsHTML=hops.map(hop=>{
+      const alive=ttlValue>hop;
+      const isDeath=ttlValue===hop;
+      const bg=isDeath?"#ff6b6b20":alive?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.02)";
+      const brd=isDeath?"1px solid #ff6b6b":"1px solid transparent";
+      const labelColor=isDeath?"#ff6b6b":alive?"#888":"#444";
+      const ttlDisplay=ttlValue-hop<0?"—":ttlValue-hop;
+      return `<div style="display:flex;align-items:center;gap:4px">
+        <div style="width:30px;height:2px;background:${alive||isDeath?'#f15bb5':'#333'}"></div>
+        <div style="text-align:center;padding:4px 6px;border-radius:8px;background:${bg};border:${brd}">
+          <div style="font-size:16px">${hop===5?"🌐":"📡"}</div>
+          <div style="font-size:9px;color:${labelColor}">${hop===5?"Destino":`R${hop}`}</div>
+          <div style="font-size:9px;color:${isDeath?'#ff6b6b':'#555'};font-family:var(--mono)">TTL=${ttlDisplay}</div>
+        </div>
+      </div>`;
+    }).join("");
+
+    const ttlMsg=ttlValue>=6
+      ?'<span style="color:#06d6a0">✅ ¡Paquete llegó al destino!</span>'
+      :`<span style="color:#ff6b6b">⏰ ICMP Time Exceeded en Router ${ttlValue} → así traceroute descubre R${ttlValue}</span>`;
+
+    tabContent=`
+      ${box(`<div style="color:#f15bb5;font-weight:800;font-size:16px;margin-bottom:10px">🗺️ Traceroute — "¿Por dónde viajan mis paquetes?"</div>
+        <p style="color:#ccc;font-size:13px;line-height:1.7;margin:0">Traceroute explota el campo <strong style="color:#fff">TTL (Time-to-Live)</strong> de IP. Cada router decrementa el TTL en 1. Cuando llega a 0, el router descarta el paquete y envía un <strong style="color:#fff">ICMP Time Exceeded (Type 11)</strong>.</p>`,"#f15bb5")}
+      ${box(`<div style="color:#f15bb5;font-weight:700;font-size:13px;margin-bottom:12px">🎮 Simulador de TTL — Desliza para ver cómo funciona</div>
+        <input type="range" min="1" max="6" value="${ttlValue}" oninput="setTTL(this.value)">
+        <div style="font-family:var(--mono);font-size:12px;color:#f15bb5;margin-bottom:14px">TTL inicial = ${ttlValue}</div>
+        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+          <div style="text-align:center;padding:6px"><div style="font-size:22px">💻</div><div style="font-size:9px;color:#888">Tú</div></div>
+          ${hopsHTML}
+        </div>
+        <div style="margin-top:12px;font-size:12px;font-family:var(--mono)">${ttlMsg}</div>`,null,"margin-top:16px;background:rgba(0,0,0,0.2);")}
+      ${terminal(`$ traceroute example.com
+ 1  _gateway (192.168.66.1)       4.4 ms
+ 2  192.168.11.1                  5.8 ms
+ 3  100.104.0.1                  11.1 ms
+ 4  10.149.1.45                   6.1 ms
+ 5  * * *                         (sin respuesta)
+ 6  * * *
+ ...
+ 9  ae81.edge4.Marseille1.Level3.net  50.8 ms
+10  NTT-level3-Marseille1             93.3 ms
+...
+16  93.184.215.14 (example.com)  140.5 ms`,"traceroute — Ruta a example.com")}
+      ${tip("tip",'En <strong style="color:#fff">Linux</strong> usa <code style="color:#00bbf9">traceroute</code>, en <strong style="color:#fff">Windows</strong> usa <code style="color:#00bbf9">tracert</code>. Los <code>* * *</code> significan que ese router no respondió (puede estar configurado para no hacerlo).')}`;
+  } else {
+    const types=[
+      {type:0,name:"Echo Reply",use:"Respuesta a ping",color:"#06d6a0"},
+      {type:8,name:"Echo Request",use:"Solicitud de ping",color:"#00bbf9"},
+      {type:3,name:"Destination Unreachable",use:"No se puede llegar al destino",color:"#ff6b6b"},
+      {type:11,name:"Time Exceeded",use:"TTL llegó a 0 (usado por traceroute)",color:"#f15bb5"},
+      {type:5,name:"Redirect",use:"El router sugiere una mejor ruta",color:"#fee440"},
+    ];
+    tabContent=`<div style="display:grid;gap:6px">${types.map(t=>`
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);border-left:3px solid ${t.color};border-radius:0 10px 10px 0;padding:10px 14px">
+        <div style="background:${t.color}22;color:${t.color};padding:4px 10px;border-radius:6px;font-family:var(--mono);font-weight:700;font-size:13px;flex-shrink:0">Type ${t.type}</div>
+        <div><div style="color:#fff;font-weight:700;font-size:13px">${t.name}</div><div style="color:#888;font-size:11px">${t.use}</div></div>
+      </div>`).join("")}</div>`;
+  }
+
+  return `
+    <p class="intro"><strong style="color:#00bbf9">ICMP</strong> (Internet Control Message Protocol) es el protocolo de diagnóstico y errores de la red. No transporta datos de usuario — su trabajo es informar sobre problemas y probar conectividad.</p>
+    <div style="display:flex;gap:8px;margin:16px 0 20px">
+      ${tabBtn("ping","🏓 Ping","#06d6a0")}
+      ${tabBtn("traceroute","🗺️ Traceroute","#f15bb5")}
+      ${tabBtn("types","📋 Tipos ICMP","#fee440")}
+    </div>
+    ${tabContent}`;
+}
+function setICMPTab(t){icmpTab=t;renderContent()}
+function setTTL(v){ttlValue=Number(v);renderContent()}
+
+// ==================== ROUTING ====================
+function renderRouting(){
+  const protocols=[
+    {name:"OSPF",full:"Open Shortest Path First",color:"#00bbf9",desc:"Los routers comparten el estado de sus enlaces y cada uno construye un mapa completo de la red. Calcula la ruta más eficiente.",type:"Link-State",use:"Redes empresariales medianas-grandes"},
+    {name:"EIGRP",full:"Enhanced Interior Gateway Routing Protocol",color:"#9b5de5",desc:"Protocolo propietario de Cisco. Combina aspectos de diferentes algoritmos. Usa métricas como ancho de banda y delay.",type:"Hybrid",use:"Redes Cisco"},
+    {name:"BGP",full:"Border Gateway Protocol",color:"#ff6b6b",desc:"EL protocolo de Internet. Permite que distintas redes (ISPs) intercambien información de rutas. Es el pegamento de Internet.",type:"Path-Vector",use:"Internet (entre ISPs)"},
+    {name:"RIP",full:"Routing Information Protocol",color:"#fee440",desc:"Simple y antiguo. Elige rutas con menos saltos (hops). Máximo 15 hops. Ideal para redes pequeñas.",type:"Distance-Vector",use:"Redes pequeñas, educación"},
+  ];
+
+  const items=protocols.map((p,i)=>{
+    const open=routingExpanded===i;
+    const detail=open?`<div style="margin-top:12px"><p style="color:#ccc;font-size:13px;line-height:1.7;margin:0 0 10px">${p.desc}</p>${badge("Uso: "+p.use,"#888")}</div>`:"";
+    return `<div class="expand-item" onclick="toggleRouting(${i})" style="background:${open?p.color+'10':'rgba(255,255,255,0.025)'};border-color:${open?p.color:'rgba(255,255,255,0.05)'}">
+      <div class="expand-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:var(--mono);color:${p.color};font-weight:900;font-size:16px">${p.name}</span>
+          ${badge(p.type,p.color)}
+        </div>
+        <span class="expand-arrow">${open?"▲":"▼"}</span>
+      </div>
+      <div style="color:#666;font-size:12px;margin-top:4px">${p.full}</div>
+      ${detail}
+    </div>`;
+  }).join("");
+
+  return `
+    <p class="intro">Internet son <strong style="color:#f15bb5">millones de routers</strong> interconectados. ¿Cómo sabe cada router por dónde enviar un paquete? Gracias a los <strong style="color:#f15bb5">protocolos de enrutamiento</strong>.</p>
+    ${box(`<div style="color:#f15bb5;font-weight:800;font-size:14px;margin-bottom:8px">📬 Analogía: La oficina de correos</div>
+      <p style="color:#ccc;font-size:13px;line-height:1.7;margin:0">Cada router es como una oficina de correos. Cuando le llega un paquete, revisa la dirección de destino y lo envía al siguiente punto más cercano. Si el paquete va a otro país, lo envía a una oficina central internacional.</p>`,"#f15bb5","margin-top:16px;")}
+    <div class="mt-20 flex-col gap-8">
+      <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Protocolos de Routing</div>
+      ${items}
+    </div>
+    ${tip("deeper",'<strong style="color:#fff">Para profundizar:</strong> Estudia cómo funciona BGP — es fundamental para entender ataques como <strong style="color:#f15bb5">BGP Hijacking</strong>, donde un atacante anuncia rutas falsas para redirigir tráfico de Internet.')}`;
+}
+function toggleRouting(i){routingExpanded=routingExpanded===i?null:i;renderContent()}
+
+// ==================== NAT ====================
+function renderNAT(){
+  const natTable=[
+    {intIP:"192.168.0.129",intPort:"15401",extIP:"212.3.4.5",extPort:"19273",device:"💻 Laptop"},
+    {intIP:"192.168.0.137",intPort:"27912",extIP:"212.3.4.5",extPort:"32759",device:"📱 Celular"},
+    {intIP:"192.168.0.112",intPort:"38192",extIP:"212.3.4.5",extPort:"41251",device:"📹 Cámara"},
+    {intIP:"192.168.0.125",intPort:"44013",extIP:"212.3.4.5",extPort:"52891",device:"🖥️ Desktop"},
+  ];
+
+  const tableHTML=showNATTable?`<div style="margin-top:16px;overflow-x:auto">
+    <div style="color:#ff6b6b;font-weight:700;font-size:12px;margin-bottom:8px;font-family:var(--mono)">IP Pública del Router: 212.3.4.5</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="padding:10px;border-bottom:2px solid #333;color:#888;text-align:left">Device</th>
+        <th style="padding:10px;border-bottom:2px solid #9b5de5;color:#9b5de5;text-align:left">IP Interna : Puerto</th>
+        <th style="padding:10px;border-bottom:2px solid #ff6b6b;color:#ff6b6b;text-align:left">IP Externa : Puerto</th>
+      </tr></thead>
+      <tbody>${natTable.map(r=>`<tr>
+        <td style="padding:8px;border-bottom:1px solid #1a1a3e;color:#ccc">${r.device}</td>
+        <td style="padding:8px;border-bottom:1px solid #1a1a3e;color:#9b5de5;font-family:var(--mono)">${r.intIP}:${r.intPort}</td>
+        <td style="padding:8px;border-bottom:1px solid #1a1a3e;color:#ff6b6b;font-family:var(--mono)">${r.extIP}:${r.extPort}</td>
+      </tr>`).join("")}</tbody>
+    </table>
+    <div style="color:#666;font-size:11px;margin-top:8px">→ El servidor web externo ve todas las conexiones como si vinieran de 212.3.4.5 con diferentes puertos.</div>
+  </div>`:"";
+
+  const natTypes=[
+    {name:"SNAT (Source NAT)",desc:"Modifica la IP de origen. El caso más común: tu red casera accediendo a Internet.",color:"#06d6a0"},
+    {name:"DNAT (Destination NAT)",desc:"Modifica la IP de destino. Se usa para port forwarding, ej: redirigir tráfico del puerto 80 a un servidor interno.",color:"#00bbf9"},
+    {name:"PAT (Port Address Translation)",desc:"Variante de SNAT donde muchos hosts comparten UNA IP pública usando diferentes puertos. Es lo que hace tu router casero.",color:"#f15bb5"},
+  ];
+
+  return `
+    <p class="intro">IPv4 tiene solo ~4 mil millones de direcciones, pero hay muchos más dispositivos. <strong style="color:#ff6b6b">NAT</strong> (Network Address Translation) permite que muchos dispositivos con IPs privadas compartan UNA sola IP pública.</p>
+    ${box(`<div style="color:#ff6b6b;font-weight:800;font-size:14px;margin-bottom:10px">🎭 Analogía: El hotel</div>
+      <p style="color:#ccc;font-size:13px;line-height:1.7;margin:0">Imagina un hotel con 100 habitaciones. Todas las habitaciones comparten UNA dirección postal (la del hotel). Cuando llega correo para la habitación 42, la recepción lo redirige internamente. NAT funciona exactamente así: el router es la recepción.</p>`,"#ff6b6b","margin-top:16px;")}
+
+    <div class="mt-20">
+      <button class="toggle-btn" onclick="toggleNATTable()" style="background:${showNATTable?'#ff6b6b':'transparent'};color:${showNATTable?'#0a0a1a':'#ff6b6b'};border:2px solid #ff6b6b">
+        ${showNATTable?"Ocultar":"Ver"} tabla de traducción NAT
+      </button>
+    </div>
+    ${tableHTML}
+
+    ${tip("key",'NAT mantiene una <strong style="color:#fff">tabla de traducción</strong> que mapea [IP privada + puerto interno] ↔ [IP pública + puerto externo]. Esto se hace de forma transparente para el usuario.')}
+
+    ${box(`<div style="color:#fee440;font-weight:700;font-size:13px;margin-bottom:10px">Tipos de NAT</div>
+      ${natTypes.map(t=>`<div style="border-left:3px solid ${t.color};padding:8px 14px;margin-bottom:6px;border-radius:0 8px 8px 0">
+        <div style="color:${t.color};font-weight:700;font-size:13px">${t.name}</div>
+        <div style="color:#aaa;font-size:12px;margin-top:2px">${t.desc}</div>
+      </div>`).join("")}`,null,"margin-top:16px;")}
+
+    ${tip("hacker",'NAT hace que tus dispositivos internos <strong style="color:#fff">no sean directamente accesibles desde Internet</strong>, lo cual añade una capa de seguridad. Pero NO es un firewall — no filtra tráfico malicioso.')}`;
+}
+function toggleNATTable(){showNATTable=!showNATTable;renderContent()}
+
+// ==================== TOOLS ====================
+function renderTools(){
+  const tools=[
+    {name:"ping",syntax:"ping <IP> -c <N>",desc:"Testa conectividad usando ICMP Echo",level:"Básico",color:"#06d6a0",os:"Linux/Win/Mac",examples:["ping 192.168.1.1 -c 4","ping google.com","ping -t 10.0.0.1  (Windows: continuo)"]},
+    {name:"traceroute / tracert",syntax:"traceroute <destino>",desc:"Descubre la ruta de routers al destino",level:"Básico",color:"#f15bb5",os:"Linux: traceroute / Win: tracert",examples:["traceroute example.com","tracert 8.8.8.8  (Windows)","traceroute -n 10.10.1.1  (sin DNS)"]},
+    {name:"arp",syntax:"arp -a",desc:"Muestra la tabla ARP local (IP → MAC)",level:"Básico",color:"#9b5de5",os:"Linux/Win",examples:["arp -a","arp -d 192.168.1.1  (borrar entrada)","ip neigh  (alternativa Linux)"]},
+    {name:"tshark",syntax:"tshark -r <archivo.pcap>",desc:"Wireshark en terminal — analiza capturas de red",level:"Intermedio",color:"#00bbf9",os:"Linux",examples:["tshark -r capture.pcap -n","tshark -i eth0 -c 10","tshark -r arp.pcapng -Nn"]},
+    {name:"tcpdump",syntax:"tcpdump -i <interfaz>",desc:"Captura paquetes en tiempo real desde terminal",level:"Intermedio",color:"#ff6b6b",os:"Linux",examples:["tcpdump -i eth0 -n -c 20","tcpdump -r capture.pcap -v","tcpdump -i any port 80"]},
+    {name:"Wireshark",syntax:"wireshark (GUI)",desc:"Analizador gráfico de paquetes — esencial para pentesting",level:"Intermedio",color:"#fee440",os:"Linux/Win/Mac",examples:["Filtro: arp","Filtro: icmp","Filtro: dhcp"]},
+  ];
+
+  const items=tools.map((t,i)=>{
+    const open=toolExpanded===i;
+    const levelColor=t.level==="Básico"?"#06d6a0":"#ffa726";
+    const detail=open?`<div style="margin-top:14px">
+      <div style="background:rgba(0,0,0,0.35);border-radius:10px;padding:14px;font-family:var(--mono);margin-bottom:10px">
+        <div style="color:#555;font-size:10px;margin-bottom:4px">SINTAXIS</div>
+        <div style="color:${t.color};font-size:13px">$ ${esc(t.syntax)}</div>
+      </div>
+      <div style="font-size:10px;color:#555;margin-bottom:6px">EJEMPLOS</div>
+      ${t.examples.map(ex=>`<div style="font-family:var(--mono);font-size:11px;color:#aaa;padding:3px 0"><span style="color:#06d6a0">$</span> ${esc(ex)}</div>`).join("")}
+    </div>`:"";
+
+    return `<div class="expand-item" onclick="toggleTool(${i})" style="background:${open?t.color+'10':'rgba(255,255,255,0.025)'};border-color:${open?t.color:'rgba(255,255,255,0.05)'}">
+      <div class="expand-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:var(--mono);color:${t.color};font-weight:900;font-size:15px">${t.name}</span>
+          ${badge(t.level,levelColor)} ${badge(t.os,"#555")}
+        </div>
+        <span class="expand-arrow">${open?"▲":"▼"}</span>
+      </div>
+      <div style="color:#666;font-size:12px;margin-top:4px">${t.desc}</div>
+      ${detail}
+    </div>`;
+  }).join("");
+
+  return `
+    <p class="intro">Tu kit de herramientas crece. Aquí están todas las herramientas de este room — <strong style="color:#06d6a0">¡añádelas a tu listado hacker!</strong> 🏴‍☠️</p>
+    <div class="flex-col gap-8 mt-16">${items}</div>
+    ${tip("hacker",'<strong style="color:#fff">Recomendación:</strong> Practica estas herramientas en <strong style="color:#06d6a0">TryHackMe AttackBox</strong> o en tu propia VM de Kali Linux. La práctica constante es lo que te convierte en hacker. También investiga <code style="color:#ff6b6b">nmap</code>, <code style="color:#ff6b6b">netcat</code>, y <code style="color:#ff6b6b">curl</code> para completar tu kit básico.')}`;
+}
+function toggleTool(i){toolExpanded=toolExpanded===i?null:i;renderContent()}
+
+// ==================== QUIZ ====================
+function renderQuiz(){
+  if(quizDone){
+    const pct=Math.round((quizScore/QUESTIONS.length)*100);
+    const emoji=pct>=80?"🏆":pct>=50?"👍":"📚";
+    const color=pct>=80?"#06d6a0":pct>=50?"#fee440":"#ff6b6b";
+    const msg=pct>=80?"¡Excelente! Dominas Networking Essentials.":pct>=50?"¡Bien! Repasa las secciones donde fallaste.":"Sigue estudiando, ¡vuelve a intentarlo!";
+    return `<div style="text-align:center;padding:30px 0">
+      <div style="font-size:64px;margin-bottom:10px">${emoji}</div>
+      <div style="font-size:40px;font-weight:900;color:${color};font-family:var(--mono)">${quizScore}/${QUESTIONS.length}</div>
+      <div style="color:#aaa;font-size:15px;margin-top:8px;margin-bottom:24px">${msg}</div>
+      <button class="quiz-reset" onclick="resetQuiz()">Intentar de nuevo</button>
+    </div>`;
+  }
+
+  const q=QUESTIONS[quizCurrent];
+  const progress=((quizCurrent+1)/QUESTIONS.length)*100;
+
+  const optsHTML=q.opts.map((opt,i)=>{
+    let bg="rgba(255,255,255,0.035)",border="rgba(255,255,255,0.07)",col="#ccc";
+    if(quizAnswered){
+      if(i===q.correct){bg="#06d6a018";border="#06d6a0";col="#06d6a0"}
+      else if(i===quizSelected){bg="#ff6b6b18";border="#ff6b6b";col="#ff6b6b"}
+    }
+    return `<button class="quiz-opt" style="background:${bg};border-color:${border};color:${col};cursor:${quizAnswered?'default':'pointer'}" onclick="answerQuiz(${i})">${opt}</button>`;
+  }).join("");
+
+  const nextBtn=quizAnswered?`<button class="quiz-next" onclick="nextQuiz()">${quizCurrent+1>=QUESTIONS.length?"Ver resultados":"Siguiente →"}</button>`:"";
+
+  return `
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <span style="color:#888;font-family:var(--mono);font-size:13px">${quizCurrent+1}/${QUESTIONS.length}</span>
+      <span style="color:#06d6a0;font-family:var(--mono);font-size:13px">Score: ${quizScore}</span>
+    </div>
+    <div class="quiz-progress"><div class="quiz-bar" style="width:${progress}%"></div></div>
+    <h3 style="color:#fff;font-size:17px;font-weight:700;margin-bottom:18px">${q.q}</h3>
+    <div class="flex-col gap-8">${optsHTML}</div>
+    ${nextBtn}`;
+}
+function answerQuiz(i){
+  if(quizAnswered)return;
+  quizSelected=i;quizAnswered=true;
+  if(i===QUESTIONS[quizCurrent].correct)quizScore++;
+  renderContent();
+}
+function nextQuiz(){
+  if(quizCurrent+1>=QUESTIONS.length){quizDone=true}
+  else{quizCurrent++;quizSelected=null;quizAnswered=false}
+  renderContent();
+}
+function resetQuiz(){quizCurrent=0;quizSelected=null;quizAnswered=false;quizScore=0;quizDone=false;renderContent()}
+
+// ==================== INIT ====================
+renderNav();
+renderContent();
+</script>
+</body>
+</html>

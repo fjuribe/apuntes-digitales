@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterclass: LLMs y Prompt Engineering</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .header { background: white; border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.5rem; color: #1f2937; }
+        .header p { color: #6b7280; font-size: 0.9rem; }
+        .progress { font-size: 1.2rem; font-weight: 700; color: #6366f1; }
+        
+        .module-nav { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px; }
+        .module-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 30px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 500; background: white; color: #4b5563; transition: all 0.2s; white-space: nowrap; }
+        .module-btn:hover { background: #f3f4f6; }
+        .module-btn.active { color: white; }
+        .module-btn.active[data-color="purple"] { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .module-btn.active[data-color="blue"] { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .module-btn.active[data-color="green"] { background: linear-gradient(135deg, #22c55e, #10b981); }
+        .module-btn.active[data-color="pink"] { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .module-btn.active[data-color="indigo"] { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        
+        .main-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        
+        .slide-header { padding: 20px 24px; color: white; }
+        .slide-header[data-color="purple"] { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .slide-header[data-color="blue"] { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .slide-header[data-color="green"] { background: linear-gradient(135deg, #22c55e, #10b981); }
+        .slide-header[data-color="pink"] { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .slide-header[data-color="indigo"] { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .slide-header .icon { font-size: 1.8rem; margin-right: 12px; }
+        .slide-header .meta { font-size: 0.8rem; opacity: 0.9; }
+        .slide-header h2 { font-size: 1.25rem; margin-top: 4px; }
+        
+        .slide-content { padding: 24px; min-height: 420px; line-height: 1.7; }
+        
+        .nav-footer { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
+        .nav-btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-btn.prev { background: #e5e7eb; color: #374151; }
+        .nav-btn.prev:hover { background: #d1d5db; }
+        .nav-btn.next { background: #6366f1; color: white; }
+        .nav-btn.next:hover { background: #4f46e5; }
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        .dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #d1d5db; border: none; cursor: pointer; transition: all 0.2s; }
+        .dot.active { background: #6366f1; width: 24px; border-radius: 5px; }
+        
+        .quick-ref { background: white; border-radius: 16px; padding: 20px; margin-top: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .quick-ref h3 { font-size: 1rem; margin-bottom: 12px; color: #374151; }
+        .ref-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+        .ref-btn { padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer; font-size: 0.8rem; background: #f3f4f6; color: #4b5563; transition: all 0.2s; }
+        .ref-btn:hover { background: #e5e7eb; }
+        .ref-btn.active { background: #e0e7ff; color: #4338ca; }
+        
+        /* Content Styles */
+        .box { padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .box.purple { background: linear-gradient(135deg, #ede9fe, #e0e7ff); }
+        .box.blue { background: linear-gradient(135deg, #dbeafe, #cffafe); }
+        .box.green { background: linear-gradient(135deg, #dcfce7, #d1fae5); }
+        .box.yellow { background: linear-gradient(135deg, #fef9c3, #fef3c7); }
+        .box.pink { background: linear-gradient(135deg, #fce7f3, #ffe4e6); }
+        .box.red { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+        .box.orange { background: linear-gradient(135deg, #ffedd5, #fed7aa); }
+        .box.cyan { background: linear-gradient(135deg, #cffafe, #a5f3fc); }
+        .box.gray { background: #f3f4f6; }
+        .box.dark { background: #1f2937; color: #e5e7eb; }
+        .box h3 { margin-bottom: 10px; font-size: 1.1rem; }
+        .box.purple h3 { color: #6b21a8; }
+        .box.blue h3 { color: #1e40af; }
+        .box.green h3 { color: #166534; }
+        .box.yellow h3 { color: #a16207; }
+        .box.pink h3 { color: #9d174d; }
+        .box.red h3 { color: #b91c1c; }
+        .box.orange h3 { color: #c2410c; }
+        .box.cyan h3 { color: #0e7490; }
+        
+        .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+        .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        
+        .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card.border-l { border-left: 4px solid; }
+        .card.border-t { border-top: 4px solid; }
+        .card.purple { border-color: #8b5cf6; }
+        .card.blue { border-color: #3b82f6; }
+        .card.green { border-color: #22c55e; }
+        .card.orange { border-color: #f97316; }
+        .card.indigo { border-color: #6366f1; }
+        .card.cyan { border-color: #06b6d4; }
+        .card.pink { border-color: #ec4899; }
+        .card.red { border-color: #ef4444; }
+        .card .big { font-size: 1.6rem; font-weight: 700; }
+        .card.purple .big { color: #8b5cf6; }
+        .card.blue .big { color: #3b82f6; }
+        .card.indigo .big { color: #6366f1; }
+        .card .small { font-size: 0.85rem; color: #6b7280; }
+        .card h4 { font-size: 1rem; color: #1f2937; margin-bottom: 4px; }
+        .card .company { font-size: 0.8rem; color: #9ca3af; }
+        .card .desc { font-size: 0.85rem; color: #6b7280; margin-top: 8px; }
+        
+        .tip { background: #fefce8; border: 1px solid #fde047; padding: 14px; border-radius: 10px; display: flex; gap: 10px; margin-top: 16px; }
+        .tip .icon { font-size: 1.2rem; }
+        .tip p { font-size: 0.9rem; color: #374151; }
+        
+        .timeline { position: relative; padding-left: 36px; margin: 20px 0; }
+        .timeline::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #c4b5fd, #818cf8, #60a5fa); border-radius: 3px; }
+        .tl-item { position: relative; margin-bottom: 14px; }
+        .tl-dot { position: absolute; left: -30px; width: 18px; height: 18px; background: #8b5cf6; border-radius: 50%; border: 3px solid white; }
+        .tl-content { background: white; padding: 10px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .tl-content .year { font-weight: 700; color: #1f2937; }
+        .tl-content .model { background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 8px; }
+        .tl-content .tdesc { color: #6b7280; font-size: 0.85rem; }
+        
+        .code { background: #1f2937; color: #4ade80; padding: 16px; border-radius: 10px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; overflow-x: auto; margin: 16px 0; white-space: pre-wrap; line-height: 1.5; }
+        .code .comment { color: #6b7280; }
+        .code .str { color: #4ade80; }
+        .code .key { color: #f472b6; }
+        .code .fn { color: #c084fc; }
+        .code .yellow { color: #facc15; }
+        .code .cyan { color: #22d3ee; }
+        .code .white { color: #f3f4f6; }
+        .code .orange { color: #fb923c; }
+        
+        .arch { text-align: center; padding: 20px; }
+        .arch-box { display: inline-block; padding: 12px 24px; border-radius: 8px; margin: 4px; font-weight: 500; border: 2px solid; }
+        .arch-box.green { background: #dcfce7; border-color: #4ade80; }
+        .arch-box.purple { background: #ede9fe; border-color: #a78bfa; }
+        .arch-box.blue { background: #dbeafe; border-color: #60a5fa; }
+        .arch-box.yellow { background: #fef9c3; border-color: #facc15; }
+        .arch-box.gray { background: #f3f4f6; border-color: #9ca3af; }
+        .arch-arrow { display: block; font-size: 1.5rem; color: #9ca3af; margin: 4px 0; }
+        
+        .tokens { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+        .token { background: #dbeafe; padding: 6px 12px; border-radius: 20px; font-family: monospace; font-size: 0.85rem; border: 1px solid #93c5fd; }
+        .token .num { color: #3b82f6; font-size: 0.75rem; margin-left: 4px; }
+        
+        .step { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px; }
+        .step .num { width: 28px; height: 28px; background: #22c55e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+        .step .ctx { flex: 1; color: #6b7280; font-size: 0.9rem; }
+        .step .next { background: #bbf7d0; color: #166534; padding: 4px 10px; border-radius: 4px; font-weight: 600; }
+        .step .prob { font-size: 0.8rem; color: #9ca3af; }
+        
+        .compare { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 16px 0; }
+        .cmp-card { background: white; padding: 16px; border-radius: 10px; border-top: 4px solid; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .cmp-card.blue { border-color: #3b82f6; }
+        .cmp-card.green { border-color: #22c55e; }
+        .cmp-card.red { border-color: #f87171; }
+        .cmp-card.purple { border-color: #8b5cf6; }
+        .cmp-card h4 { margin-bottom: 8px; }
+        .cmp-card.blue h4 { color: #1e40af; }
+        .cmp-card.green h4 { color: #166534; }
+        .cmp-card.red h4 { color: #b91c1c; }
+        .cmp-card.purple h4 { color: #6b21a8; }
+        .cmp-card .sub { font-size: 0.8rem; color: #6b7280; margin-bottom: 12px; }
+        .cmp-card .ex { background: #f3f4f6; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; margin-bottom: 10px; }
+        .cmp-card .out { padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+        .cmp-card.blue .out { background: #eff6ff; }
+        .cmp-card.green .out { background: #f0fdf4; }
+        .cmp-card .notes { font-size: 0.75rem; color: #6b7280; margin-top: 8px; }
+        .cmp-card .result { font-size: 0.8rem; margin-top: 8px; }
+        .cmp-card.green .result { color: #16a34a; }
+        .cmp-card.red .result { color: #dc2626; }
+        
+        .phrases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 16px 0; }
+        .phrase { background: #faf5ff; padding: 10px 14px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; color: #7e22ce; }
+        
+        .role-ex { padding: 12px; border-radius: 8px; border-left: 4px solid; margin-bottom: 10px; }
+        .role-ex.blue { background: #eff6ff; border-color: #60a5fa; }
+        .role-ex.purple { background: #faf5ff; border-color: #a78bfa; }
+        .role-ex.pink { background: #fdf2f8; border-color: #f472b6; }
+        .role-ex .role { font-family: monospace; font-size: 0.75rem; color: #6b7280; margin-bottom: 6px; }
+        .role-ex .qa { font-size: 0.85rem; }
+        
+        .concept { background: white; padding: 14px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .concept .hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .concept .ico { font-size: 1.3rem; }
+        .concept .nm { font-weight: 700; color: #1f2937; }
+        .concept .dsc { font-size: 0.85rem; color: #6b7280; margin-bottom: 6px; }
+        .concept .exm { font-family: monospace; font-size: 0.75rem; color: #9ca3af; }
+        
+        .api-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+        .api-role { padding: 12px; border-radius: 8px; text-align: center; }
+        .api-role.blue { background: #eff6ff; }
+        .api-role.green { background: #f0fdf4; }
+        .api-role.purple { background: #faf5ff; }
+        .api-role .nm { font-weight: 700; font-size: 0.9rem; }
+        .api-role.blue .nm { color: #1e40af; }
+        .api-role.green .nm { color: #166534; }
+        .api-role.purple .nm { color: #6b21a8; }
+        .api-role .dsc { font-size: 0.75rem; color: #6b7280; }
+        
+        /* Interactive Elements */
+        .tabs { display: flex; gap: 4px; margin-bottom: 16px; background: #f3f4f6; padding: 4px; border-radius: 10px; }
+        .tab { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; border-radius: 8px; font-size: 0.85rem; font-weight: 500; color: #6b7280; transition: all 0.2s; }
+        .tab.active { background: white; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .reveal-btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; margin: 10px 0; transition: all 0.2s; }
+        .reveal-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+        .hidden-content { display: none; margin-top: 12px; padding: 16px; background: #f0fdf4; border-radius: 10px; border: 2px solid #86efac; }
+        .hidden-content.show { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .example-box { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .example-header { padding: 12px 16px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .example-header.bad { background: #fef2f2; color: #b91c1c; }
+        .example-header.good { background: #f0fdf4; color: #166534; }
+        .example-body { padding: 16px; font-family: monospace; font-size: 0.85rem; background: #f9fafb; }
+        
+        .prompt-part { margin-bottom: 12px; border-radius: 8px; overflow: hidden; }
+        .prompt-part-header { padding: 10px 14px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .prompt-part-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.2s; }
+        .prompt-part-header.collapsed::after { transform: rotate(-90deg); }
+        .prompt-part.system .prompt-part-header { background: #dbeafe; color: #1e40af; }
+        .prompt-part.context .prompt-part-header { background: #dcfce7; color: #166534; }
+        .prompt-part.instruction .prompt-part-header { background: #fef9c3; color: #a16207; }
+        .prompt-part.format .prompt-part-header { background: #f3e8ff; color: #6b21a8; }
+        .prompt-part.examples .prompt-part-header { background: #fce7f3; color: #9d174d; }
+        .prompt-part-body { padding: 12px 14px; background: white; font-size: 0.85rem; border: 1px solid #e5e7eb; border-top: none; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+        .badge.required { background: #fee2e2; color: #b91c1c; }
+        .badge.optional { background: #e0e7ff; color: #4338ca; }
+        .badge.recommended { background: #dcfce7; color: #166534; }
+        
+        .checklist { list-style: none; margin: 12px 0; }
+        .checklist li { padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .checklist li:last-child { border-bottom: none; }
+        .check { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; }
+        .check.yes { background: #dcfce7; color: #166534; }
+        .check.no { background: #fee2e2; color: #b91c1c; }
+        
+        @media (max-width: 768px) {
+            .grid2, .grid3, .grid4, .compare, .phrases, .api-roles { grid-template-columns: 1fr; }
+            .header { flex-direction: column; text-align: center; gap: 12px; }
+            .tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🎓 Masterclass: LLMs & Prompt Engineering</h1>
+                <p>Preparación para tu curso de LangChain</p>
+            </div>
+            <div class="progress" id="progress">0%</div>
+        </div>
+        
+        <div class="module-nav" id="moduleNav"></div>
+        
+        <div class="main-card">
+            <div class="slide-header" id="slideHeader" data-color="purple">
+                <span class="icon" id="slideIcon">🧠</span>
+                <div>
+                    <div class="meta" id="slideMeta">Módulo 1 • Slide 1/3</div>
+                    <h2 id="slideTitle">Título</h2>
+                </div>
+            </div>
+            <div class="slide-content" id="slideContent"></div>
+            <div class="nav-footer">
+                <button class="nav-btn prev" id="prevBtn">← Anterior</button>
+                <div class="dots" id="dots"></div>
+                <button class="nav-btn next" id="nextBtn">Siguiente →</button>
+            </div>
+        </div>
+        
+        <div class="quick-ref">
+            <h3>📌 Referencia Rápida</h3>
+            <div class="ref-btns" id="refBtns"></div>
+        </div>
+    </div>
+
+<script>
+const modules = [
+    {
+        title: "¿Qué es un LLM?",
+        icon: "🧠",
+        color: "purple",
+        slides: [
+            {
+                title: "Large Language Model (LLM)",
+                html: `
+                    <div class="box purple">
+                        <h3>Definición Formal</h3>
+                        <p>Un <strong>Large Language Model</strong> es una red neuronal con miles de millones de parámetros, entrenada en enormes cantidades de texto para predecir la siguiente palabra en una secuencia.</p>
+                    </div>
+                    <div class="grid3">
+                        <div class="card border-l purple"><div class="big">175B+</div><div class="small">Parámetros (GPT-4)</div></div>
+                        <div class="card border-l indigo"><div class="big">45TB+</div><div class="small">Datos entrenamiento</div></div>
+                        <div class="card border-l blue"><div class="big">128K</div><div class="small">Tokens contexto</div></div>
+                    </div>
+                    <div class="tip"><span class="icon">💡</span><p><strong>Analogía:</strong> Imagina que lees TODOS los libros del mundo. Después puedes predecir muy bien qué palabra viene después de cualquier frase.</p></div>
+                `
+            },
+            {
+                title: "Evolución de los LLMs",
+                html: `
+                    <div class="timeline">
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2017</span><span class="model">Transformer</span><div class="tdesc">Google introduce la arquitectura revolucionaria</div></div></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2018</span><span class="model">GPT-1</span><div class="tdesc">OpenAI: 117M parámetros</div></div></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2019</span><span class="model">GPT-2</span><div class="tdesc">1.5B parámetros - "demasiado peligroso"</div></div></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2020</span><span class="model">GPT-3</span><div class="tdesc">175B parámetros - cambio de paradigma</div></div></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2022</span><span class="model">ChatGPT</span><div class="tdesc">RLHF + GPT-3.5 = revolución masiva</div></div></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2023</span><span class="model">GPT-4/Claude</span><div class="tdesc">Multimodal, razonamiento avanzado</div></div></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="year">2024-25</span><span class="model">Agentes IA</span><div class="tdesc">LLMs que usan herramientas y razonan</div></div></div>
+                    </div>
+                `
+            },
+            {
+                title: "LLMs Principales en 2025",
+                html: `
+                    <div class="grid2">
+                        <div class="card border-l green"><h4>GPT-4 / GPT-4o</h4><div class="company">OpenAI</div><div class="desc">Multimodal, razonamiento, código</div></div>
+                        <div class="card border-l orange"><h4>Claude 3.5 Sonnet</h4><div class="company">Anthropic</div><div class="desc">Contexto largo, seguridad, análisis</div></div>
+                        <div class="card border-l blue"><h4>Gemini 2.0</h4><div class="company">Google</div><div class="desc">Multimodal nativo, integración Google</div></div>
+                        <div class="card border-l purple"><h4>Llama 3.1</h4><div class="company">Meta</div><div class="desc">Open source, personalizable, gratuito</div></div>
+                        <div class="card border-l indigo"><h4>Mistral Large</h4><div class="company">Mistral AI</div><div class="desc">Eficiente, europeo, open weights</div></div>
+                        <div class="card border-l cyan"><h4>DeepSeek R1</h4><div class="company">DeepSeek</div><div class="desc">Razonamiento, bajo costo, open source</div></div>
+                    </div>
+                    <div class="box blue"><p><strong>Para tu curso:</strong> Usarás principalmente la API de OpenAI (GPT-4), pero los conceptos aplican a todos los LLMs.</p></div>
+                `
+            }
+        ]
+    },
+    {
+        title: "Arquitectura Transformers",
+        icon: "🏗️",
+        color: "blue",
+        slides: [
+            {
+                title: "El Corazón de los LLMs",
+                html: `
+                    <div class="box blue">
+                        <h3>Paper: "Attention Is All You Need" (2017)</h3>
+                        <p>Google revolucionó el NLP con una arquitectura que procesa texto en paralelo usando <strong>"Self-Attention"</strong>.</p>
+                    </div>
+                    <div class="arch">
+                        <div class="arch-box green">📤 Output: "París"</div>
+                        <span class="arch-arrow">↑</span>
+                        <div class="arch-box purple">🧠 Capas de Atención (x96)</div>
+                        <span class="arch-arrow">↑</span>
+                        <div class="arch-box blue">🔢 Embeddings + Posición</div>
+                        <span class="arch-arrow">↑</span>
+                        <div class="arch-box yellow">✂️ Tokenización</div>
+                        <span class="arch-arrow">↑</span>
+                        <div class="arch-box gray">📥 Input: "La capital de Francia es"</div>
+                    </div>
+                `
+            },
+            {
+                title: "Tokenización: Cómo el LLM Lee",
+                html: `
+                    <div class="box yellow">
+                        <h3>¿Qué es un Token?</h3>
+                        <p>Los LLMs no leen letras ni palabras completas. Dividen el texto en <strong>tokens</strong>: fragmentos de ~4 caracteres en promedio.</p>
+                    </div>
+                    <div class="card" style="margin-bottom:16px">
+                        <h4>Ejemplo de Tokenización</h4>
+                        <div style="font-family:monospace;background:#f3f4f6;padding:10px;border-radius:6px;margin:12px 0">"Hola, ¿cómo estás?"</div>
+                        <div style="text-align:center;font-size:1.5rem;color:#9ca3af">↓</div>
+                        <div class="tokens">
+                            <span class="token">"Hola"<span class="num">#1</span></span>
+                            <span class="token">","<span class="num">#2</span></span>
+                            <span class="token">" ¿"<span class="num">#3</span></span>
+                            <span class="token">"cómo"<span class="num">#4</span></span>
+                            <span class="token">" est"<span class="num">#5</span></span>
+                            <span class="token">"ás"<span class="num">#6</span></span>
+                            <span class="token">"?"<span class="num">#7</span></span>
+                        </div>
+                    </div>
+                    <div class="grid2">
+                        <div class="box red"><h3>⚠️ Limitación</h3><p>GPT-4: 128K tokens ≈ 300 páginas de contexto máximo.</p></div>
+                        <div class="box green"><h3>💰 Costo</h3><p>APIs cobran por token. GPT-4: ~$0.03/1K input, ~$0.06/1K output.</p></div>
+                    </div>
+                `
+            },
+            {
+                title: "Embeddings: Significado en Números",
+                html: `
+                    <div class="box cyan">
+                        <h3>¿Qué son los Embeddings?</h3>
+                        <p>Vectores numéricos de alta dimensión (1536-4096 números) que representan el <strong>significado</strong> de palabras.</p>
+                    </div>
+                    <div class="card" style="margin-bottom:16px">
+                        <h4>Espacio de Embeddings (Simplificado)</h4>
+                        <p style="text-align:center;padding:20px;font-size:0.9rem;color:#6b7280">
+                            Palabras similares están <strong>cerca</strong> en el espacio vectorial:<br><br>
+                            <span style="background:#3b82f6;color:white;padding:4px 10px;border-radius:4px;margin:4px">rey</span>
+                            <span style="background:#ec4899;color:white;padding:4px 10px;border-radius:4px;margin:4px">reina</span> (cerca)<br><br>
+                            <span style="background:#f97316;color:white;padding:4px 10px;border-radius:4px;margin:4px">perro</span>
+                            <span style="background:#f97316;color:white;padding:4px 10px;border-radius:4px;margin:4px">gato</span> (cerca)<br><br>
+                            <span style="background:#22c55e;color:white;padding:4px 10px;border-radius:4px;margin:4px">París</span>
+                            <span style="background:#22c55e;color:white;padding:4px 10px;border-radius:4px;margin:4px">Francia</span> (cerca)
+                        </p>
+                    </div>
+                    <div class="tip"><span class="icon">💡</span><div><p><strong>Aritmética de Embeddings:</strong></p><p style="font-family:monospace;margin-top:4px">Rey - Hombre + Mujer ≈ Reina<br>París - Francia + España ≈ Madrid</p></div></div>
+                `
+            }
+        ]
+    },
+    {
+        title: "Generación de Texto",
+        icon: "✨",
+        color: "green",
+        slides: [
+            {
+                title: "Predicción de la Siguiente Palabra",
+                html: `
+                    <div class="box green">
+                        <h3>El Principio Fundamental</h3>
+                        <p>Un LLM es una máquina de <strong>predecir la siguiente palabra</strong>. Repite este proceso hasta completar la respuesta.</p>
+                    </div>
+                    <div class="card">
+                        <h4>Proceso de Generación</h4>
+                        <div style="margin-top:12px">
+                            <div class="step"><div class="num">1</div><div class="ctx">La capital de Francia es</div><div class="next">París</div><div class="prob">94%</div></div>
+                            <div class="step"><div class="num">2</div><div class="ctx">...es París</div><div class="next">,</div><div class="prob">67%</div></div>
+                            <div class="step"><div class="num">3</div><div class="ctx">...París,</div><div class="next">conocida</div><div class="prob">23%</div></div>
+                            <div class="step"><div class="num">4</div><div class="ctx">...conocida</div><div class="next">como</div><div class="prob">45%</div></div>
+                            <div class="step"><div class="num">5</div><div class="ctx">...como</div><div class="next">la</div><div class="prob">78%</div></div>
+                        </div>
+                    </div>
+                    <div class="box blue" style="margin-top:16px"><p><strong>Autoregresivo:</strong> Cada palabra se añade al contexto para predecir la siguiente.</p></div>
+                `
+            },
+            {
+                title: "Temperatura y Parámetros",
+                html: `
+                    <div class="box orange">
+                        <h3>Controlando la Creatividad</h3>
+                        <p>Puedes ajustar cómo el LLM selecciona palabras usando <strong>temperatura</strong>, <strong>top_p</strong>, y <strong>max_tokens</strong>.</p>
+                    </div>
+                    <div class="grid3">
+                        <div class="card" style="border-top:3px solid #93c5fd;background:#eff6ff">
+                            <h4>🧊 Temp = 0</h4>
+                            <div class="small">Determinístico</div>
+                            <p style="font-size:0.85rem;margin:8px 0">"La capital de Francia es París."</p>
+                            <div class="small">Siempre igual, más preciso</div>
+                        </div>
+                        <div class="card" style="border-top:3px solid #fde047;background:#fefce8">
+                            <h4>😊 Temp = 0.7</h4>
+                            <div class="small">Balanceado</div>
+                            <p style="font-size:0.85rem;margin:8px 0">"París, la Ciudad de la Luz."</p>
+                            <div class="small">Balance creatividad/precisión</div>
+                        </div>
+                        <div class="card" style="border-top:3px solid #fca5a5;background:#fef2f2">
+                            <h4>🔥 Temp = 1.5</h4>
+                            <div class="small">Muy creativo</div>
+                            <p style="font-size:0.85rem;margin:8px 0">"París, donde los sueños danzan..."</p>
+                            <div class="small">Más aleatorio, puede divagar</div>
+                        </div>
+                    </div>
+                    <div class="grid2">
+                        <div class="box gray"><h3>top_p</h3><p>Considera solo palabras que suman P% de probabilidad. <code>top_p=0.9</code> = top 90%</p></div>
+                        <div class="box gray"><h3>max_tokens</h3><p>Límite de tokens en respuesta. <code>max_tokens=500</code> = ~375 palabras</p></div>
+                    </div>
+                `
+            },
+            {
+                title: "Alucinaciones: El Talón de Aquiles",
+                html: `
+                    <div class="box red">
+                        <h3>⚠️ Alucinaciones de LLMs</h3>
+                        <p>Los LLMs pueden generar información <strong>falsa pero convincente</strong>. Predicen texto probable, no verifican hechos.</p>
+                    </div>
+                    <div class="card" style="margin-bottom:16px">
+                        <h4 style="color:#dc2626">Ejemplos de Alucinaciones</h4>
+                        <div style="background:#fef2f2;border:1px solid #fecaca;padding:10px;border-radius:6px;margin:8px 0">
+                            <strong>Q:</strong> ¿Quién escribió 'El Quijote de la Web'?<br>
+                            <span style="color:#b91c1c"><strong>A:</strong> Miguel de Bytes lo escribió en 2015.</span>
+                            <span style="background:#fecaca;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-left:8px">Libro inventado</span>
+                        </div>
+                        <div style="background:#fef2f2;border:1px solid #fecaca;padding:10px;border-radius:6px;margin:8px 0">
+                            <strong>Q:</strong> Dame papers sobre IA de 2024<br>
+                            <span style="color:#b91c1c"><strong>A:</strong> [Cita papers con DOIs que no existen]</span>
+                            <span style="background:#fecaca;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-left:8px">Referencias falsas</span>
+                        </div>
+                    </div>
+                    <div class="box green">
+                        <h3>✅ Mitigación</h3>
+                        <p>• <strong>RAG:</strong> Alimentar al LLM con datos verificados<br>
+                        • <strong>Temperatura baja:</strong> Respuestas más conservadoras<br>
+                        • <strong>Prompts:</strong> "Si no sabes, di que no sabes"</p>
+                    </div>
+                `
+            }
+        ]
+    },
+    {
+        title: "Prompt Engineering",
+        icon: "💬",
+        color: "pink",
+        slides: [
+            {
+                title: "¿Qué es Prompt Engineering?",
+                html: `
+                    <div class="box pink">
+                        <h3>Definición</h3>
+                        <p><strong>Prompt Engineering</strong> es el arte y ciencia de diseñar instrucciones que guían a los LLMs a producir respuestas precisas, consistentes y útiles.</p>
+                    </div>
+                    <div class="grid2">
+                        <div>
+                            <h4 style="margin-bottom:12px">📐 Anatomía de un Prompt</h4>
+                            <div class="prompt-part system">
+                                <div class="prompt-part-header">1. System Prompt <span class="badge required">Requerido</span></div>
+                                <div class="prompt-part-body">Define quién es el asistente, su personalidad, restricciones y comportamiento general.</div>
+                            </div>
+                            <div class="prompt-part context">
+                                <div class="prompt-part-header">2. Contexto <span class="badge recommended">Recomendado</span></div>
+                                <div class="prompt-part-body">Información de fondo necesaria para entender la tarea.</div>
+                            </div>
+                            <div class="prompt-part instruction">
+                                <div class="prompt-part-header">3. Instrucción <span class="badge required">Requerido</span></div>
+                                <div class="prompt-part-body">La tarea específica que debe realizar el LLM.</div>
+                            </div>
+                            <div class="prompt-part format">
+                                <div class="prompt-part-header">4. Formato Output <span class="badge recommended">Recomendado</span></div>
+                                <div class="prompt-part-body">Cómo estructurar la respuesta (JSON, lista, párrafo, etc.)</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom:12px">🎯 ¿Por qué importa?</h4>
+                            <ul class="checklist">
+                                <li><span class="check yes">✓</span> Mismo LLM, resultados muy diferentes</li>
+                                <li><span class="check yes">✓</span> Reduce alucinaciones y errores</li>
+                                <li><span class="check yes">✓</span> Respuestas más consistentes</li>
+                                <li><span class="check yes">✓</span> Mejor control del formato</li>
+                                <li><span class="check yes">✓</span> Ahorra tokens (dinero)</li>
+                            </ul>
+                            <div class="tip" style="margin-top:12px"><span class="icon">💡</span><p>Un buen prompt puede mejorar resultados <strong>10x</strong> sin cambiar el modelo.</p></div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "Ejemplos Prácticos: Malo vs Bueno",
+                html: `
+                    <div class="box purple">
+                        <h3>🔍 Comparación Lado a Lado</h3>
+                        <p>La diferencia entre un prompt vago y uno bien estructurado es dramática.</p>
+                    </div>
+                    
+                    <h4 style="margin:16px 0 12px">Ejemplo 1: Resumen de Texto</h4>
+                    <div class="compare">
+                        <div class="example-box">
+                            <div class="example-header bad">❌ Prompt Malo</div>
+                            <div class="example-body">Resume este texto</div>
+                        </div>
+                        <div class="example-box">
+                            <div class="example-header good">✅ Prompt Bueno</div>
+                            <div class="example-body">Resume el siguiente texto en exactamente 3 bullet points.
+Cada punto debe tener máximo 15 palabras.
+Enfócate en: datos clave, conclusiones, acciones.
+Formato: • [Punto]</div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin:16px 0 12px">Ejemplo 2: Generación de Código</h4>
+                    <div class="compare">
+                        <div class="example-box">
+                            <div class="example-header bad">❌ Prompt Malo</div>
+                            <div class="example-body">Haz una función de login</div>
+                        </div>
+                        <div class="example-box">
+                            <div class="example-header good">✅ Prompt Bueno</div>
+                            <div class="example-body">Crea una función Python para autenticación:
+- Input: email (str), password (str)
+- Valida formato email con regex
+- Hash password con bcrypt
+- Retorna: dict {"success": bool, "token": str}
+- Incluye docstring y type hints
+- Maneja excepciones con try/except</div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "Zero-Shot vs Few-Shot",
+                html: `
+                    <div class="tabs" id="shotTabs">
+                        <button class="tab active" onclick="switchTab('shotTabs', 'shotContent', 0)">Zero-Shot</button>
+                        <button class="tab" onclick="switchTab('shotTabs', 'shotContent', 1)">One-Shot</button>
+                        <button class="tab" onclick="switchTab('shotTabs', 'shotContent', 2)">Few-Shot</button>
+                    </div>
+                    
+                    <div id="shotContent">
+                        <div class="tab-content active">
+                            <div class="box blue">
+                                <h3>Zero-Shot: Sin Ejemplos</h3>
+                                <p>Solo das la instrucción, sin mostrar ejemplos de cómo hacerlo.</p>
+                            </div>
+                            <div class="code">Clasifica el sentimiento del siguiente texto como 
+POSITIVO, NEGATIVO o NEUTRO:
+
+"El servicio fue excelente pero el precio muy alto"
+
+Responde solo con la clasificación.</div>
+                            <div class="grid2" style="margin-top:16px">
+                                <div class="card border-t green"><h4>✅ Ventajas</h4><p class="small">Rápido, usa pocos tokens, simple</p></div>
+                                <div class="card border-t red"><h4>⚠️ Desventajas</h4><p class="small">Menos consistente, puede malinterpretar</p></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div class="box yellow">
+                                <h3>One-Shot: Un Ejemplo</h3>
+                                <p>Muestras UN ejemplo de input → output esperado.</p>
+                            </div>
+                            <div class="code">Clasifica el sentimiento:
+
+Ejemplo:
+"Me encantó la comida" → POSITIVO
+
+Ahora clasifica:
+"El servicio fue excelente pero el precio muy alto" →</div>
+                            <div class="grid2" style="margin-top:16px">
+                                <div class="card border-t green"><h4>✅ Ventajas</h4><p class="small">Más claro el formato esperado</p></div>
+                                <div class="card border-t red"><h4>⚠️ Desventajas</h4><p class="small">Un ejemplo puede no cubrir casos edge</p></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div class="box green">
+                                <h3>Few-Shot: Múltiples Ejemplos (2-5)</h3>
+                                <p>Muestras varios ejemplos que cubren diferentes casos.</p>
+                            </div>
+                            <div class="code">Clasifica el sentimiento:
+
+"Me encantó la comida" → POSITIVO
+"Pésimo servicio, nunca vuelvo" → NEGATIVO  
+"El restaurante está en la esquina" → NEUTRO
+"Buena comida pero mal servicio" → MIXTO
+
+"El servicio fue excelente pero el precio muy alto" →</div>
+                            <div class="grid2" style="margin-top:16px">
+                                <div class="card border-t green"><h4>✅ Ventajas</h4><p class="small">Muy consistente, cubre edge cases</p></div>
+                                <div class="card border-t red"><h4>⚠️ Desventajas</h4><p class="small">Usa más tokens (más costo)</p></div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "Chain-of-Thought (CoT)",
+                html: `
+                    <div class="box purple">
+                        <h3>🧠 Razonamiento Paso a Paso</h3>
+                        <p>Forzar al LLM a "pensar en voz alta" mejora dramáticamente la precisión en problemas complejos.</p>
+                    </div>
+                    
+                    <div class="compare">
+                        <div class="cmp-card red">
+                            <h4>❌ Sin CoT</h4>
+                            <div class="ex"><strong>Q:</strong> En una tienda hay 23 manzanas. Llegan 2 cajas con 15 manzanas cada una. Venden 18. ¿Cuántas quedan?
+
+<strong>A:</strong> 38 manzanas</div>
+                            <div class="result">❌ Incorrecto (debería ser 35)</div>
+                        </div>
+                        <div class="cmp-card green">
+                            <h4>✅ Con CoT</h4>
+                            <div class="ex"><strong>Q:</strong> ... ¿Cuántas quedan? <strong style="color:#7e22ce">Piensa paso a paso.</strong>
+
+<strong>A:</strong>
+1. Inicial: 23 manzanas
+2. Llegan: 2 × 15 = 30
+3. Total: 23 + 30 = 53
+4. Venden: 53 - 18 = <strong>35</strong></div>
+                            <div class="result">✅ Correcto con razonamiento</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="margin-top:16px">
+                        <h4>🪄 Frases Mágicas para Activar CoT</h4>
+                        <div class="phrases">
+                            <div class="phrase">"Piensa paso a paso"</div>
+                            <div class="phrase">"Let's think step by step"</div>
+                            <div class="phrase">"Razona antes de responder"</div>
+                            <div class="phrase">"Explica tu proceso"</div>
+                            <div class="phrase">"Muestra tu trabajo"</div>
+                            <div class="phrase">"Descompón el problema"</div>
+                        </div>
+                    </div>
+                    
+                    <div class="tip"><span class="icon">🎯</span><p><strong>Cuándo usar CoT:</strong> Matemáticas, lógica, código complejo, análisis multi-paso, decisiones con múltiples factores.</p></div>
+                `
+            },
+            {
+                title: "Role Prompting + Ejemplos",
+                html: `
+                    <div class="box orange">
+                        <h3>🎭 Asignar un Rol al LLM</h3>
+                        <p>Definir una identidad específica activa conocimientos relevantes y ajusta el tono.</p>
+                    </div>
+                    
+                    <div class="tabs" id="roleTabs">
+                        <button class="tab active" onclick="switchTab('roleTabs', 'roleContent', 0)">Niños</button>
+                        <button class="tab" onclick="switchTab('roleTabs', 'roleContent', 1)">Técnico</button>
+                        <button class="tab" onclick="switchTab('roleTabs', 'roleContent', 2)">Ejecutivo</button>
+                    </div>
+                    
+                    <div id="roleContent">
+                        <div class="tab-content active">
+                            <div class="role-ex blue">
+                                <div class="role">🎈 "Eres un explicador para niños de 8 años. Usa analogías simples y emojis."</div>
+                                <div class="qa"><strong>Q:</strong> ¿Qué es una API?<br><br>
+<strong>A:</strong> ¡Una API es como un mesero en un restaurante! 🍽️ 
+
+Tú (la app) le dices al mesero lo que quieres. El mesero va a la cocina (el servidor) y te trae exactamente lo que pediste. 
+
+¡Sin la API, tendrías que ir tú mismo a la cocina y eso sería un lío! 😄</div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div class="role-ex purple">
+                                <div class="role">👨‍💻 "Eres un arquitecto de software senior con 15 años de experiencia."</div>
+                                <div class="qa"><strong>Q:</strong> ¿Qué es una API?<br><br>
+<strong>A:</strong> Una API (Application Programming Interface) es un contrato de interfaz que define:
+
+• <strong>Endpoints:</strong> URLs para acceder a recursos
+• <strong>Métodos HTTP:</strong> GET, POST, PUT, DELETE
+• <strong>Request/Response schemas:</strong> Estructura de datos
+• <strong>Autenticación:</strong> OAuth, API keys, JWT
+• <strong>Rate limiting:</strong> Control de uso</div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div class="role-ex pink">
+                                <div class="role">👔 "Eres un consultor de negocio. Explica en términos de valor y ROI."</div>
+                                <div class="qa"><strong>Q:</strong> ¿Qué es una API?<br><br>
+<strong>A:</strong> Una API es un <strong>puente digital</strong> que permite a sus sistemas comunicarse con otros.
+
+<strong>Valor de negocio:</strong>
+• Reduce tiempo de integración en 70%
+• Habilita partnerships sin desarrollo custom
+• Monetización: API como producto ($)
+• Escalabilidad sin aumentar headcount</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tip"><span class="icon">💡</span><p><strong>Pro tip:</strong> Combina rol + experiencia + restricciones: <code>"Eres un ML engineer de Google con 10 años en LLMs. Responde de forma concisa."</code></p></div>
+                `
+            },
+            {
+                title: "Structured Output (JSON/XML)",
+                html: `
+                    <div class="box cyan">
+                        <h3>📋 Respuestas Estructuradas</h3>
+                        <p>Solicitar output en formatos específicos facilita el procesamiento programático.</p>
+                    </div>
+                    
+                    <div class="grid2">
+                        <div>
+                            <h4 style="margin-bottom:10px">📥 Prompt</h4>
+                            <div class="code" style="font-size:0.8rem">Extrae información del texto y devuelve 
+<span class="orange">SOLO JSON válido</span>, sin explicaciones:
+
+Texto: "María López, 32 años, es 
+ingeniera en Santiago. Contacto: 
+maria@email.com, +56912345678"
+
+Formato exacto:
+{
+  "nombre": string,
+  "edad": number,
+  "profesion": string,
+  "ciudad": string,
+  "email": string,
+  "telefono": string
+}</div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom:10px">📤 Output</h4>
+                            <div class="code" style="font-size:0.8rem;color:#22d3ee">{
+  "nombre": "María López",
+  "edad": 32,
+  "profesion": "ingeniera",
+  "ciudad": "Santiago",
+  "email": "maria@email.com",
+  "telefono": "+56912345678"
+}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid4" style="margin-top:20px">
+                        <div class="card" style="text-align:center"><strong>JSON</strong><div class="small">APIs, datos</div></div>
+                        <div class="card" style="text-align:center"><strong>XML</strong><div class="small">Configs, legacy</div></div>
+                        <div class="card" style="text-align:center"><strong>Markdown</strong><div class="small">Docs, reportes</div></div>
+                        <div class="card" style="text-align:center"><strong>CSV</strong><div class="small">Tablas, Excel</div></div>
+                    </div>
+                    
+                    <div class="tip"><span class="icon">⚠️</span><p><strong>Importante:</strong> Siempre incluye "SOLO JSON" o "sin explicaciones adicionales" para evitar texto extra que rompa el parsing.</p></div>
+                `
+            },
+            {
+                title: "🏆 Template Profesional Completo",
+                html: `
+                    <div class="box pink">
+                        <h3>📝 Template de Producción</h3>
+                        <p>Este es un template robusto que puedes adaptar para cualquier caso de uso profesional.</p>
+                    </div>
+                    
+                    <div class="code" style="font-size:0.82rem;line-height:1.6"><span class="comment"># ═══════════════════════════════════════════════════════════</span>
+<span class="comment"># SYSTEM PROMPT (Define quién es el asistente)</span>
+<span class="comment"># ═══════════════════════════════════════════════════════════</span>
+
+<span class="key">Eres</span> un <span class="yellow">{ROL}</span> experto con <span class="yellow">{N}</span> años de experiencia en <span class="yellow">{ÁREA}</span>.
+
+<span class="cyan">## Tu Personalidad:</span>
+<span class="white">- Preciso, conciso y profesional
+- Usas ejemplos prácticos cuando es útil
+- Admites cuando no sabes algo
+- Preguntas para clarificar si hay ambigüedad</span>
+
+<span class="cyan">## Restricciones:</span>
+<span class="white">- NO inventes información ni estadísticas
+- NO proporciones</span> <span class="yellow">{CONTENIDO_PROHIBIDO}</span>
+<span class="white">- Responde SOLO en</span> <span class="yellow">{IDIOMA}</span>
+<span class="white">- Mantén respuestas bajo</span> <span class="yellow">{MAX_PALABRAS}</span> <span class="white">palabras</span>
+
+<span class="comment"># ═══════════════════════════════════════════════════════════</span>
+<span class="comment"># USER PROMPT (La solicitud específica)</span>
+<span class="comment"># ═══════════════════════════════════════════════════════════</span>
+
+<span class="cyan">## Contexto:</span>
+<span class="yellow">{INFORMACIÓN_RELEVANTE_PARA_LA_TAREA}</span>
+
+<span class="cyan">## Tu Tarea:</span>
+<span class="yellow">{INSTRUCCIÓN_ESPECÍFICA_Y_CLARA}</span>
+
+<span class="cyan">## Formato de Respuesta:</span>
+<span class="yellow">{ESTRUCTURA_EXACTA_ESPERADA}</span>
+
+<span class="cyan">## Ejemplo de Output:</span>
+<span class="yellow">{EJEMPLO_CONCRETO_DEL_FORMATO}</span></div>
+                `
+            },
+            {
+                title: "📋 Ejemplo Real: Analizador de CVs",
+                html: `
+                    <div class="box green">
+                        <h3>Caso Práctico Completo</h3>
+                        <p>Un prompt real para analizar currículums y extraer información estructurada.</p>
+                    </div>
+                    
+                    <div class="code" style="font-size:0.78rem;line-height:1.5;max-height:380px;overflow-y:auto"><span class="comment"># SYSTEM</span>
+<span class="key">Eres</span> un <span class="yellow">reclutador senior de tecnología</span> con 10 años de experiencia 
+evaluando candidatos para empresas Fortune 500.
+
+<span class="cyan">## Personalidad:</span>
+<span class="white">- Objetivo y basado en datos
+- Identificas tanto fortalezas como gaps
+- Priorizas experiencia relevante sobre títulos</span>
+
+<span class="cyan">## Restricciones:</span>
+<span class="white">- NO hagas suposiciones sobre información no presente
+- NO discrimines por edad, género o nacionalidad
+- Responde SOLO en español</span>
+
+<span class="comment"># USER</span>
+<span class="cyan">## Contexto:</span>
+<span class="white">Estamos buscando un</span> <span class="yellow">Senior Python Developer</span> <span class="white">para nuestro equipo de IA.
+Requisitos clave: Python 3+, ML/DL, APIs REST, 5+ años experiencia.</span>
+
+<span class="cyan">## Tarea:</span>
+<span class="white">Analiza el siguiente CV y extrae información estructurada.</span>
+
+<span class="cyan">## CV:</span>
+<span class="white">"""
+{CONTENIDO_DEL_CV_AQUÍ}
+"""</span>
+
+<span class="cyan">## Formato de Respuesta (JSON):</span>
+<span class="str">{
+  "candidato": {
+    "nombre": "",
+    "años_experiencia": 0,
+    "ubicacion": ""
+  },
+  "match_score": 0-100,
+  "habilidades": {
+    "cumple": ["skill1", "skill2"],
+    "falta": ["skill1"],
+    "bonus": ["skill1"]
+  },
+  "experiencia_relevante": [
+    {"empresa": "", "rol": "", "años": 0, "relevancia": "alta/media/baja"}
+  ],
+  "red_flags": [],
+  "recomendacion": "CONTRATAR / ENTREVISTAR / RECHAZAR",
+  "siguiente_paso": ""
+}</span></div>
+                    
+                    <div class="tip"><span class="icon">🚀</span><p>Este tipo de prompts estructurados son la base de los <strong>Agentes de IA</strong> que verás en LangChain.</p></div>
+                `
+            }
+        ]
+    },
+    {
+        title: "APIs en Python",
+        icon: "🐍",
+        color: "indigo",
+        slides: [
+            {
+                title: "OpenAI API: Primera Llamada",
+                html: `
+                    <div class="box purple">
+                        <h3>Conectando con GPT-4</h3>
+                        <p>La API de OpenAI es el estándar. Aprenderás esto a fondo en el curso.</p>
+                    </div>
+                    <div class="code"><span class="comment"># pip install openai</span>
+<span class="key">from</span> openai <span class="key">import</span> OpenAI
+
+client = OpenAI(api_key=<span class="str">"sk-tu-api-key"</span>)
+
+response = client.chat.completions.create(
+    model=<span class="str">"gpt-4"</span>,
+    messages=[
+        {
+            <span class="str">"role"</span>: <span class="str">"system"</span>, 
+            <span class="str">"content"</span>: <span class="str">"Eres un experto en Python"</span>
+        },
+        {
+            <span class="str">"role"</span>: <span class="str">"user"</span>, 
+            <span class="str">"content"</span>: <span class="str">"¿Qué es una list comprehension?"</span>
+        }
+    ],
+    temperature=<span class="orange">0.7</span>,
+    max_tokens=<span class="orange">500</span>
+)
+
+<span class="fn">print</span>(response.choices[0].message.content)</div>
+                    <div class="api-roles">
+                        <div class="api-role blue"><div class="nm">system</div><div class="dsc">Personalidad del bot</div></div>
+                        <div class="api-role green"><div class="nm">user</div><div class="dsc">Mensaje del usuario</div></div>
+                        <div class="api-role purple"><div class="nm">assistant</div><div class="dsc">Respuesta del LLM</div></div>
+                    </div>
+                `
+            },
+            {
+                title: "Conceptos Clave para LangChain",
+                html: `
+                    <div class="box green">
+                        <h3>Lo que Verás en el Curso</h3>
+                        <p>LangChain abstrae las llamadas y añade superpoderes para crear aplicaciones de IA.</p>
+                    </div>
+                    <div class="grid2">
+                        <div class="concept"><div class="hdr"><span class="ico">🔗</span><span class="nm">Chains</span></div><div class="dsc">Secuencias de llamadas LLM encadenadas</div><div class="exm">Input → LLM1 → Procesar → LLM2 → Output</div></div>
+                        <div class="concept"><div class="hdr"><span class="ico">🤖</span><span class="nm">Agents</span></div><div class="dsc">LLMs que deciden qué herramientas usar</div><div class="exm">¿buscar? ¿calcular? ¿consultar DB?</div></div>
+                        <div class="concept"><div class="hdr"><span class="ico">📚</span><span class="nm">RAG</span></div><div class="dsc">Retrieval Augmented Generation</div><div class="exm">Busca en docs → Añade contexto → Responde</div></div>
+                        <div class="concept"><div class="hdr"><span class="ico">🧠</span><span class="nm">Memory</span></div><div class="dsc">Mantiene contexto entre mensajes</div><div class="exm">Recuerda conversación anterior</div></div>
+                        <div class="concept"><div class="hdr"><span class="ico">🔧</span><span class="nm">Tools</span></div><div class="dsc">Funciones que el LLM puede invocar</div><div class="exm">Calculadora, buscador, APIs externas</div></div>
+                        <div class="concept"><div class="hdr"><span class="ico">📊</span><span class="nm">LangGraph</span></div><div class="dsc">Workflows complejos con estados</div><div class="exm">Grafos de decisión, loops, paralelismo</div></div>
+                    </div>
+                    <div class="tip"><span class="icon">🎯</span><p><strong>¡Estás listo!</strong> Con estos fundamentos de LLMs y Prompt Engineering, tienes la base perfecta para el curso de LangChain. ¡Éxito! 🚀</p></div>
+                `
+            }
+        ]
+    }
+];
+
+let currentModule = 0;
+let currentSlide = 0;
+
+function getTotalSlides() {
+    return modules.reduce((acc, m) => acc + m.slides.length, 0);
+}
+
+function getCurrentSlideNum() {
+    let count = 0;
+    for (let i = 0; i < currentModule; i++) count += modules[i].slides.length;
+    return count + currentSlide + 1;
+}
+
+function render() {
+    const mod = modules[currentModule];
+    const slide = mod.slides[currentSlide];
+    
+    document.getElementById('moduleNav').innerHTML = modules.map((m, i) => 
+        `<button class="module-btn ${i === currentModule ? 'active' : ''}" data-color="${m.color}" onclick="goModule(${i})">${m.icon} ${m.title}</button>`
+    ).join('');
+    
+    const header = document.getElementById('slideHeader');
+    header.setAttribute('data-color', mod.color);
+    document.getElementById('slideIcon').textContent = mod.icon;
+    document.getElementById('slideMeta').textContent = `Módulo ${currentModule + 1} • Slide ${currentSlide + 1}/${mod.slides.length}`;
+    document.getElementById('slideTitle').textContent = slide.title;
+    
+    document.getElementById('slideContent').innerHTML = slide.html;
+    
+    document.getElementById('dots').innerHTML = mod.slides.map((_, i) => 
+        `<button class="dot ${i === currentSlide ? 'active' : ''}" onclick="goSlide(${i})"></button>`
+    ).join('');
+    
+    document.getElementById('refBtns').innerHTML = mod.slides.map((s, i) => 
+        `<button class="ref-btn ${i === currentSlide ? 'active' : ''}" onclick="goSlide(${i})">${s.title}</button>`
+    ).join('');
+    
+    document.getElementById('progress').textContent = Math.round((getCurrentSlideNum() / getTotalSlides()) * 100) + '%';
+    
+    document.getElementById('prevBtn').disabled = currentModule === 0 && currentSlide === 0;
+    document.getElementById('nextBtn').disabled = currentModule === modules.length - 1 && currentSlide === mod.slides.length - 1;
+}
+
+function nextSlide() {
+    const mod = modules[currentModule];
+    if (currentSlide < mod.slides.length - 1) {
+        currentSlide++;
+    } else if (currentModule < modules.length - 1) {
+        currentModule++;
+        currentSlide = 0;
+    }
+    render();
+}
+
+function prevSlide() {
+    if (currentSlide > 0) {
+        currentSlide--;
+    } else if (currentModule > 0) {
+        currentModule--;
+        currentSlide = modules[currentModule].slides.length - 1;
+    }
+    render();
+}
+
+function goSlide(i) { currentSlide = i; render(); }
+function goModule(i) { currentModule = i; currentSlide = 0; render(); }
+
+function switchTab(tabsId, contentId, index) {
+    const tabs = document.getElementById(tabsId).querySelectorAll('.tab');
+    const contents = document.getElementById(contentId).querySelectorAll('.tab-content');
+    tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+    contents.forEach((c, i) => c.classList.toggle('active', i === index));
+}
+
+function toggleReveal(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('show');
+}
+
+document.getElementById('prevBtn').onclick = prevSlide;
+document.getElementById('nextBtn').onclick = nextSlide;
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+    if (e.key === 'ArrowLeft') prevSlide();
+});
+
+render();
+</script>
+</body>
+</html>

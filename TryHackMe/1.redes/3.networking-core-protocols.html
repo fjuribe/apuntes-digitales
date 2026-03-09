@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking Core Protocols — TryHackMe Room 3/4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06060f;--bg2:#0b0b1a;--bg3:#101025;
+  --text:#e8e8f0;--muted:#a0a0b8;--dim:#707088;--faint:#505068;--dark:#353548;
+  --border:rgba(255,255,255,0.06);
+  --cyan:#00e5c8;--yellow:#ffd639;--pink:#f050a0;--purple:#a855f7;
+  --blue:#3b9eff;--red:#ff5555;--green:#22d68a;--orange:#ff9030;
+  --teal:#14b8a6;--sky:#38bdf8;--rose:#fb7185;
+  --mono:'IBM Plex Mono',monospace;--ui:'Outfit',sans-serif;
+}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse 600px 400px at 20% 20%,rgba(0,229,200,0.025),transparent),radial-gradient(ellipse 500px 500px at 80% 80%,rgba(168,85,247,0.025),transparent);pointer-events:none;z-index:0}
+
+.header{position:relative;background:linear-gradient(160deg,#08081a 0%,#12082a 40%,#081a20 100%);padding:30px 20px 22px;border-bottom:1px solid rgba(0,229,200,0.1);overflow:hidden}
+.header::after{content:"";position:absolute;bottom:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent)}
+.header-inner{max-width:920px;margin:0 auto;position:relative;z-index:1}
+.header-tag{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;opacity:.8}
+.header h1{font-size:clamp(22px,4vw,28px);font-weight:900;margin:4px 0 2px;background:linear-gradient(90deg,var(--cyan),var(--blue),var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .sub{color:var(--faint);font-size:13px}
+.room-badge{display:inline-block;background:var(--cyan);color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;margin-left:8px;vertical-align:middle}
+
+.nav{background:rgba(6,6,15,0.97);border-bottom:1px solid var(--border);padding:10px 20px;overflow-x:auto;position:sticky;top:0;z-index:200;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.nav-inner{max-width:920px;margin:0 auto;display:flex;gap:4px;min-width:max-content}
+.nav-btn{background:transparent;color:var(--faint);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .25s;font-family:var(--mono)}
+.nav-btn:hover{color:var(--muted);border-color:rgba(255,255,255,0.12)}
+.nav-btn.active{border:none;color:var(--bg)}
+.content{max-width:920px;margin:0 auto;padding:24px 20px 100px;position:relative;z-index:1}
+.sec-title{font-size:22px;font-weight:900;margin:0 0 4px}
+.sec-sub{color:var(--faint);font-size:13px;margin-bottom:20px}
+
+.box{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color .3s}
+.terminal{background:#07070e;border:1px solid rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;margin:12px 0}
+.term-bar{background:rgba(255,255,255,0.025);padding:6px 14px;font-size:10px;color:var(--faint);display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.term-dots{display:flex;gap:5px}
+.term-dots span{width:9px;height:9px;border-radius:50%}
+.terminal pre{padding:16px;margin:0;font-size:11.5px;line-height:1.7;font-family:var(--mono);color:var(--muted);overflow-x:auto;white-space:pre-wrap}
+.cmd{color:#22d68a}.hl{color:#00e5c8}.warn{color:#ffd639}.ip{color:#f050a0}.srv{color:#3b9eff}.err{color:#ff5555}
+
+.tip{border-left:3px solid;border-radius:0 12px 12px 0;padding:12px 16px;margin:12px 0;background:rgba(255,255,255,0.012)}
+.tip-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px;font-family:var(--mono)}
+.tip-body{color:var(--muted);font-size:13px;line-height:1.65}
+.tip-body strong{color:var(--text)}
+.tip-body code{font-family:var(--mono);background:rgba(0,229,200,0.08);color:var(--cyan);padding:1px 6px;border-radius:4px;font-size:11.5px}
+.badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.3px;display:inline-block}
+.P{color:var(--muted);font-size:14px;line-height:1.8;margin:0 0 10px}
+.P strong{color:var(--text)}
+.P code{font-family:var(--mono);background:rgba(0,229,200,0.08);color:var(--cyan);padding:1px 6px;border-radius:4px;font-size:12px}
+.H{font-weight:800;font-size:15px;margin-bottom:8px}
+.expand-item{border:1.5px solid rgba(255,255,255,0.05);border-radius:12px;padding:13px 16px;cursor:pointer;transition:all .3s;background:rgba(255,255,255,0.01)}
+.expand-item:hover{background:rgba(255,255,255,0.018)}
+.tab-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.tab-btn{border-radius:10px;padding:7px 16px;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--mono);transition:all .25s;border:1.5px solid}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.grid-200{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.flex-col{display:flex;flex-direction:column}
+.gap-4{gap:4px}.gap-5{gap:5px}.gap-6{gap:6px}.gap-8{gap:8px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}
+.dns-card{border-radius:10px;padding:14px 16px;border-left:3px solid;cursor:pointer;transition:transform .2s,background .3s;background:rgba(255,255,255,0.012);border:1px solid rgba(255,255,255,0.04);border-left:3px solid}
+.dns-card:hover{transform:translateX(3px)}
+.quiz-opt{background:rgba(255,255,255,0.02);border:2px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 18px;color:#ccc;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all .3s;width:100%;display:block;font-family:var(--ui)}
+.quiz-opt:hover{border-color:rgba(255,255,255,0.15)}
+.quiz-next{background:var(--orange);color:var(--bg);border:none;border-radius:12px;padding:12px 0;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--mono);display:block;width:100%;margin-top:18px}
+.quiz-reset{background:var(--green);color:var(--bg);border:none;border-radius:12px;padding:12px 32px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--mono)}
+.port-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-left:3px solid;background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0;transition:background .2s}
+.port-row:hover{background:rgba(255,255,255,0.03)}
+::-webkit-scrollbar{height:4px;width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
+@media(max-width:600px){.grid-200{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner">
+  <div class="header-tag">TryHackMe · Room 3/4</div>
+  <h1>Networking Core Protocols <span class="room-badge">Room 3</span></h1>
+  <p class="sub">DNS · WHOIS · HTTP · FTP · SMTP · POP3 · IMAP — Los protocolos que mueven Internet 🏴‍☠️</p>
+</div></div>
+<div class="nav"><div class="nav-inner" id="nav"></div></div>
+<div class="content"><div id="sh"></div><div id="sc"></div></div>
+
+<script>
+const TABS=[
+  {id:"intro",icon:"🏠",label:"Inicio",color:"#00e5c8"},
+  {id:"dns",icon:"📖",label:"DNS",color:"#3b9eff"},
+  {id:"whois",icon:"🔍",label:"WHOIS",color:"#a855f7"},
+  {id:"http",icon:"🌐",label:"HTTP/S",color:"#22d68a"},
+  {id:"ftp",icon:"📁",label:"FTP",color:"#ff9030"},
+  {id:"smtp",icon:"📤",label:"SMTP",color:"#f050a0"},
+  {id:"pop3imap",icon:"📥",label:"POP3/IMAP",color:"#ffd639"},
+  {id:"flow",icon:"📨",label:"Flujo Email",color:"#14b8a6"},
+  {id:"ports",icon:"🚪",label:"Puertos",color:"#38bdf8"},
+  {id:"tools",icon:"🛠️",label:"Tools",color:"#84cc16"},
+  {id:"quiz",icon:"🧠",label:"Quiz",color:"#ff9030"},
+];
+const QS=[
+  {q:"¿En qué puerto opera DNS por defecto?",o:["80","443","53","25"],c:2},
+  {q:"¿Qué registro DNS mapea un hostname a IPv4?",o:["AAAA","CNAME","MX","A"],c:3},
+  {q:"¿Qué registro DNS indica el servidor de correo?",o:["A","MX","CNAME","TXT"],c:1},
+  {q:"¿En qué puerto opera WHOIS?",o:["53","80","43","25"],c:2},
+  {q:"¿Qué puerto usa HTTP?",o:["443","8080","80","21"],c:2},
+  {q:"¿Qué puerto usa HTTPS?",o:["80","443","8443","22"],c:1},
+  {q:"¿HTTP es stateful o stateless?",o:["Stateful","Stateless"],c:1},
+  {q:"¿Qué método HTTP se usa para enviar datos de un formulario?",o:["GET","POST","PUT","HEAD"],c:1},
+  {q:"¿FTP usa cuántos canales de comunicación?",o:["1","2","3","4"],c:1},
+  {q:"¿En qué puerto escucha el canal de control de FTP?",o:["20","21","22","25"],c:1},
+  {q:"¿Qué protocolo se usa para ENVIAR emails?",o:["POP3","IMAP","SMTP","FTP"],c:2},
+  {q:"¿En qué puerto opera SMTP?",o:["110","143","25","587"],c:2},
+  {q:"¿POP3 escucha en qué puerto?",o:["25","110","143","993"],c:1},
+  {q:"¿IMAP escucha en qué puerto?",o:["25","110","143","993"],c:2},
+  {q:"¿Qué protocolo DESCARGA emails y los borra del servidor?",o:["SMTP","IMAP","POP3","DNS"],c:2},
+  {q:"¿Qué protocolo sincroniza emails en múltiples dispositivos?",o:["POP3","SMTP","IMAP","FTP"],c:2},
+  {q:"¿Qué comando SMTP indica el inicio del contenido del email?",o:["HELO","MAIL FROM","RCPT TO","DATA"],c:3},
+  {q:"¿AAAA record es para...?",o:["IPv4","IPv6","Mail","Alias"],c:1},
+  {q:"¿Qué código HTTP significa 'Not Found'?",o:["200","301","403","404"],c:3},
+  {q:"¿Qué comando FTP descarga un archivo del servidor?",o:["STOR","LIST","RETR","PASV"],c:2},
+];
+
+let activeTab="intro",dnsOpen=null,httpTab="methods",expState={};
+let qCur=0,qSel=null,qAns=false,qScore=0,qDone=false;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function badge(t,c){return `<span class="badge" style="background:${c}18;color:${c}">${t}</span>`}
+function box(h,g,x=""){return `<div class="box" style="${g?`border-color:${g}35;box-shadow:0 0 25px ${g}08;`:''}${x}">${h}</div>`}
+function term(c,t="Terminal"){return `<div class="terminal"><div class="term-bar"><span class="term-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></span>${t}</div><pre>${c}</pre></div>`}
+function tip(type,body){const s={tip:{i:"💡",c:"#ffd639",l:"Tip"},hacker:{i:"🏴‍☠️",c:"#ff5555",l:"Nota Hacker"},key:{i:"🔑",c:"#22d68a",l:"Concepto Clave"},warn:{i:"⚠️",c:"#ff9030",l:"Atención"},deep:{i:"🔬",c:"#a855f7",l:"Profundizar"},exam:{i:"📝",c:"#3b9eff",l:"Para el examen"}}[type]||{i:"💡",c:"#ffd639",l:"Tip"};return `<div class="tip" style="background:${s.c}06;border-left-color:${s.c}"><div class="tip-label" style="color:${s.c}">${s.i} ${s.l}</div><div class="tip-body">${body}</div></div>`}
+function tabBar(tabs,act,fn){return `<div class="tab-bar">${tabs.map(t=>`<button class="tab-btn" onclick="${fn}('${t.id}')" style="background:${act===t.id?t.color:'transparent'};color:${act===t.id?'var(--bg)':t.color};border-color:${t.color}">${t.label}</button>`).join("")}</div>`}
+function accordion(items,color,group){return `<div class="flex-col gap-5">${items.map((it,i)=>{const open=expState[group]===i;return `<div class="expand-item" onclick="toggleExp('${group}',${i})" style="background:${open?color+'0a':''};border-color:${open?color+'50':'rgba(255,255,255,0.05)'}"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:10px">${it.icon?`<span style="font-size:18px">${it.icon}</span>`:''}<div><div style="color:#fff;font-weight:700;font-size:14px">${it.title}</div>${it.sub?`<div style="color:var(--faint);font-size:11px;margin-top:2px">${it.sub}</div>`:''}</div></div><span style="color:var(--dark)">${open?"▲":"▼"}</span></div>${open?`<div style="margin-top:12px">${it.content}</div>`:''}</div>`}).join("")}</div>`}
+function toggleExp(g,i){expState[g]=expState[g]===i?null:i;render()}
+
+function renderNav(){document.getElementById("nav").innerHTML=TABS.map(t=>{const a=activeTab===t.id;return `<button class="nav-btn ${a?'active':''}" style="${a?`background:${t.color};`:''}" onclick="setTab('${t.id}')">${t.icon} ${t.label}</button>`}).join("")}
+function setTab(id){activeTab=id;renderNav();render();window.scrollTo({top:0,behavior:'smooth'})}
+function render(){
+  const t=TABS.find(x=>x.id===activeTab);
+  document.getElementById("sh").innerHTML=`<h2 class="sec-title" style="color:${t.color}">${t.icon} ${t.label}</h2><p class="sec-sub">${({intro:"Bienvenido al Room 3 de Networking",dns:"Domain Name System — La guía telefónica de Internet",whois:"Consulta pública de datos de registro de dominios",http:"HyperText Transfer Protocol — La base de la web",ftp:"File Transfer Protocol — Transferencia de archivos",smtp:"Simple Mail Transfer Protocol — Enviar correos",pop3imap:"Protocolos para recibir y leer correos",flow:"El viaje completo de un email de punta a punta",ports:"Tabla resumen de todos los puertos del room",tools:"Tu kit de herramientas para este room",quiz:"20 preguntas — ¿Cuánto aprendiste?"})[t.id]||""}</p>`;
+  document.getElementById("sc").innerHTML=({intro:rIntro,dns:rDNS,whois:rWHOIS,http:rHTTP,ftp:rFTP,smtp:rSMTP,pop3imap:rPOP3,flow:rFlow,ports:rPorts,tools:rTools,quiz:rQuiz})[activeTab]();
+}
+
+// ══════ INTRO ══════
+function rIntro(){
+  const topics=[{icon:"📖",t:"DNS",d:"Traduce nombres a IPs",c:"#3b9eff",port:"53"},{icon:"🔍",t:"WHOIS",d:"¿Quién registró este dominio?",c:"#a855f7",port:"43"},{icon:"🌐",t:"HTTP/S",d:"La base de toda la web",c:"#22d68a",port:"80/443"},{icon:"📁",t:"FTP",d:"Transferencia de archivos",c:"#ff9030",port:"21"},{icon:"📤",t:"SMTP",d:"Envío de correos",c:"#f050a0",port:"25"},{icon:"📥",t:"POP3",d:"Descargar correos",c:"#ffd639",port:"110"},{icon:"📥",t:"IMAP",d:"Sincronizar correos",c:"#14b8a6",port:"143"}];
+  return `<p class="P">Bienvenido al <strong style="color:var(--cyan)">tercer room</strong> de la serie de networking de TryHackMe. Aquí aprenderás los <strong>protocolos de la Capa de Aplicación</strong> (Layer 7 del modelo OSI) que usas a diario sin darte cuenta: navegar la web, enviar emails, transferir archivos y consultar dominios.</p>
+  <div class="grid-auto mt-16 mb-20">${topics.map(t=>box(`<div style="font-size:26px;margin-bottom:6px">${t.icon}</div><div style="color:${t.c};font-weight:800;font-size:14px">${t.t}</div><div style="color:var(--dim);font-size:11px;margin-top:2px">${t.d}</div><div style="margin-top:6px">${badge("Puerto "+t.port,t.c)}</div>`,t.c)).join("")}</div>
+  ${tip("key",'<strong>Prerrequisitos:</strong> Modelo OSI, TCP/IP, direcciones IP, Ethernet, IP y TCP (rooms anteriores: Networking Concepts + Networking Essentials).')}
+  ${tip("exam",'<strong>TODOS estos protocolos operan en Capa 7 (Aplicación)</strong> del OSI. Memoriza sus puertos — aparecen en CTFs, certificaciones y exámenes constantemente.')}
+  ${box(`<div style="color:var(--cyan);font-weight:700;font-size:13px;margin-bottom:8px">📚 Serie completa de rooms</div>${["1. Networking Concepts ✅","2. Networking Essentials ✅","3. Networking Core Protocols ← Estás aquí","4. Networking Secure Protocols"].map((r,i)=>`<div style="color:${i===2?'var(--cyan)':'var(--faint)'};font-size:13px;padding:3px 0;font-weight:${i===2?700:400};font-family:var(--mono)">${r}</div>`).join("")}`,"var(--cyan)","margin-top:16px;")}`;
+}
+
+// ══════ DNS ══════
+function rDNS(){
+  const recs=[
+    {type:"A",c:"#3b9eff",full:"Address Record",desc:"Mapea un hostname a una <strong>dirección IPv4</strong>.",ex:"example.com → 93.184.215.14",detail:"Es el registro más común. Cuando escribes una URL, el DNS busca el registro A para encontrar la IP del servidor."},
+    {type:"AAAA",c:"#a855f7",full:"Quad-A Record",desc:"Mapea un hostname a una <strong>dirección IPv6</strong>.",ex:"example.com → 2606:2800:21f:cb07:...",detail:"Igual que A pero para IPv6 (128 bits). Se llama AAAA porque IPv6 es 4 veces más largo que IPv4. <strong>No confundir</strong> con AA (baterías) ni AAA (Authentication, Authorization, Accounting)."},
+    {type:"CNAME",c:"#22d68a",full:"Canonical Name",desc:"Mapea un dominio a <strong>otro dominio</strong> (alias).",ex:"www.example.com → example.com",detail:"Crea un alias. Útil para que múltiples subdominios apunten al mismo lugar. Ej: www.example.com y blog.example.com pueden apuntar a example.com."},
+    {type:"MX",c:"#f050a0",full:"Mail Exchange",desc:"Indica el <strong>servidor de correo</strong> responsable del dominio.",ex:"example.com → mail.example.com (prioridad 10)",detail:"Cuando envías un email a user@example.com, el servidor consulta el MX record para saber a dónde entregar el mensaje. Puede haber varios con diferentes prioridades (el número menor = mayor prioridad)."},
+    {type:"TXT",c:"#ffd639",full:"Text Record",desc:"Almacena <strong>texto arbitrario</strong> para verificación y seguridad.",ex:'v=spf1 include:_spf.google.com ~all',detail:"Se usa para SPF (anti-spoofing), DKIM (firma digital de emails), DMARC y verificación de propiedad de dominio."},
+    {type:"NS",c:"#ff9030",full:"Name Server",desc:"Indica los <strong>servidores DNS autoritativos</strong> del dominio.",ex:"example.com → ns1.example.com",detail:"Define quién tiene la autoridad final sobre los registros DNS. Si cambias de proveedor de hosting, actualizas los NS records."},
+  ];
+  const cards=recs.map((r,i)=>{const open=dnsOpen===i;return `<div class="dns-card" onclick="toggleDNS(${i})" style="border-left-color:${r.c};${open?`background:${r.c}0a;border-color:${r.c}40;`:''}"><div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:10px">${badge(r.type,r.c)}<div><div style="color:var(--text);font-weight:700;font-size:14px">${r.full}</div><div style="color:var(--dim);font-size:12px;margin-top:2px">${r.desc}</div></div></div><span style="color:var(--dark)">${open?"▲":"▼"}</span></div>${open?`<div style="margin-top:12px"><p class="P">${r.detail}</p><div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:12px;color:${r.c}">${esc(r.ex)}</div></div>`:''}</div>`}).join("");
+
+  return `<p class="P">¿Recuerdas las IPs de tus sitios favoritos? Nadie las memoriza gracias a <strong style="color:#3b9eff">DNS</strong> (Domain Name System). DNS traduce nombres de dominio legibles a direcciones IP que los computadores entienden.</p>
+  ${box(`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center"><div style="text-align:center"><div style="font-size:28px">🌐</div><div style="color:var(--muted);font-size:11px;margin-top:4px">www.example.com</div></div><div style="color:var(--blue);font-size:18px;font-family:var(--mono)">→ DNS →</div><div style="text-align:center"><div style="font-size:28px">📍</div><div style="color:var(--pink);font-size:11px;margin-top:4px;font-family:var(--mono)">93.184.215.14</div></div></div>`,"#3b9eff","text-align:center;padding:24px;")}
+  ${tip("key",'DNS opera en <strong>Capa 7 (Aplicación)</strong>. Usa <strong>UDP puerto 53</strong> por defecto y <strong>TCP puerto 53</strong> como fallback (respuestas grandes o transferencias de zona).')}
+  <div class="mt-20 mb-12"><div class="H" style="color:#3b9eff">📋 Tipos de registros DNS — haz clic para expandir</div></div>
+  <div class="flex-col gap-6">${cards}</div>
+  <div class="mt-20"><div class="H" style="color:#3b9eff">🔬 En la práctica: nslookup</div></div>
+  <p class="P">El comando <code>nslookup</code> permite consultar DNS desde la terminal. Observa cómo devuelve tanto la IPv4 (A record) como la IPv6 (AAAA record):</p>
+  ${term(`<span class="cmd">$</span> nslookup www.example.com
+Server:         127.0.0.53
+Address:        127.0.0.53#53
+
+Non-authoritative answer:
+Name:   www.example.com
+Address: <span class="ip">93.184.215.14</span>
+Name:   www.example.com
+Address: <span class="ip">2606:2800:21f:cb07:6820:80da:af6b:8b2c</span>`,"nslookup — Consulta DNS")}
+  <div class="mt-16"><div class="H" style="color:#3b9eff">🦈 Captura real con tshark (del room)</div></div>
+  <p class="P">Al analizar el tráfico DNS con tshark, vemos que el navegador primero consulta el registro <strong>A</strong> (IPv4) y luego el <strong>AAAA</strong> (IPv6):</p>
+  ${term(`<span class="cmd">$</span> tshark -r dns-query.pcapng -Nn
+1 0.000 <span class="ip">192.168.66.89</span> → <span class="ip">192.168.66.1</span>  DNS  Standard query <span class="hl">A</span> www.example.com
+2 0.059 <span class="ip">192.168.66.1</span>  → <span class="ip">192.168.66.89</span> DNS  Response <span class="hl">A</span> www.example.com → <span class="ip">93.184.215.14</span>
+3 0.059 <span class="ip">192.168.66.89</span> → <span class="ip">192.168.66.1</span>  DNS  Standard query <span class="hl">AAAA</span> www.example.com
+4 0.101 <span class="ip">192.168.66.1</span>  → <span class="ip">192.168.66.89</span> DNS  Response <span class="hl">AAAA</span> → <span class="ip">2606:2800:21f:cb07:...</span>`,"tshark — Captura DNS real del room")}
+  ${tip("hacker",'<strong>DNS Enumeration</strong> es clave en pentesting. Herramientas: <code>dig</code>, <code>nslookup</code>, <code>host</code>, <code>dnsrecon</code>, <code>amass</code>. Busca subdominios ocultos, registros TXT con info sensible, y transferencias de zona (AXFR) mal configuradas.')}
+  ${tip("deep",'Investiga: <strong>DNS over HTTPS (DoH)</strong> y <strong>DNS over TLS (DoT)</strong> para privacidad, <strong>DNSSEC</strong> para integridad, y la <strong>jerarquía DNS</strong> (Root → TLD → Authoritative → Resolver).')}`;
+}
+function toggleDNS(i){dnsOpen=dnsOpen===i?null:i;render()}
+
+// ══════ WHOIS ══════
+function rWHOIS(){
+  return `<p class="P">En la tarea anterior vimos cómo DNS resuelve dominios a IPs. Pero ¿quién tiene la autoridad para configurar esos registros? Quien <strong>registra</strong> el dominio. <strong style="color:#a855f7">WHOIS</strong> es un protocolo que permite consultar información pública sobre el registro de un dominio.</p>
+  <p class="P">Aunque se escribe en mayúsculas, <strong>WHOIS no es un acrónimo</strong> — se pronuncia "who is" (¿quién es?).</p>
+  ${box(`<div class="H" style="color:#a855f7">🔍 ¿Qué información te da WHOIS?</div><div class="grid-200 mt-8">${[{icon:"👤",l:"Registrante",d:"Nombre/organización del dueño"},{icon:"🏢",l:"Registrar",d:"Empresa donde se compró (GoDaddy, Namecheap...)"},{icon:"📅",l:"Fechas",d:"Creación, expiración, última actualización"},{icon:"📍",l:"Name Servers",d:"DNS autoritativos del dominio"},{icon:"📧",l:"Contacto",d:"Email, teléfono (si no usa privacidad)"},{icon:"🛡️",l:"Domain Status",d:"Estados de protección (clientTransferProhibited...)"}].map(c=>`<div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:10px 12px"><div style="font-size:20px">${c.icon}</div><div style="color:var(--text);font-weight:700;font-size:12px;margin-top:4px">${c.l}</div><div style="color:var(--dim);font-size:11px">${c.d}</div></div>`).join("")}</div>`,"#a855f7")}
+  ${tip("key",'WHOIS opera en <strong>TCP puerto 43</strong>. El cliente se conecta al servidor WHOIS del registrar y envía el nombre de dominio como texto plano.')}
+  <div class="mt-16"><div class="H" style="color:#a855f7">🖥️ Ejemplo real del room (con datos censurados)</div></div>
+  <p class="P">En la captura del room se observan los campos típicos: fechas de creación/expiración, registrar (CSC Corporate Domains), estados del dominio, y datos del registrante (censurados en verde).</p>
+  ${term(`<span class="cmd">$</span> whois [DOMINIO].com
+Domain Name: [REDACTED].COM
+Registrar WHOIS Server: <span class="hl">whois.corporatedomains.com</span>
+Updated Date: <span class="warn">2020-10-19T15:26:24Z</span>
+Creation Date: <span class="hl">1988-10-12T00:00:00.000-04:00</span>
+Expiration Date: <span class="ip">2024-10-11T00:00:00.000-04:00</span>
+Registrar: <span class="srv">CSC CORPORATE DOMAINS, INC.</span>
+Registrar IANA ID: 299
+
+Domain Status: clientTransferProhibited
+Domain Status: serverDeleteProhibited
+Domain Status: serverTransferProhibited
+
+Registrant Name: [CENSURADO]
+Registrant Organization: [CENSURADO]
+Registrant Email: [CENSURADO]
+Admin Name: [CENSURADO]
+Tech Name: [CENSURADO]`,"whois — Datos de registro (del room)")}
+  <div class="mt-16"><div class="H" style="color:#a855f7">🛡️ WHOIS con protección de privacidad</div></div>
+  <p class="P">Muchos dominios usan servicios de privacidad que ocultan los datos reales del registrante:</p>
+  ${term(`<span class="cmd">$</span> whois [REDACTED].com
+Domain Name: [REDACTED].COM
+Registrar: <span class="srv">GoDaddy.com, LLC</span>
+Creation Date: <span class="hl">1993-04-02T00:00:00Z</span>
+Expiration Date: <span class="ip">2026-10-20T14:56:17Z</span>
+
+Registrant Name: <span class="warn">Registration Private</span>
+Registrant Organization: <span class="warn">Domains By Proxy, LLC</span>
+Registrant Street: <span class="warn">DomainsByProxy.com</span>`,"whois — Con WHOIS Privacy Protection")}
+  ${tip("hacker",'WHOIS es <strong>esencial en reconocimiento pasivo</strong>. Te da: emails del admin (para phishing), fechas de expiración (para domain hijacking), name servers (para atacar DNS), y a veces rangos de IP completos.')}
+  ${tip("deep",'Herramientas: <code>whois</code> (CLI Linux), <strong>whois.domaintools.com</strong>, <strong>who.is</strong>. Para IPs usa los RIRs: ARIN (América del Norte), RIPE (Europa), LACNIC (Latinoamérica), APNIC (Asia-Pacífico).')}`;
+}
+
+// ══════ HTTP ══════
+function rHTTP(){
+  let content="";
+  if(httpTab==="methods"){
+    content=`<div class="flex-col gap-5">${[
+      {m:"GET",c:"#22d68a",d:"Solicita un recurso. Parámetros van en la URL.",use:"Cargar páginas, imágenes, scripts"},
+      {m:"POST",c:"#3b9eff",d:"Envía datos al servidor en el body (no visible en URL).",use:"Login, formularios, subir archivos"},
+      {m:"PUT",c:"#ff9030",d:"Crea o reemplaza completamente un recurso.",use:"Actualizar un perfil completo via API"},
+      {m:"DELETE",c:"#ff5555",d:"Elimina un recurso del servidor.",use:"Borrar una cuenta o archivo via API"},
+      {m:"HEAD",c:"#a855f7",d:"Igual que GET pero solo devuelve headers (sin body).",use:"Verificar si un recurso existe"},
+      {m:"PATCH",c:"#ffd639",d:"Modifica parcialmente un recurso.",use:"Cambiar solo un campo de un perfil"},
+    ].map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-left:3px solid ${m.c};background:rgba(255,255,255,0.015);border-radius:0 10px 10px 0">${badge(m.m,m.c)}<div><div style="color:var(--muted);font-size:13px">${m.d}</div><div style="color:var(--faint);font-size:11px;margin-top:2px">Uso: ${m.use}</div></div></div>`).join("")}</div>`;
+  } else if(httpTab==="codes"){
+    const groups=[
+      {r:"1xx",l:"Informacional",c:"#3b9eff",codes:[[100,"Continue"]]},
+      {r:"2xx",l:"Éxito ✅",c:"#22d68a",codes:[[200,"OK"],[201,"Created"],[204,"No Content"]]},
+      {r:"3xx",l:"Redirección 🔄",c:"#ffd639",codes:[[301,"Moved Permanently"],[302,"Found (Temporal)"],[304,"Not Modified"]]},
+      {r:"4xx",l:"Error del cliente ❌",c:"#ff9030",codes:[[400,"Bad Request"],[401,"Unauthorized"],[403,"Forbidden"],[404,"Not Found"],[429,"Too Many Requests"]]},
+      {r:"5xx",l:"Error del servidor 💥",c:"#ff5555",codes:[[500,"Internal Server Error"],[502,"Bad Gateway"],[503,"Service Unavailable"]]},
+    ];
+    content=groups.map(g=>`<div class="mb-16"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">${badge(g.r,g.c)}<span style="color:${g.c};font-weight:700;font-size:13px">${g.l}</span></div><div class="flex-col gap-4">${g.codes.map(([n,d])=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-left:2px solid ${g.c};background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0"><span style="color:${g.c};font-weight:900;font-family:var(--mono);font-size:14px;min-width:36px">${n}</span><span style="color:var(--muted);font-size:12px">${d}</span></div>`).join("")}</div></div>`).join("");
+  } else {
+    content=`<p class="P"><strong>HTTPS</strong> = HTTP + <strong style="color:#22d68a">TLS/SSL</strong>. El tráfico viaja cifrado entre el navegador y el servidor.</p><div class="grid-200 mt-12">${[{l:"HTTP",p:"80",s:"❌ Sin cifrar — cualquiera puede leer el tráfico",c:"#ff5555"},{l:"HTTPS",p:"443",s:"✅ Cifrado TLS — protege contra interceptación",c:"#22d68a"}].map(p=>`<div style="background:rgba(255,255,255,0.02);border:2px solid ${p.c}30;border-radius:12px;padding:16px;text-align:center"><div style="color:${p.c};font-weight:900;font-size:18px">${p.l}</div><div style="color:var(--muted);font-family:var(--mono);font-size:14px;margin-top:6px">Puerto ${p.p}</div><div style="color:var(--dim);font-size:12px;margin-top:4px">${p.s}</div></div>`).join("")}</div>${tip("warn",'Con HTTP plano, herramientas como Wireshark pueden ver <strong>todo</strong>: URLs, cookies, credenciales. HTTPS cifra esta comunicación.')}`;
+  }
+  return `<p class="P">Cuando abres tu navegador, usas <strong style="color:#22d68a">HTTP</strong> (HyperText Transfer Protocol). Tu navegador envía <strong>requests</strong> al servidor web y recibe <strong>responses</strong> con el contenido de la página.</p>
+  ${tip("key",'HTTP usa <strong>TCP puerto 80</strong> y HTTPS usa <strong>TCP puerto 443</strong>. Puertos alternativos: 8080 y 8443. HTTP es <strong>stateless</strong> — cada request es independiente.')}
+  ${tabBar([{id:"methods",label:"📝 Métodos HTTP",color:"#22d68a"},{id:"codes",label:"📊 Códigos de respuesta",color:"#3b9eff"},{id:"https",label:"🔒 HTTP vs HTTPS",color:"#a855f7"}],httpTab,"setHttpTab")}${content}
+  <div class="mt-20"><div class="H" style="color:#22d68a">🦈 Wireshark: HTTP Request/Response (del room)</div></div>
+  <p class="P">En la captura de Wireshark del room, se ve el request GET del navegador (rojo) y la respuesta 200 OK del servidor nginx (azul), incluyendo headers y el HTML completo:</p>
+  ${term(`<span class="err">GET / HTTP/1.1</span>
+<span class="err">Host: 10.10.41.192</span>
+<span class="err">Connection: keep-alive</span>
+<span class="err">User-Agent: Mozilla/5.0 (X11; Linux x86_64) Chrome/126.0.0.0</span>
+<span class="err">Accept: text/html,application/xhtml+xml,...</span>
+
+<span class="srv">HTTP/1.1 200 OK</span>
+<span class="srv">Server: nginx/1.18.0 (Ubuntu)</span>
+<span class="srv">Content-Type: text/html</span>
+<span class="srv">Last-Modified: Thu, 27 Jun 2024 06:58:01 GMT</span>
+<span class="srv">Content-Encoding: gzip</span>
+
+<span class="srv">&lt;!DOCTYPE html&gt;</span>
+<span class="srv">&lt;html lang="en"&gt;</span>
+<span class="srv">  &lt;title&gt;The Art of Espresso&lt;/title&gt;</span>
+<span class="srv">  ...</span>`,"Wireshark — Follow HTTP Stream (del room)")}
+  ${tip("hacker",'Usa <code>telnet IP 80</code> para hablar HTTP directamente: envía <code>GET / HTTP/1.1</code> y <code>Host: anything</code>. Útil para troubleshooting y para entender cómo funcionan los protocolos por detrás.')}
+  ${tip("deep",'Investiga: <strong>HTTP/2</strong> (multiplexing), <strong>HTTP/3</strong> (basado en QUIC/UDP), <strong>Burp Suite</strong> (proxy para pentesting web), <strong>cURL</strong> y <strong>HTTPie</strong> para requests desde CLI.')}`;
+}
+function setHttpTab(t){httpTab=t;render()}
+
+// ══════ FTP ══════
+function rFTP(){
+  return `<p class="P"><strong style="color:#ff9030">FTP</strong> (File Transfer Protocol) está diseñado específicamente para transferir archivos. A diferencia de HTTP, FTP es <strong>más eficiente</strong> para esta tarea y puede alcanzar mayores velocidades.</p>
+  ${box(`<div class="H" style="color:#ff9030">📡 Los 2 canales separados de FTP</div><div class="grid-200 mt-8">${[{port:"21",name:"Canal de Control",desc:"Envía comandos (USER, PASS, LIST, RETR...) y recibe respuestas. Se mantiene abierto toda la sesión.",c:"#ff9030"},{port:"20",name:"Canal de Datos",desc:"Transfiere archivos y listados de directorio. Se abre y cierra por cada transferencia individual.",c:"#3b9eff"}].map(ch=>`<div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:14px;border-top:3px solid ${ch.c}"><div style="color:${ch.c};font-weight:900;font-family:var(--mono);font-size:18px">Puerto ${ch.port}</div><div style="color:var(--text);font-weight:700;font-size:13px;margin-top:6px">${ch.name}</div><div style="color:var(--dim);font-size:12px;margin-top:4px">${ch.desc}</div></div>`).join("")}</div>`,"#ff9030")}
+  ${tip("key",'FTP tiene dos modos: <strong>Activo</strong> (servidor inicia conexión de datos al cliente) y <strong>Pasivo</strong> (cliente inicia ambas conexiones). Modo pasivo es más compatible con firewalls y NAT.')}
+  <div class="mt-16"><div class="H" style="color:#ff9030">📝 Comandos FTP del protocolo</div></div>
+  <div class="grid-200 mt-8 mb-16">${[{cmd:"USER",d:"Enviar username"},{cmd:"PASS",d:"Enviar password"},{cmd:"LIST",d:"Listar archivos (ls en el cliente)"},{cmd:"RETR",d:"Descargar archivo (retrieve)"},{cmd:"STOR",d:"Subir archivo (store)"},{cmd:"TYPE A",d:"Modo ASCII (texto)"},{cmd:"PASV",d:"Activar modo pasivo"},{cmd:"QUIT",d:"Cerrar sesión"}].map(c=>`<div style="padding:6px 10px;border-left:2px solid #ff9030;background:rgba(255,255,255,0.015);border-radius:0 6px 6px 0"><code style="color:#ff9030;background:transparent;font-size:12px">${c.cmd}</code><div style="color:var(--dim);font-size:11px">${c.d}</div></div>`).join("")}</div>
+  <div class="H" style="color:#ff9030">💻 Sesión FTP real del room</div>
+  ${term(`<span class="cmd">$</span> ftp MACHINE_IP
+Connected to MACHINE_IP.
+<span class="srv">220 (vsFTPd 3.0.5)</span>
+Name: <span class="hl">anonymous</span>
+<span class="srv">331 Please specify the password.</span>
+Password: <span class="dim">(vacío)</span>
+<span class="srv">230 Login successful.</span>
+
+ftp> <span class="hl">ls</span>
+<span class="srv">227 Entering Passive Mode (10,10,41,192,134,10).</span>
+-rw-r--r--  1 0 0  1480 Jun 27 08:03 <span class="warn">coffee.txt</span>
+-rw-r--r--  1 0 0    14 Jun 27 08:04 <span class="warn">flag.txt</span>
+-rw-r--r--  1 0 0  1595 Jun 27 08:05 <span class="warn">tea.txt</span>
+
+ftp> <span class="hl">type ascii</span>
+<span class="srv">200 Switching to ASCII mode.</span>
+
+ftp> <span class="hl">get coffee.txt</span>
+<span class="srv">227 Entering Passive Mode (10,10,41,192,57,100).</span>
+<span class="srv">150 Opening BINARY mode data connection for coffee.txt (1480 bytes).</span>
+<span class="srv">226 Transfer complete.</span>
+1480 bytes received.
+
+ftp> <span class="hl">quit</span>
+<span class="srv">221 Goodbye.</span>`,"FTP — Sesión del room (anonymous login)")}
+  <div class="mt-16"><div class="H" style="color:#ff9030">🦈 Wireshark: FTP Stream (del room)</div></div>
+  <p class="P">En la captura de Wireshark del room se ven los comandos del cliente (rojo) y respuestas del servidor (azul). Nota cómo <code>ls</code> se traduce a <code>LIST</code> y <code>get</code> a <code>RETR</code>:</p>
+  ${term(`<span class="srv">220 (vsFTPd 3.0.5)</span>
+<span class="err">USER anonymous</span>
+<span class="srv">331 Please specify the password.</span>
+<span class="err">PASS</span>
+<span class="srv">230 Login successful.</span>
+<span class="err">SYST</span>
+<span class="srv">215 UNIX Type: L8</span>
+<span class="err">PASV</span>
+<span class="srv">227 Entering Passive Mode (10,10,41,192,134,10).</span>
+<span class="err">LIST</span>
+<span class="srv">150 Here comes the directory listing.</span>
+<span class="srv">226 Directory send OK.</span>
+<span class="err">TYPE A</span>
+<span class="srv">200 Switching to ASCII mode.</span>
+<span class="err">PASV</span>
+<span class="srv">227 Entering Passive Mode (10,10,41,192,57,100).</span>
+<span class="err">RETR coffee.txt</span>
+<span class="srv">150 Opening BINARY mode data connection for coffee.txt (1480 bytes).</span>
+<span class="srv">226 Transfer complete.</span>
+<span class="err">QUIT</span>
+<span class="srv">221 Goodbye.</span>`,"Wireshark — Follow TCP Stream FTP (del room)")}
+  ${tip("warn",'FTP transmite credenciales y datos en <strong>texto plano</strong>. Cualquiera con un sniffer puede ver tu usuario y contraseña. Para producción usa <strong>SFTP</strong> (SSH) o <strong>FTPS</strong> (FTP + TLS).')}
+  ${tip("hacker",'<strong>Anonymous FTP</strong> permite acceso sin credenciales (usuario: anonymous). Muchos servidores mal configurados lo tienen habilitado. <strong>Siempre prueba</strong> con anonymous en pentesting.')}`;
+}
+
+// ══════ SMTP ══════
+function rSMTP(){
+  return `<p class="P"><strong style="color:#f050a0">SMTP</strong> (Simple Mail Transfer Protocol) define cómo un cliente de correo habla con un servidor de correo, y cómo los servidores se comunican entre sí para <strong>enviar</strong> emails.</p>
+  <p class="P">Analogía: Es como ir a la oficina de correos. Saludas al empleado (<code>HELO</code>), dices quién envía (<code>MAIL FROM</code>), a quién va dirigido (<code>RCPT TO</code>), le das el contenido (<code>DATA</code>), y te vas (<code>QUIT</code>).</p>
+  ${tip("key",'SMTP usa <strong>TCP puerto 25</strong> por defecto. Puerto 587 se usa para envío autenticado (submission). Puerto 465 para SMTPS (con TLS).')}
+  <div class="mt-16"><div class="H" style="color:#f050a0">📝 Comandos SMTP</div></div>
+  <div class="flex-col gap-4 mb-16">${[
+    {cmd:"HELO / EHLO",d:"Inicia la sesión SMTP. EHLO soporta extensiones.",c:"#f050a0"},
+    {cmd:"MAIL FROM:",d:"Especifica la dirección del remitente.",c:"#ff9030"},
+    {cmd:"RCPT TO:",d:"Especifica la dirección del destinatario.",c:"#3b9eff"},
+    {cmd:"DATA",d:"Indica que comenzará el contenido del email.",c:"#22d68a"},
+    {cmd:". (punto solo)",d:"Marca el final del contenido del mensaje.",c:"#ffd639"},
+    {cmd:"QUIT",d:"Cierra la sesión SMTP.",c:"#a855f7"},
+  ].map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-left:3px solid ${c.c};background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0"><code style="color:${c.c};background:transparent;font-size:12px;min-width:110px">${c.cmd}</code><span style="color:var(--dim);font-size:12px">${c.d}</span></div>`).join("")}</div>
+  <div class="H" style="color:#f050a0">💻 Enviando un email via telnet (del room)</div>
+  ${term(`<span class="cmd">$</span> telnet MACHINE_IP 25
+<span class="srv">220 example.thm ESMTP Exim 4.95 Ubuntu Thu, 27 Jun 2024 16:18:09 +0000</span>
+<span class="err">HELO client.thm</span>
+<span class="srv">250 example.thm Hello client.thm [10.11.81.126]</span>
+<span class="err">MAIL FROM: &lt;user@client.thm&gt;</span>
+<span class="srv">250 OK</span>
+<span class="err">RCPT TO: &lt;strategos@server.thm&gt;</span>
+<span class="srv">250 Accepted</span>
+<span class="err">DATA</span>
+<span class="srv">354 Enter message, ending with "." on a line by itself</span>
+<span class="err">From: user@client.thm</span>
+<span class="err">To: strategos@server.thm</span>
+<span class="err">Subject: Telnet email</span>
+<span class="err"></span>
+<span class="err">Hello. I am using telnet to send you an email!</span>
+<span class="err">.</span>
+<span class="srv">250 OK id=1sMrpq-0001Ah-UT</span>
+<span class="err">QUIT</span>
+<span class="srv">221 example.thm closing connection</span>`,"telnet — Enviando email via SMTP (del room)")}
+  ${tip("exam",'El flujo SMTP es: <strong>HELO → MAIL FROM → RCPT TO → DATA → contenido → . → QUIT</strong>. Memoriza esta secuencia.')}
+  ${tip("hacker",'SMTP no requiere autenticación por defecto. Un atacante puede enviar emails falsos (spoofing). Las defensas son: <strong>SPF</strong>, <strong>DKIM</strong> y <strong>DMARC</strong> (registros TXT en DNS).')}`;
+}
+
+// ══════ POP3 / IMAP ══════
+function rPOP3(){
+  return `<p class="P">Ya vimos cómo <strong>SMTP envía</strong> emails. Ahora necesitamos protocolos para <strong>recibirlos y leerlos</strong>. Existen dos: <strong style="color:#ffd639">POP3</strong> y <strong style="color:#14b8a6">IMAP</strong>.</p>
+  ${box(`<div class="grid-200">${[{t:"POP3",port:"110",c:"#ffd639",icon:"📥",d:"<strong>Descarga</strong> emails al dispositivo y los <strong>borra del servidor</strong>. Ideal si usas UN solo dispositivo.",full:"Post Office Protocol v3"},{t:"IMAP",port:"143",c:"#14b8a6",icon:"🔄",d:"<strong>Sincroniza</strong> emails entre múltiples dispositivos. Los mensajes quedan en el servidor.",full:"Internet Message Access Protocol"}].map(p=>`<div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:16px;border-top:3px solid ${p.c}"><div style="font-size:24px;margin-bottom:4px">${p.icon}</div><div style="color:${p.c};font-weight:900;font-size:16px">${p.t}</div><div style="color:var(--faint);font-size:10px;margin-bottom:6px">${p.full}</div><div style="color:var(--muted);font-size:12px;line-height:1.6">${p.d}</div><div style="margin-top:8px">${badge("Puerto "+p.port,p.c)}</div></div>`).join("")}</div>`,null,"padding:20px;")}
+
+  <div class="mt-20"><div class="H" style="color:#ffd639">📥 POP3 — Comandos y sesión del room</div></div>
+  <div class="flex-col gap-4 mb-12">${[{cmd:"USER <username>",d:"Identifica al usuario"},{cmd:"PASS <password>",d:"Envía la contraseña"},{cmd:"STAT",d:"Número de mensajes y tamaño total"},{cmd:"LIST",d:"Lista todos los mensajes y sus tamaños"},{cmd:"RETR <n>",d:"Descarga el mensaje número n"},{cmd:"DELE <n>",d:"Marca mensaje para eliminación"},{cmd:"QUIT",d:"Cierra sesión (aplica eliminaciones)"}].map(c=>`<div style="padding:5px 10px;border-left:2px solid #ffd639;background:rgba(255,255,255,0.015);border-radius:0 6px 6px 0"><code style="color:#ffd639;background:transparent;font-size:11px">${esc(c.cmd)}</code> <span style="color:var(--dim);font-size:11px">— ${c.d}</span></div>`).join("")}</div>
+  ${term(`<span class="cmd">$</span> telnet MACHINE_IP 110
+<span class="srv">+OK [XCLIENT] Dovecot (Ubuntu) ready.</span>
+<span class="err">USER strategos</span>
+<span class="srv">+OK</span>
+<span class="err">PASS [password]</span>
+<span class="srv">+OK Logged in.</span>
+<span class="err">STAT</span>
+<span class="srv">+OK 3 1264</span>
+<span class="err">LIST</span>
+<span class="srv">+OK 3 messages:</span>
+<span class="srv">1 407</span>
+<span class="srv">2 412</span>
+<span class="srv">3 445</span>
+<span class="err">RETR 3</span>
+<span class="srv">+OK 445 octets</span>
+<span class="srv">From: user@client.thm</span>
+<span class="srv">To: strategos@server.thm</span>
+<span class="srv">Subject: Telnet email</span>
+<span class="srv"></span>
+<span class="srv">Hello. I am using telnet to send you an email!</span>
+<span class="err">QUIT</span>
+<span class="srv">+OK Logging out.</span>`,"POP3 — Sesión vía telnet (del room)")}
+
+  <div class="mt-20"><div class="H" style="color:#14b8a6">🔄 IMAP — Comandos y sesión del room</div></div>
+  <p class="P">IMAP usa <strong>prefijos de comando</strong> (A, B, C, D...) para identificar cada operación:</p>
+  <div class="flex-col gap-4 mb-12">${[{cmd:"LOGIN user pass",d:"Autenticación"},{cmd:"SELECT inbox",d:"Selecciona el buzón de entrada"},{cmd:"FETCH n body[]",d:"Descarga el mensaje n completo"},{cmd:"MOVE <set> <mailbox>",d:"Mueve mensajes a otro buzón"},{cmd:"COPY <set> <mailbox>",d:"Copia mensajes a otro buzón"},{cmd:"LOGOUT",d:"Cierra sesión"}].map(c=>`<div style="padding:5px 10px;border-left:2px solid #14b8a6;background:rgba(255,255,255,0.015);border-radius:0 6px 6px 0"><code style="color:#14b8a6;background:transparent;font-size:11px">${esc(c.cmd)}</code> <span style="color:var(--dim);font-size:11px">— ${c.d}</span></div>`).join("")}</div>
+  ${term(`<span class="cmd">$</span> telnet MACHINE_IP 143
+<span class="srv">* OK [CAPABILITY IMAP4rev1 ...] Dovecot (Ubuntu) ready.</span>
+<span class="err">A LOGIN strategos [password]</span>
+<span class="srv">A OK [...] Logged in</span>
+<span class="err">B SELECT inbox</span>
+<span class="srv">* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)</span>
+<span class="srv">* 4 EXISTS</span>
+<span class="srv">* 0 RECENT</span>
+<span class="srv">* OK [UNSEEN 2] First unseen.</span>
+<span class="err">C FETCH 3 body[]</span>
+<span class="srv">* 3 FETCH (BODY[] {445}</span>
+<span class="srv">From: user@client.thm</span>
+<span class="srv">To: strategos@server.thm</span>
+<span class="srv">Subject: Telnet email</span>
+<span class="srv"></span>
+<span class="srv">Hello. I am using telnet to send you an email!</span>
+<span class="srv">)</span>
+<span class="srv">C OK Fetch completed.</span>
+<span class="err">D LOGOUT</span>
+<span class="srv">* BYE Logging out</span>
+<span class="srv">D OK Logout completed.</span>`,"IMAP — Sesión vía telnet (del room)")}
+  ${tip("key",'<strong>POP3 = un dispositivo</strong>, descarga y borra. <strong>IMAP = múltiples dispositivos</strong>, sincroniza y mantiene en servidor. Si usas Gmail/Outlook en tu PC y celular, estás usando IMAP.')}
+  ${tip("warn",'Tanto POP3 como IMAP transmiten credenciales en <strong>texto plano</strong>. Las versiones seguras son POP3S (puerto 995) e IMAPS (puerto 993), que usan TLS.')}`;
+}
+
+// ══════ FLOW ══════
+function rFlow(){
+  return `<p class="P">Veamos el <strong>viaje completo</strong> de un email, desde que lo envías hasta que el destinatario lo lee. Esto conecta todos los protocolos de email que aprendimos.</p>
+  ${box(`<div class="H" style="color:#14b8a6">📨 El viaje de un email paso a paso</div>
+  <div class="flex-col gap-8 mt-12">${[
+    {n:1,icon:"✍️",title:"Tú escribes el email",desc:"Redactas el mensaje en tu cliente (Gmail, Outlook, Thunderbird...).",c:"#3b9eff"},
+    {n:2,icon:"📤",title:"SMTP: Tu cliente → Tu servidor de correo",desc:"Tu cliente usa <strong>SMTP (puerto 25/587)</strong> para enviar el email a tu servidor de correo saliente.",c:"#f050a0"},
+    {n:3,icon:"📖",title:"DNS: Buscar el MX record del destinatario",desc:"Tu servidor consulta <strong>DNS</strong> para encontrar el registro <strong>MX</strong> del dominio del destinatario.",c:"#3b9eff"},
+    {n:4,icon:"📨",title:"SMTP: Tu servidor → Servidor del destinatario",desc:"Tu servidor envía el email al servidor de correo del destinatario vía <strong>SMTP</strong>.",c:"#f050a0"},
+    {n:5,icon:"📬",title:"El email queda en el servidor del destinatario",desc:"El mensaje se almacena en el buzón del destinatario esperando ser leído.",c:"#22d68a"},
+    {n:6,icon:"📥",title:"POP3 o IMAP: El destinatario lee el email",desc:"El destinatario usa <strong>POP3 (puerto 110)</strong> para descargar o <strong>IMAP (puerto 143)</strong> para sincronizar.",c:"#ffd639"},
+  ].map(s=>`<div style="display:flex;gap:12px;align-items:flex-start"><div style="background:${s.c};color:var(--bg);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0">${s.n}</div><div><div style="color:var(--text);font-weight:700;font-size:14px">${s.icon} ${s.title}</div><div style="color:var(--muted);font-size:13px;margin-top:4px;line-height:1.6">${s.desc}</div></div></div>`).join("")}</div>`,"#14b8a6")}
+  ${tip("exam",'Resumen: <strong>SMTP envía</strong> (puerto 25), <strong>DNS encuentra</strong> el servidor (MX record), <strong>POP3 descarga</strong> (puerto 110) o <strong>IMAP sincroniza</strong> (puerto 143).')}
+  ${tip("deep",'Investiga los headers de un email real (en Gmail: "Show original"). Verás los servidores por los que pasó, las verificaciones SPF/DKIM/DMARC, y las IPs de origen.')}`;
+}
+
+// ══════ PORTS ══════
+function rPorts(){
+  const ports=[
+    {proto:"TELNET",transport:"TCP",port:23,c:"#ff5555"},
+    {proto:"DNS",transport:"UDP/TCP",port:53,c:"#3b9eff"},
+    {proto:"HTTP",transport:"TCP",port:80,c:"#22d68a"},
+    {proto:"HTTPS",transport:"TCP",port:443,c:"#22d68a"},
+    {proto:"FTP (control)",transport:"TCP",port:21,c:"#ff9030"},
+    {proto:"FTP (datos)",transport:"TCP",port:20,c:"#ff9030"},
+    {proto:"SMTP",transport:"TCP",port:25,c:"#f050a0"},
+    {proto:"POP3",transport:"TCP",port:110,c:"#ffd639"},
+    {proto:"IMAP",transport:"TCP",port:143,c:"#14b8a6"},
+    {proto:"WHOIS",transport:"TCP",port:43,c:"#a855f7"},
+  ];
+  return `<p class="P">Esta tabla resume <strong>todos los puertos</strong> cubiertos en este room. Es fundamental memorizarlos para exámenes, CTFs y pentesting.</p>
+  <div class="flex-col gap-4 mt-16">${ports.map(p=>`<div class="port-row" style="border-left-color:${p.c}">
+    <span style="color:${p.c};font-weight:900;font-family:var(--mono);font-size:18px;min-width:42px">${p.port}</span>
+    <div style="flex:1"><div style="color:var(--text);font-weight:700;font-size:14px">${p.proto}</div></div>
+    ${badge(p.transport,p.c)}
+  </div>`).join("")}</div>
+  ${tip("exam",'Truco mnemotécnico para los puertos de email: <strong>25</strong> (enviar/SMTP) → <strong>110</strong> (POP3/descargar) → <strong>143</strong> (IMAP/sincronizar). Los seguros son 465/587, 995 y 993 respectivamente.')}
+  ${tip("key",'Puertos 0-1023 son <strong>well-known ports</strong> (reservados). 1024-49151 son <strong>registrados</strong>. 49152-65535 son <strong>dinámicos/efímeros</strong>.')}`;
+}
+
+// ══════ TOOLS ══════
+function rTools(){
+  const tools=[
+    {n:"nslookup",d:"Consultar registros DNS",s:"nslookup example.com",l:"Básico",c:"#3b9eff"},
+    {n:"dig",d:"Consulta DNS avanzada (más detalle que nslookup)",s:"dig example.com A +short",l:"Intermedio",c:"#3b9eff"},
+    {n:"host",d:"Resolución DNS simple y rápida",s:"host example.com",l:"Básico",c:"#3b9eff"},
+    {n:"whois",d:"Consultar datos de registro de dominio",s:"whois example.com",l:"Básico",c:"#a855f7"},
+    {n:"curl",d:"Hacer requests HTTP desde CLI",s:"curl -I https://example.com",l:"Intermedio",c:"#22d68a"},
+    {n:"wget",d:"Descargar archivos de la web",s:"wget https://example.com/file.zip",l:"Básico",c:"#22d68a"},
+    {n:"ftp",d:"Cliente FTP interactivo",s:"ftp 10.10.1.5",l:"Básico",c:"#ff9030"},
+    {n:"telnet",d:"Conectar a cualquier puerto TCP (hablar protocolos)",s:"telnet IP 25",l:"Básico",c:"#ff5555"},
+    {n:"tshark",d:"Wireshark en terminal — analizar capturas",s:"tshark -r capture.pcap -Nn",l:"Intermedio",c:"#38bdf8"},
+    {n:"Wireshark",d:"Analizador gráfico de paquetes",s:"wireshark (GUI)",l:"Intermedio",c:"#38bdf8"},
+  ];
+  return `<p class="P">Tu <strong style="color:#84cc16">kit de herramientas</strong> para este room y para cualquier análisis de protocolos de red. 🏴‍☠️</p>
+  <div class="flex-col gap-5 mt-16">${tools.map(t=>`<div style="display:flex;align-items:center;gap:10px;border-left:3px solid ${t.c};padding:8px 12px;background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0">
+    <div style="min-width:120px"><span style="color:${t.c};font-weight:700;font-family:var(--mono);font-size:13px">${t.n}</span><div style="margin-top:2px">${badge(t.l,t.l==="Básico"?"#22d68a":"#ff9030")}</div></div>
+    <div style="flex:1"><div style="color:var(--muted);font-size:12px">${t.d}</div><div style="color:var(--faint);font-size:10px;font-family:var(--mono);margin-top:2px">$ ${esc(t.s)}</div></div>
+  </div>`).join("")}</div>
+  ${tip("hacker",'<strong>Next level:</strong> Investiga <code>dnsrecon</code> y <code>amass</code> (DNS enumeration), <code>smtp-user-enum</code> (enumerar usuarios SMTP), <code>hydra</code> (fuerza bruta FTP/POP3/IMAP), y <code>Burp Suite</code> (proxy HTTP).')}`;
+}
+
+// ══════ QUIZ ══════
+function rQuiz(){
+  if(qDone){const pct=Math.round(qScore/QS.length*100);const emoji=pct>=80?"🏆":pct>=60?"👍":"📚";const color=pct>=80?"#22d68a":pct>=60?"#ffd639":"#ff5555";const msg=pct>=80?"¡Excelente! Dominas los Core Protocols.":pct>=60?"¡Bien! Repasa las secciones donde fallaste.":"Sigue estudiando, ¡vuelve a intentarlo!";return `<div style="text-align:center;padding:30px 0"><div style="font-size:60px">${emoji}</div><div style="font-size:36px;font-weight:900;font-family:var(--mono);color:${color}">${qScore}/${QS.length} (${pct}%)</div><div style="color:var(--muted);font-size:14px;margin:8px 0 24px">${msg}</div><button class="quiz-reset" onclick="resetQ()">Reintentar</button></div>`}
+  const q=QS[qCur];const pct=((qCur+1)/QS.length*100);
+  const opts=q.o.map((o,i)=>{let bg="rgba(255,255,255,0.02)",bd="rgba(255,255,255,0.06)",cl="#ccc";if(qAns&&i===q.c){bg="#22d68a15";bd="#22d68a";cl="#22d68a"}else if(qAns&&i===qSel){bg="#ff555515";bd="#ff5555";cl="#ff5555"}return `<button class="quiz-opt" style="background:${bg};border-color:${bd};color:${cl};cursor:${qAns?'default':'pointer'}" onclick="pickQ(${i})">${o}</button>`}).join("");
+  return `<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:var(--dim);font-family:var(--mono);font-size:12px">${qCur+1}/${QS.length}</span><span style="color:#22d68a;font-family:var(--mono);font-size:12px">Score: ${qScore}</span></div><div style="background:rgba(255,255,255,0.04);height:3px;border-radius:3px;margin-bottom:18px;overflow:hidden"><div style="background:var(--orange);height:100%;width:${pct}%;transition:width .4s"></div></div><h3 style="color:#fff;font-size:16px;font-weight:700;margin-bottom:16px">${q.q}</h3><div class="flex-col gap-8">${opts}</div>${qAns?`<button class="quiz-next" onclick="nextQ()">${qCur+1>=QS.length?"Ver resultados":"Siguiente →"}</button>`:''}`;
+}
+function pickQ(i){if(qAns)return;qSel=i;qAns=true;if(i===QS[qCur].c)qScore++;render()}
+function nextQ(){if(qCur+1>=QS.length)qDone=true;else{qCur++;qSel=null;qAns=false}render()}
+function resetQ(){qCur=0;qSel=null;qAns=false;qScore=0;qDone=false;render()}
+
+renderNav();render();
+</script>
+</body>
+</html>

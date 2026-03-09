@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking & Ciberseguridad — Guía Completa</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:#080818;color:#fff;font-family:'Segoe UI',-apple-system,sans-serif}
+code,.mono{font-family:'JetBrains Mono',monospace}
+.badge{padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;display:inline-block}
+.box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;margin:8px 0}
+.box[data-glow]{box-shadow:var(--glow)}
+p.t{color:#bbb;font-size:14px;line-height:1.75;margin:0 0 10px}
+.h{font-weight:800;font-size:15px;margin-bottom:8px}
+code.c{color:#06d6a0;background:rgba(6,214,160,0.1);padding:1px 6px;border-radius:4px;font-size:12px}
+.tip{border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0}
+.tip-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.tip-body{color:#bbb;font-size:13px;line-height:1.6}
+.term{background:#0a0a18;border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;margin:10px 0}
+.term-bar{background:rgba(255,255,255,0.03);padding:5px 12px;font-size:10px;color:#555;display:flex;align-items:center;gap:8px}
+.term-dots{display:flex;gap:4px}
+.term-dots span{width:8px;height:8px;border-radius:50%;display:inline-block}
+.term pre{padding:14px;margin:0;font-size:11.5px;line-height:1.7;font-family:'JetBrains Mono',monospace;color:#aaa;overflow-x:auto;white-space:pre-wrap}
+.acc-item{border-radius:12px;padding:12px 16px;cursor:pointer;transition:all 0.3s;margin-bottom:5px}
+.acc-item:hover{filter:brightness(1.1)}
+.acc-badge{border-radius:7px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.tab-btn{border-radius:10px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all 0.25s;border-width:1.5px;border-style:solid}
+.nav-btn{border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.25s;font-family:'JetBrains Mono',monospace}
+.header{background:linear-gradient(135deg,#0c0c28,#180a30 50%,#0c0c28);padding:24px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.header-inner{max-width:900px;margin:0 auto}
+.nav{background:rgba(8,8,24,0.97);border-bottom:1px solid rgba(255,255,255,0.04);padding:8px 18px;overflow-x:auto;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;gap:3px;min-width:max-content}
+.content{max-width:900px;margin:0 auto;padding:20px 18px 80px}
+.grid{display:grid;gap:8px}
+.grid-auto{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.grid-auto-200{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-fill-200{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.flex-col{display:flex;flex-direction:column}
+.flex-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:7px;border-bottom:2px solid #333;color:#888;text-align:left}
+td{padding:6px;border-bottom:1px solid #1a1a3e}
+.ip-input{background:rgba(0,0,0,0.4);border:2px solid #f15bb5;border-radius:10px;padding:10px 14px;color:#fff;font-size:18px;font-family:'JetBrains Mono',monospace;width:100%;outline:none}
+.quiz-btn{border-radius:11px;padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all 0.3s;width:100%;display:block;margin-bottom:7px}
+.quiz-next{background:#ffab40;color:#0a0a1a;border:none;border-radius:11px;padding:11px 0;font-weight:700;font-size:14px;cursor:pointer;font-family:'JetBrains Mono',monospace;display:block;width:100%;margin-top:16px}
+.progress{background:rgba(255,255,255,0.04);height:3px;border-radius:3px;margin-bottom:18px;overflow:hidden}
+.progress-bar{background:#ffab40;height:100%;border-radius:3px;transition:width 0.4s}
+.section{display:none}.section.active{display:block}
+.left-bar{border-left-width:3px;border-left-style:solid;border-radius:0 8px 8px 0;padding:8px 12px;background:rgba(255,255,255,0.02)}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="mono" style="font-size:9px;color:#06d6a0;letter-spacing:3px;text-transform:uppercase">Academia de Ciberseguridad · Guía Completa</div>
+    <h1 style="font-size:24px;font-weight:900;margin:2px 0;background:linear-gradient(90deg,#00f5d4,#fee440,#ff6b6b,#9b5de5);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Networking & Ciberseguridad</h1>
+    <p style="color:#444;font-size:12px">resumen de clases de básico a intermedio 🏴‍☠️</p>
+  </div>
+</div>
+<div class="nav"><div class="nav-inner" id="navBar"></div></div>
+<div class="content">
+  <h2 id="sectionTitle" style="font-size:20px;font-weight:900;margin:0 0 14px"></h2>
+  <div id="sectionContent"></div>
+</div>
+
+<script>
+// ═══════════════ DATA ═══════════════
+const MODULES=[
+  {id:"intro",icon:"🏠",label:"Inicio",color:"#00f5d4"},
+  {id:"redes",icon:"🌐",label:"Redes",color:"#fee440"},
+  {id:"osi",icon:"🧱",label:"OSI",color:"#9b5de5"},
+  {id:"tcpip",icon:"📡",label:"TCP/IP",color:"#00bbf9"},
+  {id:"ipaddr",icon:"📍",label:"IP & Subnets",color:"#f15bb5"},
+  {id:"vlsm",icon:"✂️",label:"VLSM",color:"#ffa726"},
+  {id:"vlan",icon:"🏷️",label:"VLANs",color:"#06d6a0"},
+  {id:"routing",icon:"🗺️",label:"Routing",color:"#ff6b6b"},
+  {id:"services",icon:"⚙️",label:"Servicios",color:"#e040fb"},
+  {id:"security",icon:"🛡️",label:"Seguridad",color:"#ff5252"},
+  {id:"wireshark",icon:"🦈",label:"Wireshark",color:"#4fc3f7"},
+  {id:"tools",icon:"🛠️",label:"Tools",color:"#69f0ae"},
+  {id:"quiz",icon:"🧠",label:"Quiz",color:"#ffab40"},
+];
+
+let currentMod="intro";
+let quizState={cur:0,sel:null,ans:false,score:0,done:false};
+
+// ═══════════════ HELPERS ═══════════════
+const e=(t,a={},c="")=>{const el=document.createElement(t);Object.entries(a).forEach(([k,v])=>{if(k==="style"&&typeof v==="object")Object.assign(el.style,v);else if(k.startsWith("on"))el.addEventListener(k.slice(2).toLowerCase(),v);else el.setAttribute(k,v)});if(typeof c==="string")el.innerHTML=c;else if(c instanceof HTMLElement)el.appendChild(c);else if(Array.isArray(c))c.forEach(x=>{if(x)el.appendChild(typeof x==="string"?document.createTextNode(x):x)});return el};
+
+function badge(text,color="#888"){return `<span class="badge" style="background:${color}20;color:${color}">${text}</span>`}
+function tip(type,html){const s={tip:{i:"💡",c:"#fee440",l:"Tip"},hacker:{i:"🏴‍☠️",c:"#ff6b6b",l:"Nota Hacker"},key:{i:"🔑",c:"#06d6a0",l:"Concepto Clave"},warn:{i:"⚠️",c:"#ffa726",l:"Atención"},deep:{i:"🔬",c:"#9b5de5",l:"Profundizar"},cisco:{i:"🔧",c:"#4fc3f7",l:"Cisco CLI"}}[type]||{i:"💡",c:"#fee440",l:"Tip"};return `<div class="tip" style="background:${s.c}08;border-left:3px solid ${s.c}"><div class="tip-label" style="color:${s.c}">${s.i} ${s.l}</div><div class="tip-body">${html}</div></div>`}
+function term(title,code){return `<div class="term"><div class="term-bar"><span class="term-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></span>${title}</div><pre>${code.replace(/</g,"&lt;")}</pre></div>`}
+function box(html,glow=""){return `<div class="box" style="${glow?`border-color:${glow}40;box-shadow:0 0 30px ${glow}12`:""}">${html}</div>`}
+function leftBar(html,color){return `<div class="left-bar" style="border-left-color:${color}">${html}</div>`}
+function accordion(items,color){const id="acc_"+Math.random().toString(36).slice(2);return `<div class="flex-col" style="gap:5px">${items.map((it,i)=>`<div class="acc-item" style="background:rgba(255,255,255,0.02);border:1.5px solid rgba(255,255,255,0.05)" onclick="toggleAcc('${id}',${i},this,'${color}')"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:10px">${it.badge?`<div class="acc-badge" style="background:${color};color:#0a0a1a">${it.badge}</div>`:""}<div><div style="color:#fff;font-weight:700;font-size:14px">${it.title}</div>${it.sub?`<div style="color:#555;font-size:11px;margin-top:2px">${it.sub}</div>`:""}</div></div><span style="color:#444;font-size:14px">▼</span></div><div class="acc-body hidden" style="margin-top:12px;${it.badge?"padding-left:40px":""}">${it.content}</div></div>`).join("")}</div>`}
+function tabs(tabList,activeId,callbackName){return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">${tabList.map(t=>`<button class="tab-btn" style="background:${activeId===t.id?t.color:"transparent"};color:${activeId===t.id?"#0a0a1a":t.color};border-color:${t.color}" onclick="${callbackName}('${t.id}')">${t.label}</button>`).join("")}</div>`}
+
+window.toggleAcc=function(gid,idx,el,color){const body=el.querySelector(".acc-body");const arrow=el.querySelector("span:last-child");if(body.classList.contains("hidden")){body.classList.remove("hidden");el.style.background=color+"10";el.style.borderColor=color;arrow.textContent="▲"}else{body.classList.add("hidden");el.style.background="rgba(255,255,255,0.02)";el.style.borderColor="rgba(255,255,255,0.05)";arrow.textContent="▼"}}
+
+// ═══════════════ NAV ═══════════════
+function renderNav(){const nav=document.getElementById("navBar");nav.innerHTML="";MODULES.forEach(m=>{const b=document.createElement("button");b.className="nav-btn";b.textContent=m.icon+" "+m.label;b.style.background=currentMod===m.id?m.color:"transparent";b.style.color=currentMod===m.id?"#0a0a1a":"#444";b.style.border=currentMod===m.id?"none":"1px solid rgba(255,255,255,0.05)";b.onclick=()=>{currentMod=m.id;render()};nav.appendChild(b)})}
+
+// ═══════════════ SECTIONS ═══════════════
+const SECTIONS={
+intro:()=>{const mods=MODULES.filter(m=>!["intro","quiz","tools"].includes(m.id));return `<p class="t">Bienvenido a tu <strong style="color:#00f5d4">Guía Completa de Networking y Ciberseguridad</strong>. Este archivo cubre TODO el contenido de las Clases 2-9 de la Academia, más material de TryHackMe, organizado de forma interactiva y progresiva.</p>
+<div class="grid grid-auto" style="margin:16px 0">${mods.map(m=>`<div style="background:${m.color}08;border:1px solid ${m.color}30;border-radius:10px;padding:10px 12px;text-align:center"><div style="font-size:24px">${m.icon}</div><div style="color:${m.color};font-weight:700;font-size:12px;margin-top:4px">${m.label}</div></div>`).join("")}</div>
+${tip("key",`<strong style="color:#fff">Ruta de aprendizaje:</strong> Inicio → Redes → OSI → TCP/IP → IP & Subnets → VLSM → VLANs → Routing → Servicios → Seguridad → Wireshark → Tools → Quiz`)}
+${box(`<div class="h" style="color:#00f5d4">📚 Fuentes combinadas</div>${["Clase 2: Introducción a las Redes","Clase 3: Modelo OSI","Clase 4: TCP/IP, Herramientas, Packet Tracer","Clase 5: Direccionamiento IP I","Clase 6: Direccionamiento IP II (VLSM)","Clase 7: VLANs","Clase 8: Enrutamiento (Estático, Default, RIP, OSPF)","Clase 9: Servicios de Red, Wireshark, VLANs+ACL"].map(c=>`<div style="color:#888;font-size:12px;padding:2px 0" class="mono">${c}</div>`).join("")}`,"#00f5d4")}`},
+
+redes:()=>`<p class="t">Una <strong style="color:#fee440">red de computadoras</strong> es el conjunto de componentes (hardware y software) involucrados en la conexión de computadoras a través de distancias pequeñas y grandes.</p>
+<div class="h" style="color:#fee440">📐 Características de diseño de red</div>
+<div class="grid grid-auto-200" style="margin-bottom:16px">${[{t:"Costo 💰",d:"Componentes, instalación y mantenimiento"},{t:"Seguridad 🔒",d:"Protección de componentes y datos"},{t:"Velocidad ⚡",d:"Tasa de datos entre puntos finales"},{t:"Topología 🔀",d:"Diseño físico y lógico del cableado"},{t:"Escalabilidad 📈",d:"Adaptación a crecimiento futuro"},{t:"Confiabilidad 💪",d:"MTBF — Tiempo medio entre fallas"},{t:"Disponibilidad ✅",d:"Probabilidad de estar operativa"}].map(c=>`<div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 12px;border-left:3px solid #fee440"><div style="color:#fff;font-weight:700;font-size:13px">${c.t}</div><div style="color:#888;font-size:11px;margin-top:2px">${c.d}</div></div>`).join("")}</div>
+<div class="h" style="color:#fee440">🔀 Topologías de Red</div>
+${accordion([{badge:"⭐",title:"Estrella",sub:"Hub/Switch central",content:`<p class="t">Un dispositivo central conecta a todos los demás. Si el centro falla, <strong style="color:#ff6b6b">toda la red cae</strong>. Es la topología más usada en LANs modernas (con switches).</p>`},{badge:"🔗",title:"Bus",sub:"Cable compartido",content:`<p class="t">Todos comparten un solo cable. Simple pero con colisiones. Tecnología legacy (Ethernet coaxial 10Base2).</p>`},{badge:"⭕",title:"Anillo",sub:"Conexión circular",content:`<p class="t">Cada dispositivo se conecta al siguiente en un círculo. FDDI usa doble anillo para redundancia.</p>`},{badge:"↔️",title:"Punto a punto",sub:"Conexión directa",content:`<p class="t">Enlace dedicado entre dos dispositivos. Ejemplo: dos routers conectados por enlace WAN serial.</p>`}],"#fee440")}
+<div class="h" style="color:#fee440;margin-top:16px">📏 Clasificación por cobertura</div>
+<div class="flex-col" style="gap:4px;margin-top:8px">${[{n:"PAN",f:"Personal Area Network",r:"~10m",c:"#f15bb5",ex:"Bluetooth, USB"},{n:"LAN",f:"Local Area Network",r:"~1km",c:"#06d6a0",ex:"Oficina, hogar"},{n:"WLAN",f:"Wireless LAN",r:"~100m",c:"#00bbf9",ex:"WiFi"},{n:"CAN",f:"Campus Area Network",r:"~5km",c:"#9b5de5",ex:"Universidad"},{n:"MAN",f:"Metropolitan Area Network",r:"~50km",c:"#ffa726",ex:"Ciudad"},{n:"WAN",f:"Wide Area Network",r:"Global",c:"#ff6b6b",ex:"Internet"},{n:"VPN",f:"Virtual Private Network",r:"Virtual",c:"#fee440",ex:"Túnel cifrado sobre Internet"}].map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-left:3px solid ${r.c};background:rgba(255,255,255,0.02);border-radius:0 8px 8px 0">${badge(r.n,r.c)}<div style="flex:1"><span style="color:#ccc;font-size:13px">${r.f}</span><span style="color:#555;font-size:11px;margin-left:8px">(${r.ex})</span></div><span style="color:#555;font-size:11px" class="mono">${r.r}</span></div>`).join("")}</div>
+<div class="h" style="color:#fee440;margin-top:16px">🔌 Componentes de red</div>
+<div class="grid grid-2" style="gap:8px">${box(`<div class="h" style="color:#06d6a0">Dispositivos finales (Hosts)</div><p class="t">PC, laptop, impresora, teléfono IP, tablet. Son la interfaz entre usuario y red.</p>`)}${box(`<div class="h" style="color:#ff6b6b">Dispositivos intermediarios</div><p class="t">Router, Switch, Firewall, Access Point. Conectan y dirigen el tráfico.</p>`)}</div>`,
+
+osi:()=>{const layers=[{n:7,name:"Aplicación",emoji:"🌍",color:"#ff6b6b",proto:"HTTP, FTP, DNS, SMTP, IMAP, POP3, SSH, Telnet, SNMP, DHCP",desc:"Interfaz entre el usuario y la red. Provee servicios al software instalado usando modelo cliente-servidor.",pdu:"Datos",devices:"Hosts, servidores",analogy:"La app de tu teléfono — lo que tú ves y usas."},{n:6,name:"Presentación",emoji:"🎨",color:"#ffa726",proto:"JPEG, PNG, MPEG, MIME, ASCII, Unicode, SSL/TLS",desc:"Define cómo se presenta la información: codificación, compresión y cifrado de datos.",pdu:"Datos",devices:"—",analogy:"Un traductor que convierte tu carta al idioma del destinatario."},{n:5,name:"Sesión",emoji:"🤝",color:"#fee440",proto:"NFS, RPC, NetBIOS",desc:"Inicia, mantiene y cierra conexiones entre aplicaciones. Determina si datos son locales o remotos.",pdu:"Datos",devices:"—",analogy:"Marcar un número telefónico, mantener la llamada y colgar."},{n:4,name:"Transporte",emoji:"🚚",color:"#06d6a0",proto:"TCP, UDP",desc:"Comunicación extremo a extremo. Control de flujo, windowing, three-way handshake, ACKs, segmentación.",pdu:"Segmento/Datagrama",devices:"—",analogy:"Correo certificado (TCP) vs correo normal (UDP)."},{n:3,name:"Red",emoji:"🗺️",color:"#00bbf9",proto:"IP, ICMP, IPSec, OSPF, EIGRP, BGP, RIP",desc:"Direccionamiento lógico y enrutamiento. Determina la mejor ruta entre redes distintas.",pdu:"Paquete",devices:"Router",analogy:"La oficina de correos que decide por qué ruta enviar tu paquete."},{n:2,name:"Enlace de Datos",emoji:"🔗",color:"#9b5de5",proto:"Ethernet 802.3, WiFi 802.11",desc:"Direcciones MAC (hardware). Subcapas: LLC y MAC. Detección de errores, acceso al medio.",pdu:"Trama (Frame)",devices:"Switch, Bridge",analogy:"El cartero de tu barrio que entrega entre casas vecinas."},{n:1,name:"Física",emoji:"⚡",color:"#f15bb5",proto:"Cables, fibra óptica, WiFi 2.4/5/6 GHz",desc:"Conexión física real. Codificación (datos→bits) y señalización.",pdu:"Bits",devices:"Hub",analogy:"La carretera por donde viaja el cartero."}];
+return `<p class="t">El modelo <strong style="color:#9b5de5">OSI</strong> (Open Systems Interconnection) de la ISO es un marco teórico de <strong style="color:#fff">7 capas</strong> para entender la comunicación en redes.</p>
+${box(`<div style="color:#fee440;font-weight:700;font-size:13px">💡 Mnemotécnico (de abajo a arriba)</div><div style="color:#fee440;font-size:14px;margin-top:4px" class="mono">"<strong>P</strong>lease <strong>D</strong>o <strong>N</strong>ot <strong>T</strong>hrow <strong>S</strong>pinach <strong>P</strong>izza <strong>A</strong>way"</div><div style="color:#666;font-size:11px;margin-top:2px">Physical → Data Link → Network → Transport → Session → Presentation → Application</div>`,"#fee440")}
+<div class="flex-wrap" style="margin-bottom:12px">${badge("Capas 1-4: Inferiores (Transmisión)","#f15bb5")} ${badge("Capas 5-7: Superiores (Usuario)","#ff6b6b")}</div>
+${accordion(layers.map(l=>({badge:l.n,title:`${l.emoji} ${l.name}`,sub:`${l.proto.split(",").slice(0,3).join(",")}...`,content:`<p class="t">${l.desc}</p><div style="background:rgba(0,0,0,0.25);border-radius:8px;padding:10px;margin-bottom:8px"><div style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:1px">Analogía</div><div style="color:#00f5d4;font-size:12px;margin-top:2px">${l.analogy}</div></div><div class="flex-wrap">${badge("PDU: "+l.pdu,l.color)} ${badge("Dispositivos: "+l.devices,"#888")} ${l.proto.split(", ").map(p=>badge(p,l.color)).join(" ")}</div>`})),"#9b5de5")}
+${tip("key",`<strong style="color:#fff">Encapsulación:</strong> Datos → Segmento → Paquete → Trama → Bits. Cada capa agrega su header al bajar.`)}`},
+
+tcpip:()=>`<p class="t">El modelo <strong style="color:#00bbf9">TCP/IP</strong> es el estándar operativo real de Internet. Creado por el DoD en los 70s.</p>
+<div id="tcpipTabs"></div><div id="tcpipContent"></div>
+<script>
+window.tcpipTab=window.tcpipTab||"model";
+function setTcpipTab(t){window.tcpipTab=t;renderTcpipContent()}
+function renderTcpipContent(){
+const tabs=[{id:"model",label:"📊 Modelo",color:"#00bbf9"},{id:"ports",label:"🚪 Puertos",color:"#06d6a0"},{id:"tcpudp",label:"⚔️ TCP vs UDP",color:"#ff6b6b"}];
+document.getElementById("tcpipTabs").innerHTML=tabs.map(t=>'<button class="tab-btn" style="background:'+(window.tcpipTab===t.id?t.color:"transparent")+";color:"+(window.tcpipTab===t.id?"#0a0a1a":t.color)+";border-color:"+t.color+';margin:0 3px 10px 0" onclick="setTcpipTab(\\''+t.id+"\\')\">" +t.label+"</button>").join("");
+const c=document.getElementById("tcpipContent");
+if(window.tcpipTab==="model")c.innerHTML='<div class="grid grid-2" style="gap:2px">'+'<div style="background:rgba(255,255,255,0.06);padding:10px;border-radius:10px 0 0 0;font-weight:700;color:#00bbf9;font-size:12px">TCP/IP</div><div style="background:rgba(255,255,255,0.06);padding:10px;border-radius:0 10px 0 0;font-weight:700;color:#9b5de5;font-size:12px">OSI Equivalente</div>'+[{tcp:"Aplicación",osi:"7+6+5",c:"#ff6b6b",p:"HTTP, DNS, FTP, SSH..."},{tcp:"Transporte",osi:"4",c:"#06d6a0",p:"TCP, UDP"},{tcp:"Internet",osi:"3",c:"#00bbf9",p:"IP, ICMP, IPSec"},{tcp:"Acceso a Red",osi:"2+1",c:"#9b5de5",p:"Ethernet, WiFi"}].map(l=>'<div style="background:'+l.c+'08;border-left:3px solid '+l.c+';padding:10px 12px"><div style="color:#fff;font-weight:700;font-size:13px">'+l.tcp+'</div><div style="color:#555;font-size:10px">'+l.p+'</div></div><div style="background:rgba(255,255,255,0.02);padding:10px 12px"><div style="color:#aaa;font-size:12px">Capas OSI: <strong style="color:#fff">'+l.osi+"</strong></div></div>").join("")+"</div>";
+else if(window.tcpipTab==="ports"){const ports=[{p:20,pr:"TCP",app:"FTP (datos)",c:"#06d6a0"},{p:21,pr:"TCP",app:"FTP (control)",c:"#06d6a0"},{p:22,pr:"TCP",app:"SSH",c:"#9b5de5"},{p:23,pr:"TCP",app:"Telnet",c:"#ff6b6b"},{p:25,pr:"TCP",app:"SMTP",c:"#ffa726"},{p:53,pr:"TCP/UDP",app:"DNS",c:"#00bbf9"},{p:67,pr:"UDP",app:"DHCP (server)",c:"#fee440"},{p:68,pr:"UDP",app:"DHCP (client)",c:"#fee440"},{p:80,pr:"TCP",app:"HTTP",c:"#00f5d4"},{p:110,pr:"TCP",app:"POP3",c:"#ffa726"},{p:443,pr:"TCP",app:"HTTPS",c:"#06d6a0"}];c.innerHTML='<p class="t">Los <strong style="color:#06d6a0">puertos bien conocidos</strong> (0-1023) son reservados. ¡Memorízalos!</p><div class="grid grid-fill-200" style="gap:6px">'+ports.map(p=>'<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid '+p.c+';background:rgba(255,255,255,0.02);border-radius:0 8px 8px 0"><span style="color:'+p.c+';font-weight:900;font-size:15px;min-width:35px" class="mono">'+p.p+'</span><div><div style="color:#fff;font-size:12px;font-weight:700">'+p.app+'</div><div style="color:#555;font-size:10px">'+p.pr+"</div></div></div>").join("")+"</div>"}
+else c.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Característica</th><th style="border-bottom-color:#06d6a0;color:#06d6a0;text-align:center">TCP</th><th style="border-bottom-color:#ff6b6b;color:#ff6b6b;text-align:center">UDP</th></tr></thead><tbody>'+[["Conexión","Orientada","Sin conexión"],["Handshake","3-way (SYN→SYN-ACK→ACK)","No"],["Confiabilidad","Sí (ACK, retransmisión)","No"],["Orden","Garantizado","No"],["Velocidad","Más lento","Más rápido"],["Uso típico","HTTP, SSH, FTP","DNS, DHCP, VoIP"]].map(([f,t,u])=>"<tr><td style='color:#ccc;font-weight:600'>"+f+"</td><td style='color:#06d6a0;text-align:center'>"+t+"</td><td style='color:#ff6b6b;text-align:center'>"+u+"</td></tr>").join("")+"</tbody></table></div>"}
+renderTcpipContent()
+<\/script>`,
+
+ipaddr:()=>`<p class="t">Una dirección <strong style="color:#f15bb5">IPv4</strong> tiene <strong style="color:#fff">32 bits = 4 octetos</strong>. Cada octeto va de 0 a 255.</p>
+${box(`<div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🔍 Analizador de IP</div><input type="text" class="ip-input" id="ipInput" value="192.168.1.100" oninput="analyzeIP()"><div id="ipResult" style="margin-top:10px"></div>`,"#f15bb5")}
+<div class="h" style="color:#f15bb5;margin-top:16px">📊 Clases de IP</div>
+<div style="overflow-x:auto"><table style="font-size:11px"><thead><tr><th>Clase</th><th>Rango 1er oct.</th><th>Bits Red/Host</th><th>Máscara</th><th>Hosts/red</th></tr></thead><tbody>${[["A","1-126","8/24","255.0.0.0 (/8)","16,777,214"],["B","128-191","16/16","255.255.0.0 (/16)","65,534"],["C","192-223","24/8","255.255.255.0 (/24)","254"],["D","224-239","Multicast","—","—"],["E","240-255","Experimental","—","—"]].map(([c,r,b,m,h])=>`<tr><td style="color:#f15bb5">${c}</td><td style="color:#aaa">${r}</td><td style="color:#aaa">${b}</td><td style="color:#aaa" class="mono">${m}</td><td style="color:#aaa">${h}</td></tr>`).join("")}</tbody></table></div>
+<div class="h" style="color:#f15bb5;margin-top:16px">🧮 Subneteo básico (Clase C)</div>
+${box(`<div style="color:#f15bb5;font-weight:700;font-size:13px;margin-bottom:8px">Ejemplo: 192.0.0.0/24 → 5 subredes</div><div style="color:#aaa;font-size:12px;line-height:1.8">1. Necesitamos 5 subredes → S = 3 bits (2³ = 8 ≥ 5) ✅<br>2. Nueva máscara: /27 → 255.255.255.<strong style="color:#fff">224</strong><br>3. Hosts = 2⁵ - 2 = <strong style="color:#06d6a0">30 hosts/subred</strong><br>4. Paso = 256 - 224 = <strong style="color:#fee440">32</strong><br>5. Subredes: .0, .32, .64, .96, .128</div>`)}
+${tip("key",`<strong style="color:#fff">Recuerda:</strong> La primera IP = dirección de red, la última = broadcast.`)}
+<script>
+function analyzeIP(){const ip=document.getElementById("ipInput").value;const p=ip.split(".").map(Number);const r=document.getElementById("ipResult");if(p.length!==4||p.some(x=>isNaN(x)||x<0||x>255)){r.innerHTML='<div style="color:#ff6b6b;font-size:12px">⚠️ IP inválida</div>';return}
+let cls="?",type="Pública",tc="#06d6a0";if(p[0]>=1&&p[0]<=126)cls="A";else if(p[0]>=128&&p[0]<=191)cls="B";else if(p[0]>=192&&p[0]<=223)cls="C";else if(p[0]>=224&&p[0]<=239)cls="D (Multicast)";else cls="E";
+if(p[0]===10){type="Privada (10.0.0.0/8)";tc="#9b5de5"}else if(p[0]===172&&p[1]>=16&&p[1]<=31){type="Privada (172.16.0.0/12)";tc="#9b5de5"}else if(p[0]===192&&p[1]===168){type="Privada (192.168.0.0/16)";tc="#9b5de5"}else if(p[0]===127){type="Loopback";tc="#fee440"}
+const bin=p.map(x=>x.toString(2).padStart(8,"0")).join(".");r.innerHTML='<div class="flex-wrap">'+badge("Clase "+cls,"#f15bb5")+" "+badge(type,tc)+'</div><div class="mono" style="font-size:11px;color:#f15bb5;margin-top:6px">Bin: '+bin+"</div>"}
+analyzeIP()
+<\/script>`,
+
+vlsm:()=>`<p class="t"><strong style="color:#ffa726">VLSM</strong> (Variable Length Subnet Masks) permite asignar máscaras de diferente tamaño a cada subred, evitando desperdiciar IPs.</p>
+${box(`<div class="h" style="color:#ffa726">❌ Problema del subneteo fijo</div><p class="t">Con máscara fija /27, cada subred tiene 30 hosts. Pero el enlace entre routers solo necesita 2 → ¡28 IPs desperdiciadas!</p>`,"#ffa726")}
+<div class="h" style="color:#ffa726">✅ Proceso VLSM</div>
+<p class="t"><strong style="color:#fff">Regla de oro:</strong> Empezar por la subred con MÁS hosts.</p>
+${box(`<div style="color:#ffa726;font-weight:700;font-size:13px;margin-bottom:8px">Ejemplo: 192.0.0.0/24</div><div style="overflow-x:auto"><table style="font-size:11px"><thead><tr><th>Subred</th><th>Hosts</th><th>H bits</th><th>Máscara</th><th>CIDR</th><th>Red</th><th>Rango</th></tr></thead><tbody>${[["Piso 2","35","6",".192","/26","192.0.0.0",".1–.62"],["Piso 4","20","5",".224","/27","192.0.0.64",".65–.94"],["Piso 1","12","4",".240","/28","192.0.0.96",".97–.110"],["Piso 3","6","3",".248","/29","192.0.0.112",".113–.118"],["Routers","2","2",".252","/30","192.0.0.120",".121–.122"]].map(r=>`<tr>${r.map((d,j)=>`<td style="color:${j===0?"#ffa726":"#aaa"};${j>=3?"font-family:monospace":""}">${d}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`)}
+${tip("key",`Fórmula: <code class="c">H = ⌈log₂(hosts + 2)⌉</code>. El +2 = dirección de red + broadcast.`)}
+${tip("cisco",`Implementa VLSM en <strong style="color:#fff">Cisco Packet Tracer</strong> para practicar.`)}`,
+
+vlan:()=>`<p class="t">Una <strong style="color:#06d6a0">VLAN</strong> (Virtual LAN) es una agrupación lógica de dispositivos en el mismo dominio de broadcast, independiente de la ubicación física.</p>
+<div class="h" style="color:#06d6a0">🎯 Beneficios</div>
+<div class="grid grid-auto" style="margin-bottom:16px">${["🔒 Seguridad","💰 Menos costos","⚡ Rendimiento","📉 Menos broadcast","🧑‍💻 Admin fácil"].map(b=>`<div style="background:rgba(6,214,160,0.06);border-radius:8px;padding:8px 10px;color:#06d6a0;font-weight:700;font-size:12px;text-align:center">${b}</div>`).join("")}</div>
+<div class="h" style="color:#06d6a0">📋 Tipos de VLAN</div>
+${accordion([{title:"VLAN de Datos",sub:"Tráfico de usuarios",content:`<p class="t">Configurada para transportar tráfico generado por usuarios.</p>`},{title:"VLAN Predeterminada (VLAN 1)",sub:"Todos los puertos al inicio",content:`<p class="t">Todos los puertos pertenecen a VLAN 1 por defecto. <strong style="color:#ff6b6b">Cambiarla por seguridad.</strong></p>`},{title:"VLAN Nativa",sub:"Tráfico sin etiquetar en trunks",content:`<p class="t">En trunks 802.1Q, el tráfico sin etiqueta pertenece a la VLAN nativa.</p>`},{title:"VLAN de Administración",sub:"Acceso al switch",content:`<p class="t">Se asigna IP a la SVI para administración remota (SSH, Telnet, HTTP).</p>`},{title:"VLAN de Voz",sub:"VoIP",content:`<p class="t">Requiere QoS, ancho de banda garantizado y latencia &lt; 150ms.</p>`}],"#06d6a0")}
+<div class="h" style="color:#06d6a0;margin-top:16px">🔧 Comandos Cisco para VLANs</div>
+${term("Switch — Configuración de VLANs","Switch(config)# vlan 10\nSwitch(config-vlan)# name Ventas\n\n! Asignar puerto a VLAN\nSwitch(config)# interface fa0/1\nSwitch(config-if)# switchport mode access\nSwitch(config-if)# switchport access vlan 10\n\n! Configurar trunk\nSwitch(config)# interface Gig0/1\nSwitch(config-if)# switchport mode trunk\nSwitch(config-if)# switchport trunk allowed vlan 10,20,30\nSwitch(config-if)# switchport trunk native vlan 1000\n\n! Verificar\nSwitch# show vlan brief\nSwitch# show interfaces trunk")}
+<div class="h" style="color:#06d6a0">🔀 Router-on-a-Stick (Inter-VLAN Routing)</div>
+${term("Router — Subinterfaces","Router(config)# interface Gi0/0.100\nRouter(config-subif)# encapsulation dot1Q 100\nRouter(config-subif)# ip address 192.168.1.1 255.255.255.0\n\nRouter(config)# interface Gi0/0.200\nRouter(config-subif)# encapsulation dot1Q 200\nRouter(config-subif)# ip address 192.168.2.1 255.255.255.0")}
+${tip("hacker",`<strong style="color:#fff">VLAN Hopping:</strong> Un atacante puede explotar la VLAN nativa para saltar entre VLANs. Cambia siempre la VLAN nativa.`)}`,
+
+routing:()=>`<p class="t">El <strong style="color:#ff6b6b">enrutamiento</strong> envía paquetes entre redes distintas. Los routers crean una <strong style="color:#fff">tabla de enrutamiento</strong>.</p>
+<div id="routeTabs"></div><div id="routeContent"></div>
+<script>
+window.routeTab=window.routeTab||"static";
+function setRouteTab(t){window.routeTab=t;renderRouteContent()}
+function renderRouteContent(){
+const ts=[{id:"static",l:"📌 Estático",c:"#ff6b6b"},{id:"default",l:"🌐 Default",c:"#ffa726"},{id:"rip",l:"📡 RIP",c:"#06d6a0"},{id:"ospf",l:"🗺️ OSPF",c:"#00bbf9"},{id:"eigrp",l:"⚡ EIGRP",c:"#9b5de5"}];
+document.getElementById("routeTabs").innerHTML=ts.map(t=>'<button class="tab-btn" style="background:'+(window.routeTab===t.id?t.c:"transparent")+";color:"+(window.routeTab===t.id?"#0a0a1a":t.c)+";border-color:"+t.c+';margin:0 3px 10px 0" onclick="setRouteTab(\\''+t.id+"\\')\">" +t.l+"</button>").join("");
+const c=document.getElementById("routeContent");const T=window.routeTab;
+const data={static:{t:"📌 Ruteo Estático",d:"El admin agrega rutas manualmente. Sin overhead de CPU ni ancho de banda.",c:"#ff6b6b",cmd:"Router(config)# ip route [Red_destino] [Máscara] [IP_siguiente_salto]\\n\\n! Ejemplo:\\nR-Gerencia(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2\\n\\n! Verificar:\\nRouter# show ip route"},default:{t:"🌐 Ruta Default",d:"Una sola ruta que captura TODO el tráfico sin ruta específica.",c:"#ffa726",cmd:"Router(config)# ip route 0.0.0.0 0.0.0.0 [IP_siguiente_salto]\\n\\n! Ejemplo:\\nR-Almacen(config)# ip route 0.0.0.0 0.0.0.0 10.0.0.1"},rip:{t:"📡 RIP",d:"Vector de distancia. Tabla completa cada 30s. Máx 15 hops. Simple.",c:"#06d6a0",cmd:"Router(config)# router rip\\nRouter(config-router)# network 10.0.0.0\\nRouter(config-router)# network 192.168.1.0"},ospf:{t:"🗺️ OSPF",d:"Link-state, estándar abierto. Algoritmo de Dijkstra. Usa wildcards.",c:"#00bbf9",cmd:"Router(config)# router ospf 1\\nRouter(config-router)# network 10.0.0.0 0.0.0.3 area 0\\nRouter(config-router)# network 192.168.1.0 0.0.0.255 area 0\\n\\n! Verificar:\\nRouter# show ip ospf\\nRouter# show ip ospf neighbor"},eigrp:{t:"⚡ EIGRP",d:"Propietario de Cisco. Híbrido. Rápida convergencia.",c:"#9b5de5",cmd:"Router(config)# router eigrp 1\\nRouter(config-router)# network 10.0.0.0 255.255.255.252\\nRouter(config-router)# network 192.168.1.0"}};
+const d=data[T];c.innerHTML='<div class="box" style="border-color:'+d.c+'40;box-shadow:0 0 30px '+d.c+'12"><div class="h" style="color:'+d.c+'">'+d.t+'</div><p class="t">'+d.d+'</p></div>'+term("Cisco CLI",d.cmd.replace(/\\n/g,"\\n"))+(T==="ospf"?tip("key",'<strong style="color:#fff">Wildcard</strong> = 255.255.255.255 - Máscara. Ej: /30 → Wildcard = <code class="c">0.0.0.3</code>'):"")+(T==="eigrp"?tip("warn",'EIGRP usa direccionamiento con clase por defecto. Con VLSM, <strong style="color:#fff">especifica la máscara</strong>.'):"");
+c.innerHTML+=term("Verificar rutas","Router# show ip route\\n  C=Connected  L=Local  S=Static  R=RIP  O=OSPF  D=EIGRP")}
+renderRouteContent()
+<\/script>`,
+
+services:()=>`<p class="t">Los <strong style="color:#e040fb">servicios de red</strong> proporcionan funcionalidades complementarias a los dispositivos conectados.</p>
+${box(`<div class="h" style="color:#fee440">📡 DHCP</div><p class="t">Asigna IPs dinámicamente. DORA: Discover→Offer→Request→Acknowledge. UDP 67/68.</p>`,"#fee440")}
+${term("DHCP en Router Cisco","! Crear pool\nRouter(config)# ip dhcp pool vlan100\nRouter(dhcp-config)# network 192.168.1.0 255.255.255.0\nRouter(dhcp-config)# default-router 192.168.1.1\n\n! Excluir IPs\nRouter(config)# ip dhcp excluded-address 192.168.1.1 192.168.1.10\n\n! Reenvío DHCP (servidor en otra red)\nRouter(config-if)# ip helper-address 10.0.1.4")}
+${box(`<div class="h" style="color:#00bbf9">📖 DNS</div><p class="t">Traduce nombres → IPs. Puerto 53 TCP/UDP. Base de datos jerárquica. Verificar: <code class="c">nslookup</code></p>`,"#00bbf9")}
+${box(`<div class="h" style="color:#06d6a0">🌐 HTTP/HTTPS</div><p class="t">HTTP transfiere HTML (puerto 80). HTTPS = cifrado (puerto 443). Sin estado, usa cookies.</p>`,"#06d6a0")}
+${box(`<div class="h" style="color:#ffa726">✉️ Email</div><p class="t">SMTP (puerto 25) envía. POP3 (110) / IMAP recibe. Modelo almacenamiento y reenvío.</p>`,"#ffa726")}
+${box(`<div class="h" style="color:#9b5de5">📁 FTP</div><p class="t">Transferencia de archivos. Puerto 21 (control) y 20 (datos). No seguro por defecto.</p>`,"#9b5de5")}
+${term("Comandos FTP","$ ftp 10.0.1.6\nftp> ls          # listar\nftp> get file.bin   # descargar\nftp> put local.txt  # subir\nftp> cd /dir     # cambiar dir\nftp> quit")}`,
+
+security:()=>`<p class="t">Más del <strong style="color:#ff5252">70%</strong> de empresas han sufrido brechas. <strong style="color:#ff5252">60-80%</strong> de ataques vienen desde <strong style="color:#fff">DENTRO</strong> de la red.</p>
+<div class="h" style="color:#ff5252">⚔️ Clases de Ataques</div>
+${accordion([{badge:"👁️",title:"Pasivo",sub:"Sniffing",content:`<p class="t">Monitorea tráfico no cifrado buscando contraseñas.</p>`},{badge:"⚡",title:"Activo",sub:"Exploits, virus",content:`<p class="t">Intenta acceder a sistemas usando malware y vulnerabilidades.</p>`},{badge:"🎯",title:"Distribuido",sub:"Supply chain",content:`<p class="t">Introduce código malicioso en software "confiable".</p>`},{badge:"🏢",title:"Interno",sub:"El más común",content:`<p class="t">Empleado descontento. <strong style="color:#ff5252">Es el más frecuente.</strong></p>`},{badge:"📍",title:"Cercano",sub:"Acceso físico",content:`<p class="t">Alguien se acerca físicamente a los componentes.</p>`}],"#ff5252")}
+<div class="h" style="color:#ff5252;margin-top:16px">🛡️ Mitigación</div>
+<table><thead><tr><th>Ataque</th><th>Mitigación</th><th>Dispositivos</th></tr></thead><tbody>${[["Reconocimiento","ACLs","IPS, IDS, Router"],["Acceso","Autenticación, VLANs, ACLs, VPN","Switch, Router, Firewall"],["DoS","ACLs","IPS, IDS, Firewall"]].map(([a,m,d])=>`<tr><td style="color:#ff5252;font-weight:700">${a}</td><td style="color:#ccc">${m}</td><td style="color:#aaa">${d}</td></tr>`).join("")}</tbody></table>
+<div class="h" style="color:#ff5252;margin-top:16px">🔐 ACLs</div>
+${term("ACL Estándar en Cisco","! Crear ACL\nRouter(config)# access-list 1 permit 192.168.4.0 0.0.0.255\nRouter(config)# access-list 1 deny any\n\n! Aplicar a interfaz\nRouter(config)# interface Gi0/0.100\nRouter(config-subif)# ip access-group 1 out\n\n! ACLs estándar: 1-99 o 1300-1999\n! Se aplican CERCA del destino")}
+${tip("hacker",`Estudia ACLs extendidas (100-199), Named ACLs, y la diferencia entre <code class="c">in</code> y <code class="c">out</code>.`)}`,
+
+wireshark:()=>`<p class="t"><strong style="color:#4fc3f7">Wireshark</strong> es un analizador de paquetes gratuito y open source. Herramienta #1 para inspeccionar tráfico de red.</p>
+${box(`<div class="h" style="color:#4fc3f7">🦈 ¿Para qué se usa?</div><div class="grid grid-2" style="gap:6px">${["🔧 Troubleshooting","🔒 Seguridad","✅ Verificar apps","📚 Aprender protocolos","🐛 Depurar","📊 Estadísticas"].map(u=>`<div style="color:#aaa;font-size:12px;padding:4px 0">${u}</div>`).join("")}</div>`,"#4fc3f7")}
+<div class="h" style="color:#4fc3f7;margin-top:12px">⚠️ Lo que Wireshark NO es</div>
+<p class="t">NO es un IDS. NO envía paquetes. Solo <strong style="color:#fff">observa y mide</strong>.</p>
+<div class="h" style="color:#4fc3f7">🧰 Herramientas relacionadas</div>
+<div class="flex-col" style="gap:6px">${[{n:"tshark",d:"Wireshark en terminal",c:"#00bbf9"},{n:"tcpdump",d:"Captura paquetes en CLI Linux",c:"#ff6b6b"},{n:"dumpcap",d:"Backend de Wireshark",c:"#06d6a0"},{n:"TAP",d:"Dispositivo FÍSICO para copiar tráfico",c:"#ffa726"},{n:"SPAN",d:"Port mirroring en switches Cisco",c:"#9b5de5"}].map(t=>`<div style="display:flex;align-items:center;gap:10px;border-left:3px solid ${t.c};padding:6px 12px;background:rgba(255,255,255,0.02);border-radius:0 8px 8px 0">${badge(t.n,t.c)}<span style="color:#aaa;font-size:12px">${t.d}</span></div>`).join("")}</div>
+${tip("deep",`Descarga Wireshark y filtra por <code class="c">arp</code>, <code class="c">icmp</code>, <code class="c">dns</code>, <code class="c">http</code>.`)}`,
+
+tools:()=>{const tools=[{n:"ipconfig / ifconfig / ip a s",d:"Ver configuración IP",s:"ipconfig (Win) | ifconfig | ip a s",l:"Básico",c:"#fee440"},{n:"ping",d:"Probar conectividad (ICMP)",s:"ping <IP> -c 4",l:"Básico",c:"#06d6a0"},{n:"tracert / traceroute",d:"Descubrir ruta de routers",s:"tracert <IP> | traceroute <IP>",l:"Básico",c:"#f15bb5"},{n:"arp",d:"Ver tabla ARP",s:"arp -a",l:"Básico",c:"#9b5de5"},{n:"nslookup",d:"Verificar DNS",s:"nslookup <dominio>",l:"Básico",c:"#00bbf9"},{n:"route",d:"Ver tabla de enrutamiento",s:"route print | route -n",l:"Intermedio",c:"#ffa726"},{n:"telnet",d:"Conectar a puertos TCP",s:"telnet <IP> <puerto>",l:"Básico",c:"#ff6b6b"},{n:"ftp",d:"Transferir archivos",s:"ftp <IP>",l:"Básico",c:"#9b5de5"},{n:"tshark",d:"Wireshark en terminal",s:"tshark -r <pcap> -n",l:"Intermedio",c:"#4fc3f7"},{n:"tcpdump",d:"Capturar paquetes en CLI",s:"tcpdump -i eth0 -c 10",l:"Intermedio",c:"#ff6b6b"},{n:"Wireshark",d:"Analizador gráfico",s:"wireshark (GUI)",l:"Intermedio",c:"#4fc3f7"},{n:"Packet Tracer",d:"Simulador de redes Cisco",s:"GUI — Cisco Academy",l:"Básico",c:"#06d6a0"}];
+return `<p class="t">Tu <strong style="color:#69f0ae">kit completo de herramientas</strong> de todas las clases. 🏴‍☠️</p><div class="flex-col" style="gap:5px">${tools.map(t=>`<div style="display:flex;align-items:center;gap:10px;border-left:3px solid ${t.c};padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:0 8px 8px 0"><div style="min-width:170px"><span style="color:${t.c};font-weight:700;font-size:13px" class="mono">${t.n}</span><div style="margin-top:2px">${badge(t.l,t.l==="Básico"?"#06d6a0":"#ffa726")}</div></div><div style="flex:1"><div style="color:#aaa;font-size:12px">${t.d}</div><div style="color:#555;font-size:10px;margin-top:2px" class="mono">$ ${t.s}</div></div></div>`).join("")}</div>${tip("hacker",`<strong style="color:#fff">Next level:</strong> <code class="c">nmap</code> (escaneo de puertos), <code class="c">netcat</code> (navaja suiza), <code class="c">curl</code> (HTTP), <code class="c">ss</code> (sockets).`)}`},
+
+quiz:()=>renderQuiz()
+};
+
+// ═══════════════ QUIZ ═══════════════
+const QS=[{q:"¿Cuántas capas tiene el modelo OSI?",o:["4","5","7"],c:2},{q:"¿Qué PDU usa la capa de Transporte con TCP?",o:["Paquete","Segmento","Trama"],c:1},{q:"¿En qué capa opera un Switch?",o:["Capa 1","Capa 2","Capa 3"],c:1},{q:"¿En qué capa opera un Router?",o:["Capa 2","Capa 3","Capa 4"],c:1},{q:"¿Qué protocolo asigna IPs automáticamente?",o:["DNS","DHCP","ARP"],c:1},{q:"¿Puerto de HTTPS?",o:["80","443","8080"],c:1},{q:"¿Puerto de SSH?",o:["21","22","23"],c:1},{q:"¿Qué protocolo traduce IP → MAC?",o:["DNS","DHCP","ARP"],c:2},{q:"¿VLSM permite máscaras de diferente tamaño?",o:["Sí","No"],c:0},{q:"¿Qué tipo de ataque es el más común?",o:["Externo","Interno","Distribuido"],c:1},{q:"¿Qué protocolo de routing usa Dijkstra?",o:["RIP","OSPF","EIGRP"],c:1},{q:"¿Wildcard de /30 (255.255.255.252)?",o:["0.0.0.1","0.0.0.3","0.0.0.7"],c:1},{q:"¿192.168.1.0 es dirección de...?",o:["Host","Red","Broadcast"],c:1},{q:"VLAN = ¿dominio de...?",o:["Colisión","Broadcast","Sesión"],c:1},{q:"¿Comando para ver tabla de enrutamiento?",o:["show vlan brief","show ip route","show interfaces"],c:1}];
+
+function renderQuiz(){const s=quizState;
+if(s.done){const pct=Math.round(s.score/QS.length*100);return `<div style="text-align:center;padding:30px 0"><div style="font-size:60px">${pct>=80?"🏆":pct>=50?"👍":"📚"}</div><div style="font-size:36px;font-weight:900;color:${pct>=80?"#06d6a0":pct>=50?"#fee440":"#ff6b6b"}" class="mono">${s.score}/${QS.length} (${pct}%)</div><div style="color:#aaa;font-size:14px;margin:8px 0 20px">${pct>=80?"¡Excelente!":pct>=50?"¡Bien! Repasa donde fallaste.":"Sigue estudiando, ¡tú puedes!"}</div><button onclick="resetQuiz()" style="background:#06d6a0;color:#0a0a1a;border:none;border-radius:12px;padding:12px 30px;font-weight:700;font-size:14px;cursor:pointer" class="mono">Reintentar</button></div>`}
+const q=QS[s.cur];
+return `<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span class="mono" style="color:#888;font-size:12px">${s.cur+1}/${QS.length}</span><span class="mono" style="color:#06d6a0;font-size:12px">Score: ${s.score}</span></div><div class="progress"><div class="progress-bar" style="width:${(s.cur+1)/QS.length*100}%"></div></div><h3 style="font-size:16px;font-weight:700;margin-bottom:16px">${q.q}</h3><div class="flex-col" style="gap:7px">${q.o.map((o,i)=>{let bg="rgba(255,255,255,0.03)",bd="rgba(255,255,255,0.06)",cl="#ccc";if(s.ans&&i===q.c){bg="#06d6a015";bd="#06d6a0";cl="#06d6a0"}else if(s.ans&&i===s.sel){bg="#ff6b6b15";bd="#ff6b6b";cl="#ff6b6b"}return `<button class="quiz-btn" style="background:${bg};border:2px solid ${bd};color:${cl};cursor:${s.ans?"default":"pointer"}" onclick="pickQuiz(${i})">${o}</button>`}).join("")}</div>${s.ans?`<button class="quiz-next" onclick="nextQuiz()">${s.cur+1>=QS.length?"Ver resultados":"Siguiente →"}</button>`:""}`}
+
+window.pickQuiz=function(i){if(quizState.ans)return;quizState.sel=i;quizState.ans=true;if(i===QS[quizState.cur].c)quizState.score++;document.getElementById("sectionContent").innerHTML=renderQuiz()}
+window.nextQuiz=function(){if(quizState.cur+1>=QS.length){quizState.done=true}else{quizState.cur++;quizState.sel=null;quizState.ans=false}document.getElementById("sectionContent").innerHTML=renderQuiz()}
+window.resetQuiz=function(){quizState={cur:0,sel:null,ans:false,score:0,done:false};document.getElementById("sectionContent").innerHTML=renderQuiz()}
+
+// ═══════════════ RENDER ═══════════════
+function render(){renderNav();const mod=MODULES.find(m=>m.id===currentMod);document.getElementById("sectionTitle").textContent=mod.icon+" "+mod.label;document.getElementById("sectionTitle").style.color=mod.color;const content=SECTIONS[currentMod]();document.getElementById("sectionContent").innerHTML=typeof content==="string"?content:content}
+
+render();
+</script>
+</body>
+</html>

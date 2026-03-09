@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundamentos de Criptografía de Clave Pública — Guía Interactiva</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800;900&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #161f33;
+  --bg-card-hover: #1c2744;
+  --accent-green: #39ff85;
+  --accent-cyan: #22d3ee;
+  --accent-purple: #a78bfa;
+  --accent-orange: #fb923c;
+  --accent-pink: #f472b6;
+  --accent-yellow: #fbbf24;
+  --text-primary: #e8ecf4;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #1e293b;
+  --glow-green: rgba(57, 255, 133, 0.15);
+  --glow-cyan: rgba(34, 211, 238, 0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--accent-green); border-radius: 3px; }
+
+/* Header */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 30%, rgba(57,255,133,0.06), transparent),
+    radial-gradient(ellipse 500px 500px at 80% 70%, rgba(34,211,238,0.05), transparent),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(167,139,250,0.04), transparent);
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(57,255,133,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57,255,133,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  animation: gridFloat 20s linear infinite;
+}
+
+@keyframes gridFloat {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(60px, 60px); }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(57,255,133,0.08);
+  border: 1px solid rgba(57,255,133,0.2);
+  padding: 0.5rem 1.2rem;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  color: var(--accent-green);
+  margin-bottom: 2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  animation: fadeDown 0.8s ease-out;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  animation: fadeDown 0.8s ease-out 0.1s both;
+}
+
+.hero h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-cyan) 50%, var(--accent-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: 2.5rem;
+  animation: fadeDown 0.8s ease-out 0.2s both;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Navigation */
+.nav-toc {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  animation: fadeDown 0.8s ease-out 0.35s both;
+}
+
+.nav-toc a {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: all 0.25s;
+}
+
+.nav-toc a:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(57,255,133,0.1);
+}
+
+.nav-toc .nav-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent-green);
+  opacity: 0.7;
+}
+
+/* Main container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem 6rem;
+}
+
+/* Section styling */
+.section {
+  margin-top: 5rem;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease-out;
+}
+
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.section-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--bg-primary);
+  background: var(--accent-green);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.section-header h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.section p, .section li {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section strong, .section b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Highlight keyword */
+.key {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.key-cyan { color: var(--accent-cyan); font-weight: 600; }
+.key-purple { color: var(--accent-purple); font-weight: 600; }
+.key-orange { color: var(--accent-orange); font-weight: 600; }
+.key-pink { color: var(--accent-pink); font-weight: 600; }
+.key-yellow { color: var(--accent-yellow); font-weight: 600; }
+
+/* Info cards */
+.info-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.info-card.green::before { background: var(--accent-green); }
+.info-card.cyan::before { background: var(--accent-cyan); }
+.info-card.purple::before { background: var(--accent-purple); }
+.info-card.orange::before { background: var(--accent-orange); }
+.info-card.pink::before { background: var(--accent-pink); }
+
+.info-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-card p:last-child { margin-bottom: 0; }
+
+/* Code blocks */
+.code-block {
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.2rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  overflow-x: auto;
+  color: #c9d1d9;
+}
+
+.code-block .comment { color: #6e7681; }
+.code-block .val { color: var(--accent-green); }
+.code-block .op { color: var(--accent-cyan); }
+.code-block .result { color: var(--accent-orange); }
+.code-block .label { color: var(--accent-purple); }
+
+/* Interactive demo boxes */
+.demo-box {
+  background: linear-gradient(135deg, var(--bg-card) 0%, #1a2540 100%);
+  border: 1px solid rgba(57,255,133,0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.demo-box h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.demo-box h3 .icon {
+  font-size: 1.3rem;
+}
+
+.demo-box label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+  margin-top: 0.8rem;
+}
+
+.demo-box input[type="number"], .demo-box input[type="text"] {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.6rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.demo-box input:focus {
+  border-color: var(--accent-green);
+}
+
+.demo-box button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.4rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, var(--accent-green), #22c55e);
+  border: none;
+  border-radius: 8px;
+  color: var(--bg-primary);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.demo-box button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(57,255,133,0.3);
+}
+
+.demo-result {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 2;
+  min-height: 2.5rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Analogy box */
+.analogy-box {
+  background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(244,114,182,0.06));
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 16px;
+  padding: 1.8rem 2rem;
+  margin: 2rem 0;
+}
+
+.analogy-box h3 {
+  color: var(--accent-purple);
+  font-size: 1.05rem;
+  margin-bottom: 0.8rem;
+}
+
+/* Comparison table */
+.compare-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.compare-table th {
+  background: var(--bg-card);
+  padding: 0.9rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.compare-table td {
+  padding: 0.8rem 1.2rem;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.compare-table tr:hover td {
+  background: var(--bg-card);
+}
+
+/* Flow diagram */
+.flow-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 2rem 0;
+  align-items: center;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  width: 100%;
+  max-width: 650px;
+  transition: all 0.3s;
+}
+
+.flow-step:hover {
+  border-color: var(--accent-green);
+  transform: translateX(4px);
+}
+
+.flow-step .step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.flow-step p { margin: 0; font-size: 0.92rem; }
+
+.flow-arrow {
+  font-size: 1.4rem;
+  color: var(--accent-green);
+  opacity: 0.5;
+  margin: 0.2rem 0;
+}
+
+/* Accordion / Toggle */
+.accordion {
+  margin: 1.5rem 0;
+}
+
+.accordion-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.accordion-item:hover {
+  border-color: rgba(57,255,133,0.3);
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1.3rem;
+  background: var(--bg-card);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.accordion-header:hover {
+  background: var(--bg-card-hover);
+}
+
+.accordion-arrow {
+  margin-left: auto;
+  transition: transform 0.3s;
+  color: var(--accent-green);
+  font-size: 0.9rem;
+}
+
+.accordion-item.open .accordion-arrow {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-out;
+  background: var(--bg-secondary);
+}
+
+.accordion-body-inner {
+  padding: 1.2rem 1.5rem;
+}
+
+.accordion-body-inner p { font-size: 0.92rem; }
+
+/* Quiz */
+.quiz-box {
+  background: linear-gradient(135deg, rgba(251,191,36,0.06), rgba(251,146,60,0.05));
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 16px;
+  padding: 1.8rem 2rem;
+  margin: 2rem 0;
+}
+
+.quiz-box h3 {
+  color: var(--accent-yellow);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quiz-option {
+  display: block;
+  padding: 0.7rem 1.2rem;
+  margin: 0.5rem 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+  font-family: 'Outfit', sans-serif;
+}
+
+.quiz-option:hover {
+  border-color: var(--accent-yellow);
+  background: var(--bg-card-hover);
+}
+
+.quiz-option.correct {
+  border-color: var(--accent-green);
+  background: rgba(57,255,133,0.1);
+  color: var(--accent-green);
+}
+
+.quiz-option.wrong {
+  border-color: #ef4444;
+  background: rgba(239,68,68,0.1);
+  color: #fca5a5;
+}
+
+.quiz-feedback {
+  margin-top: 0.8rem;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: none;
+}
+
+.quiz-feedback.show { display: block; }
+.quiz-feedback.ok { background: rgba(57,255,133,0.08); color: var(--accent-green); }
+.quiz-feedback.nope { background: rgba(239,68,68,0.08); color: #fca5a5; }
+
+/* Glossary pill */
+.glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.glossary-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  transition: all 0.2s;
+}
+
+.glossary-item:hover {
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+}
+
+.glossary-item .term {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 0.3rem;
+}
+
+.glossary-item .def {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* DH visual */
+.dh-visual {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+  align-items: start;
+}
+
+.dh-person {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.dh-person h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.dh-person .emoji { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+.dh-channel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3rem;
+  gap: 0.3rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.dh-channel .arrow-line {
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+  position: relative;
+}
+
+/* Warning card */
+.warn-card {
+  background: rgba(239,68,68,0.06);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 14px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+}
+
+.warn-card h3 {
+  color: #f87171;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  margin-top: 4rem;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .dh-visual { grid-template-columns: 1fr; }
+  .dh-channel { flex-direction: row; padding: 0; }
+  .dh-channel .arrow-line { width: 2px; height: 40px; }
+  .hero h1 { font-size: 2.2rem; }
+  .glossary-grid { grid-template-columns: 1fr; }
+}
+
+/* Progress bar top */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan), var(--accent-purple));
+  z-index: 9999;
+  transition: width 0.15s;
+  width: 0%;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">🔐 Guía Interactiva</div>
+  <h1>Fundamentos de<br><span class="gradient-text">Criptografía de Clave Pública</span></h1>
+  <p>Una guía pedagógica, visual e interactiva que cubre RSA, Diffie-Hellman, SSH, firmas digitales, certificados y GPG. Aprende haciendo.</p>
+
+  <nav class="nav-toc">
+    <a href="#s1"><span class="nav-num">01</span> Cifrado Asimétrico</a>
+    <a href="#s2"><span class="nav-num">02</span> RSA</a>
+    <a href="#s3"><span class="nav-num">03</span> Diffie-Hellman</a>
+    <a href="#s4"><span class="nav-num">04</span> SSH &amp; Claves</a>
+    <a href="#s5"><span class="nav-num">05</span> Firmas Digitales</a>
+    <a href="#s6"><span class="nav-num">06</span> Certificados</a>
+    <a href="#s7"><span class="nav-num">07</span> PGP / GPG</a>
+    <a href="#s8"><span class="nav-num">08</span> Criptoanálisis</a>
+    <a href="#s9"><span class="nav-num">09</span> Glosario &amp; Quiz</a>
+  </nav>
+</header>
+
+<!-- ===== CONTENT ===== -->
+<main class="container">
+
+  <!-- SECTION 1: Cifrado Asimétrico -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <h2>¿Qué es el Cifrado Asimétrico?</h2>
+    </div>
+
+    <p>En el <span class="key">cifrado simétrico</span>, ambas partes usan <strong>la misma clave</strong> para cifrar y descifrar. El gran problema: ¿cómo compartes esa clave de forma segura?</p>
+
+    <p>El <span class="key">cifrado asimétrico</span> resuelve esto usando <strong>dos claves distintas</strong> que están matemáticamente relacionadas: una <span class="key-cyan">clave pública</span> (que compartes con todos) y una <span class="key-purple">clave privada</span> (que solo tú tienes).</p>
+
+    <div class="analogy-box">
+      <h3>💡 Analogía: El Candado y la Llave</h3>
+      <p style="color:var(--text-secondary)">Imagina que le envías a tu amigo un <strong>candado abierto</strong> (clave pública). Cualquiera puede verlo. Tu amigo pone su mensaje en una caja, la cierra con tu candado y te la envía. Solo tú tienes <strong>la llave del candado</strong> (clave privada) para abrirla. Aunque un atacante intercepte la caja, no puede abrirla sin tu llave.</p>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr><th>Característica</th><th>Simétrico</th><th>Asimétrico</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Claves</td><td>1 clave compartida</td><td>2 claves (pública + privada)</td></tr>
+        <tr><td>Velocidad</td><td>Rápido ⚡</td><td>Más lento 🐢</td></tr>
+        <tr><td>Problema principal</td><td>Distribución de la clave</td><td>Computacionalmente costoso</td></tr>
+        <tr><td>Ejemplos</td><td>AES, ChaCha20</td><td>RSA, ECC, Ed25519</td></tr>
+        <tr><td>Uso típico</td><td>Cifrar datos grandes</td><td>Intercambio de claves, firmas</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-card green">
+      <h3>🔑 Idea Central</h3>
+      <p>En la práctica, <strong>ambos se usan juntos</strong>: el cifrado asimétrico negocia una clave de sesión, y luego se usa cifrado simétrico (mucho más rápido) para el resto de la comunicación. Esto se llama <span class="key">cifrado híbrido</span>.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 2: RSA -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <h2>RSA — El Gigante de la Clave Pública</h2>
+    </div>
+
+    <p>RSA (Rivest–Shamir–Adleman) es el algoritmo de clave pública más conocido. Su seguridad se basa en un hecho simple: <strong>multiplicar dos primos grandes es fácil, pero factorizar su producto es extremadamente difícil</strong>.</p>
+
+    <div class="info-card cyan">
+      <h3>🧮 Ejemplo Rápido</h3>
+      <p>Multiplicar: <code style="color:var(--accent-green)">113 × 127 = 14,351</code> → ¡fácil!</p>
+      <p>Factorizar: dado <code style="color:var(--accent-orange)">14,351</code>, ¿cuáles son los dos primos? → mucho más difícil.</p>
+      <p>Con primos de 300+ dígitos cada uno, la factorización es computacionalmente imposible con tecnología actual.</p>
+    </div>
+
+    <h3 style="margin:2rem 0 1rem; font-size:1.2rem;">Cómo funciona RSA — paso a paso</h3>
+
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <p>Bob elige dos <span class="key">primos grandes</span> <code>p</code> y <code>q</code>. Calcula <code>n = p × q</code>.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <p>Calcula <code>ϕ(n) = (p−1)(q−1)</code>. Elige <code>e</code> coprimo a ϕ(n) y calcula <code>d</code> donde <code>e × d ≡ 1 mod ϕ(n)</code>.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <p><span class="key-cyan">Clave pública</span> = <code>(n, e)</code> — se comparte abiertamente.<br><span class="key-purple">Clave privada</span> = <code>(n, d)</code> — se mantiene en secreto.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <p><strong>Cifrado:</strong> Alice envía <code>y = x<sup>e</sup> mod n</code></p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <p><strong>Descifrado:</strong> Bob recupera <code>x = y<sup>d</sup> mod n</code></p>
+      </div>
+    </div>
+
+    <!-- Interactive RSA demo -->
+    <div class="demo-box" id="rsaDemo">
+      <h3><span class="icon">🧪</span> Calculadora RSA Interactiva</h3>
+      <p style="color:var(--text-muted);font-size:0.88rem;">Usa primos pequeños para ver cómo funciona. Ejemplo: p=157, q=199, e=163.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;">
+        <div>
+          <label>Primo p</label>
+          <input type="number" id="rsa_p" value="157">
+        </div>
+        <div>
+          <label>Primo q</label>
+          <input type="number" id="rsa_q" value="199">
+        </div>
+        <div>
+          <label>Exponente e</label>
+          <input type="number" id="rsa_e" value="163">
+        </div>
+      </div>
+      <label>Mensaje (número entero)</label>
+      <input type="number" id="rsa_msg" value="13">
+
+      <br>
+      <button onclick="calcRSA()">⚡ Calcular RSA</button>
+
+      <div class="demo-result" id="rsaResult">Presiona "Calcular RSA" para ver los resultados...</div>
+    </div>
+
+    <div class="info-card orange">
+      <h3>🏴 RSA en CTF</h3>
+      <p>En competencias Capture-the-Flag, te darán algunas variables RSA y deberás deducir las demás. Variables clave: <code>p, q, n, e, d, m</code> (mensaje) y <code>c</code> (texto cifrado). Herramientas útiles: <strong>RsaCtfTool</strong> y <strong>rsatool</strong>.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Diffie-Hellman -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <h2>Intercambio de Claves Diffie-Hellman</h2>
+    </div>
+
+    <p>¿Cómo acuerdas una clave secreta con alguien por un canal público sin que nadie más la obtenga? Diffie-Hellman resuelve exactamente eso.</p>
+
+    <div class="analogy-box">
+      <h3>🎨 Analogía: Las Pinturas</h3>
+      <p style="color:var(--text-secondary)">Alice y Bob acuerdan públicamente un <strong>color base</strong> (amarillo). Cada uno mezcla en secreto su propio color privado. Intercambian las mezclas. Luego cada uno agrega su color privado a la mezcla del otro. ¡Ambos obtienen el mismo color final! Un espía ve el color base y las mezclas, pero <strong>no puede separar los colores</strong> para obtener el resultado final.</p>
+    </div>
+
+    <h3 style="margin:2rem 0 1rem; font-size:1.15rem;">El Proceso Paso a Paso</h3>
+
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <p>Alice y Bob acuerdan públicamente: un primo <code class="key">p = 29</code> y un generador <code class="key">g = 3</code>.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <p>Cada uno elige un secreto privado: Alice <code class="key-purple">a = 13</code>, Bob <code class="key-purple">b = 15</code>.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <p>Calculan claves públicas: Alice → <code>A = 3<sup>13</sup> mod 29 = <span class="key-cyan">19</span></code>, Bob → <code>B = 3<sup>15</sup> mod 29 = <span class="key-cyan">26</span></code>.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <p>Intercambian claves públicas por el canal inseguro: Alice envía 19, Bob envía 26.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <p>Calculan la clave compartida: Alice → <code>26<sup>13</sup> mod 29 = <span class="key">10</span></code>, Bob → <code>19<sup>15</sup> mod 29 = <span class="key">10</span></code>. ¡Mismo resultado!</p>
+      </div>
+    </div>
+
+    <!-- DH Interactive -->
+    <div class="demo-box" id="dhDemo">
+      <h3><span class="icon">🔄</span> Simulador Diffie-Hellman</h3>
+      <p style="color:var(--text-muted);font-size:0.88rem;">Cambia los valores y observa cómo ambas partes llegan a la misma clave secreta.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+        <div>
+          <label>Primo p</label>
+          <input type="number" id="dh_p" value="29">
+        </div>
+        <div>
+          <label>Generador g</label>
+          <input type="number" id="dh_g" value="3">
+        </div>
+        <div>
+          <label>Secreto de Alice (a)</label>
+          <input type="number" id="dh_a" value="13">
+        </div>
+        <div>
+          <label>Secreto de Bob (b)</label>
+          <input type="number" id="dh_b" value="15">
+        </div>
+      </div>
+
+      <button onclick="calcDH()">🔄 Simular Intercambio</button>
+
+      <div class="demo-result" id="dhResult">Presiona "Simular Intercambio" para ver el proceso...</div>
+    </div>
+
+    <div class="info-card purple">
+      <h3>🤝 DH + RSA juntos</h3>
+      <p>En la práctica, Diffie-Hellman se usa para <strong>acordar la clave de sesión</strong> y RSA se usa para <strong>autenticar identidades</strong> (firmas digitales). Juntos forman la base de protocolos como TLS/HTTPS.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 4: SSH -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <h2>SSH y Claves Criptográficas</h2>
+    </div>
+
+    <p>SSH (Secure Shell) usa criptografía asimétrica tanto para <strong>autenticar el servidor</strong> como para <strong>autenticar al cliente</strong>.</p>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          🖥️ Autenticación del Servidor
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>La primera vez que te conectas a un servidor SSH, ves un mensaje preguntándote si confías en la huella digital (<em>fingerprint</em>) de su clave pública. Esto verifica que estás hablando con el servidor correcto y no con un atacante (man-in-the-middle).</p>
+            <div class="code-block"><span class="comment"># Ejemplo del mensaje SSH</span>
+The authenticity of host '10.10.244.173' can't be established.
+<span class="val">ED25519</span> key fingerprint is <span class="op">SHA256:lLzhZc7Y...</span>
+Are you sure you want to continue connecting? <span class="result">yes</span></div>
+            <p>Si aceptas, la huella se guarda en <code>~/.ssh/known_hosts</code>. Si en el futuro el servidor responde con una clave diferente, SSH te alertará de un posible ataque.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          👤 Autenticación del Cliente (por clave)
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>En lugar de usar contraseña (inseguro), puedes autenticarte con un <strong>par de claves</strong>: generas las claves en tu máquina y copias la clave pública al servidor.</p>
+            <div class="code-block"><span class="comment"># Generar par de claves</span>
+<span class="val">ssh-keygen -t ed25519</span>
+
+<span class="comment"># Copiar clave pública al servidor</span>
+<span class="val">ssh-copy-id user@server</span>
+
+<span class="comment"># Conectarse con clave privada específica</span>
+<span class="val">ssh -i ~/.ssh/id_ed25519 user@server</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          🔑 Algoritmos disponibles en ssh-keygen
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <table class="compare-table">
+              <thead><tr><th>Algoritmo</th><th>Descripción</th></tr></thead>
+              <tbody>
+                <tr><td><code>rsa</code></td><td>Clásico, claves más largas. Ampliamente soportado.</td></tr>
+                <tr><td><code>ed25519</code></td><td>Moderno, rápido, claves cortas. ⭐ Recomendado.</td></tr>
+                <tr><td><code>ecdsa</code></td><td>Curva elíptica, buen balance seguridad/tamaño.</td></tr>
+                <tr><td><code>dsa</code></td><td>Obsoleto. No usar.</td></tr>
+                <tr><td><code>*-sk</code></td><td>Variantes con clave de seguridad hardware (FIDO).</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn-card">
+      <h3>⚠️ ¡Nunca compartas tu clave privada!</h3>
+      <p style="color:var(--text-secondary)">La clave privada <code>id_ed25519</code> es como tu contraseña maestra. Quien la tenga puede acceder a todos los servidores donde esté autorizada. Permisos correctos: <code style="color:var(--accent-orange)">chmod 600 ~/.ssh/id_ed25519</code>. La clave pública (<code>.pub</code>) sí se puede y debe compartir.</p>
+    </div>
+
+    <div class="info-card green">
+      <h3>📁 Archivos clave de SSH</h3>
+      <p><code>~/.ssh/id_ed25519</code> → Tu clave privada<br>
+      <code>~/.ssh/id_ed25519.pub</code> → Tu clave pública<br>
+      <code>~/.ssh/known_hosts</code> → Huellas de servidores conocidos<br>
+      <code>~/.ssh/authorized_keys</code> → Claves públicas autorizadas en el servidor</p>
+    </div>
+  </section>
+
+  <!-- SECTION 5: Firmas Digitales -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="section-number">05</div>
+      <h2>Firmas Digitales</h2>
+    </div>
+
+    <p>Una firma digital es a los documentos digitales lo que tu firma manuscrita es a un contrato en papel: prueba <span class="key">autenticidad</span> (quién lo firmó) e <span class="key">integridad</span> (que no fue alterado).</p>
+
+    <h3 style="margin:1.5rem 0 1rem;font-size:1.1rem;">¿Cómo funciona?</h3>
+
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <p>Bob genera un <strong>hash</strong> del documento (un resumen matemático único).</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <p>Bob <strong>cifra el hash</strong> con su <span class="key-purple">clave privada</span>. Esto es la firma digital.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <p>Bob envía el documento + la firma a Alice.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <p>Alice <strong>descifra la firma</strong> con la <span class="key-cyan">clave pública</span> de Bob → obtiene el hash original.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <p>Alice calcula el hash del documento recibido y lo compara. Si coinciden → ✅ el documento es auténtico e íntegro.</p>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <h3>🖋️ Analogía: El Sello de Cera</h3>
+      <p style="color:var(--text-secondary)">Imagina que Bob sella una carta con un sello de cera único que solo él posee (clave privada). Cuando Alice recibe la carta, puede comparar el sello con una imagen pública del sello de Bob (clave pública). Si coincide y el sello no está roto, sabe que Bob la envió y que nadie la abrió en el camino.</p>
+    </div>
+
+    <div class="info-card pink">
+      <h3>🆚 Firma digital vs. Firma electrónica</h3>
+      <p>Una "firma electrónica" (pegar una imagen de tu firma) <strong>no prueba integridad</strong> — cualquiera puede copiarla. Una <strong>firma digital criptográfica</strong> usa claves y hashes: es verificable matemáticamente y tiene validez legal en muchos países.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 6: Certificados -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <div class="section-number">06</div>
+      <h2>Certificados Digitales y HTTPS</h2>
+    </div>
+
+    <p>Cuando visitas <code>https://tryhackme.com</code>, ¿cómo sabes que es el servidor real? La respuesta: <span class="key">certificados digitales</span>.</p>
+
+    <h3 style="margin:1.5rem 0 1rem;font-size:1.1rem;">La Cadena de Confianza</h3>
+
+    <div class="flow-diagram">
+      <div class="flow-step" style="border-color:var(--accent-orange);">
+        <div class="step-num" style="background:var(--accent-orange);">CA</div>
+        <p><strong>Autoridad de Certificación Raíz (CA)</strong> — Tu navegador confía en ellas de fábrica (DigiCert, Let's Encrypt, etc.).</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--accent-cyan);">
+        <div class="step-num" style="background:var(--accent-cyan);">📋</div>
+        <p>La CA firma el <strong>certificado del sitio web</strong>, garantizando su identidad.</p>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--accent-green);">
+        <div class="step-num" style="background:var(--accent-green);">🌐</div>
+        <p>Tu navegador verifica la cadena: certificado → firmado por organización → confiada por CA → confiada por tu navegador. ✅</p>
+      </div>
+    </div>
+
+    <div class="info-card cyan">
+      <h3>🆓 Let's Encrypt</h3>
+      <p>Puedes obtener certificados TLS gratuitos con <strong>Let's Encrypt</strong>. Es la forma más popular de habilitar HTTPS para sitios web modernos y se renueva automáticamente.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 7: PGP / GPG -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <div class="section-number">07</div>
+      <h2>PGP / GPG — Cifrado de Archivos y Email</h2>
+    </div>
+
+    <p><span class="key">PGP</span> (Pretty Good Privacy) es un software para cifrar archivos y firmar digitalmente. <span class="key">GPG</span> (GnuPG) es su implementación de código abierto, compatible con el estándar OpenPGP.</p>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          🔧 Generar un par de claves GPG
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="code-block"><span class="val">gpg --full-gen-key</span>
+
+<span class="comment"># Seleccionar tipo: ECC (sign and encrypt) — Curve 25519</span>
+<span class="comment"># Elegir expiración</span>
+<span class="comment"># Proporcionar: nombre, email, comentario</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          📥 Importar clave y descifrar mensajes
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="code-block"><span class="comment"># Importar clave desde backup</span>
+<span class="val">gpg --import backup.key</span>
+
+<span class="comment"># Descifrar un mensaje</span>
+<span class="val">gpg --decrypt confidential_message.gpg</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          🏴 GPG en CTFs
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>Si la clave GPG tiene contraseña, puedes intentar crackearla con:</p>
+            <div class="code-block"><span class="val">gpg2john clave_privada.key > hash.txt</span>
+<span class="val">john --wordlist=rockyou.txt hash.txt</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: Criptoanálisis -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <div class="section-number">08</div>
+      <h2>Criptoanálisis y Ataques</h2>
+    </div>
+
+    <p>Mientras que la <span class="key">criptografía</span> protege las comunicaciones, el <span class="key-orange">criptoanálisis</span> estudia cómo romper esas protecciones.</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr><th>Tipo de Ataque</th><th>¿Cómo funciona?</th><th>Ejemplo</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Fuerza Bruta</strong></td>
+          <td>Prueba <em>todas</em> las combinaciones posibles</td>
+          <td>Probar aaa, aab, aac... zzz</td>
+        </tr>
+        <tr>
+          <td><strong>Diccionario</strong></td>
+          <td>Prueba palabras probables de una lista</td>
+          <td>password123, admin, qwerty...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-card orange">
+      <h3>🛠️ Herramientas Clave</h3>
+      <p><strong>John the Ripper</strong> — Crackea contraseñas y frases de paso (SSH, GPG, hashes).<br>
+      <strong>RsaCtfTool</strong> — Automatiza ataques contra RSA débil en CTFs.<br>
+      <strong>rsatool</strong> — Calcula parámetros RSA a partir de datos parciales.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 9: Glosario + Quiz -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <div class="section-number">09</div>
+      <h2>Glosario Rápido &amp; Quiz Final</h2>
+    </div>
+
+    <h3 style="margin-bottom:1rem;">📖 Variables RSA esenciales</h3>
+    <div class="glossary-grid">
+      <div class="glossary-item"><div class="term">p, q</div><div class="def">Números primos grandes secretos</div></div>
+      <div class="glossary-item"><div class="term">n</div><div class="def">Producto p × q (parte de ambas claves)</div></div>
+      <div class="glossary-item"><div class="term">e</div><div class="def">Exponente público (cifrado)</div></div>
+      <div class="glossary-item"><div class="term">d</div><div class="def">Exponente privado (descifrado)</div></div>
+      <div class="glossary-item"><div class="term">m</div><div class="def">Mensaje en texto plano</div></div>
+      <div class="glossary-item"><div class="term">c</div><div class="def">Texto cifrado (ciphertext)</div></div>
+      <div class="glossary-item"><div class="term">ϕ(n)</div><div class="def">(p−1)(q−1), función de Euler</div></div>
+    </div>
+
+    <h3 style="margin: 2.5rem 0 1rem;">🧠 Quiz — Pon a prueba tu comprensión</h3>
+
+    <!-- Quiz 1 -->
+    <div class="quiz-box" id="q1">
+      <h3>❓ Pregunta 1</h3>
+      <p style="color:var(--text-secondary);margin-bottom:0.8rem;">¿Qué problema matemático hace que RSA sea seguro?</p>
+      <button class="quiz-option" onclick="checkQuiz('q1',this,false)">A) El problema del logaritmo discreto</button>
+      <button class="quiz-option" onclick="checkQuiz('q1',this,true)">B) La dificultad de factorizar números grandes</button>
+      <button class="quiz-option" onclick="checkQuiz('q1',this,false)">C) La ecuación de Schrödinger</button>
+      <button class="quiz-option" onclick="checkQuiz('q1',this,false)">D) El problema de la mochila</button>
+      <div class="quiz-feedback" id="q1-fb"></div>
+    </div>
+
+    <!-- Quiz 2 -->
+    <div class="quiz-box" id="q2">
+      <h3>❓ Pregunta 2</h3>
+      <p style="color:var(--text-secondary);margin-bottom:0.8rem;">En Diffie-Hellman, ¿qué se transmite por el canal público?</p>
+      <button class="quiz-option" onclick="checkQuiz('q2',this,false)">A) Las claves privadas a y b</button>
+      <button class="quiz-option" onclick="checkQuiz('q2',this,false)">B) La clave secreta compartida</button>
+      <button class="quiz-option" onclick="checkQuiz('q2',this,true)">C) p, g, y las claves públicas A y B</button>
+      <button class="quiz-option" onclick="checkQuiz('q2',this,false)">D) El mensaje cifrado completo</button>
+      <div class="quiz-feedback" id="q2-fb"></div>
+    </div>
+
+    <!-- Quiz 3 -->
+    <div class="quiz-box" id="q3">
+      <h3>❓ Pregunta 3</h3>
+      <p style="color:var(--text-secondary);margin-bottom:0.8rem;">¿Por qué nunca debes compartir tu clave privada SSH?</p>
+      <button class="quiz-option" onclick="checkQuiz('q3',this,false)">A) Porque el servidor la necesita para funcionar</button>
+      <button class="quiz-option" onclick="checkQuiz('q3',this,true)">B) Porque quien la tenga puede acceder a todos los servidores donde esté autorizada</button>
+      <button class="quiz-option" onclick="checkQuiz('q3',this,false)">C) Porque se corrompe al copiarla</button>
+      <button class="quiz-option" onclick="checkQuiz('q3',this,false)">D) Porque es necesario regenerarla cada día</button>
+      <div class="quiz-feedback" id="q3-fb"></div>
+    </div>
+
+    <!-- Quiz 4 -->
+    <div class="quiz-box" id="q4">
+      <h3>❓ Pregunta 4</h3>
+      <p style="color:var(--text-secondary);margin-bottom:0.8rem;">¿Qué verifica una firma digital?</p>
+      <button class="quiz-option" onclick="checkQuiz('q4',this,false)">A) Solo la confidencialidad</button>
+      <button class="quiz-option" onclick="checkQuiz('q4',this,false)">B) Solo la velocidad de transmisión</button>
+      <button class="quiz-option" onclick="checkQuiz('q4',this,true)">C) La autenticidad y la integridad del mensaje</button>
+      <button class="quiz-option" onclick="checkQuiz('q4',this,false)">D) El tamaño del archivo</button>
+      <div class="quiz-feedback" id="q4-fb"></div>
+    </div>
+
+    <!-- Quiz 5 -->
+    <div class="quiz-box" id="q5">
+      <h3>❓ Pregunta 5</h3>
+      <p style="color:var(--text-secondary);margin-bottom:0.8rem;">¿Cuál es la diferencia entre un ataque de fuerza bruta y uno de diccionario?</p>
+      <button class="quiz-option" onclick="checkQuiz('q5',this,false)">A) No hay diferencia, son lo mismo</button>
+      <button class="quiz-option" onclick="checkQuiz('q5',this,true)">B) Fuerza bruta prueba todas las combinaciones; diccionario solo prueba palabras probables</button>
+      <button class="quiz-option" onclick="checkQuiz('q5',this,false)">C) Diccionario es más lento que fuerza bruta</button>
+      <button class="quiz-option" onclick="checkQuiz('q5',this,false)">D) Fuerza bruta solo funciona con cifrado simétrico</button>
+      <div class="quiz-feedback" id="q5-fb"></div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  Guía basada en el módulo "Fundamentos de Criptografía de Clave Pública" — TryHackMe<br>
+  Creada como material pedagógico interactivo 🔐
+</footer>
+
+<script>
+// === Progress bar ===
+window.addEventListener('scroll', () => {
+  const scrollTop = document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const progress = (scrollTop / scrollHeight) * 100;
+  document.getElementById('progressBar').style.width = progress + '%';
+});
+
+// === Scroll reveal ===
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// === Accordion ===
+function toggleAccordion(header) {
+  const item = header.parentElement;
+  const body = item.querySelector('.accordion-body');
+  const isOpen = item.classList.contains('open');
+
+  if (isOpen) {
+    body.style.maxHeight = null;
+    item.classList.remove('open');
+  } else {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    item.classList.add('open');
+  }
+}
+
+// === Modular exponentiation (BigInt) ===
+function modPow(base, exp, mod) {
+  base = BigInt(base); exp = BigInt(exp); mod = BigInt(mod);
+  if (mod === 1n) return 0n;
+  let result = 1n;
+  base = base % mod;
+  while (exp > 0n) {
+    if (exp % 2n === 1n) result = (result * base) % mod;
+    exp = exp / 2n;
+    base = (base * base) % mod;
+  }
+  return result;
+}
+
+// === Extended GCD for modular inverse ===
+function modInverse(a, m) {
+  a = BigInt(a); m = BigInt(m);
+  let [old_r, r] = [a, m];
+  let [old_s, s] = [1n, 0n];
+  while (r !== 0n) {
+    const q = old_r / r;
+    [old_r, r] = [r, old_r - q * r];
+    [old_s, s] = [s, old_s - q * s];
+  }
+  if (old_r !== 1n) return null;
+  return ((old_s % m) + m) % m;
+}
+
+// === GCD ===
+function gcd(a, b) {
+  a = BigInt(a); b = BigInt(b);
+  while (b !== 0n) { [a, b] = [b, a % b]; }
+  return a;
+}
+
+// === RSA Calculator ===
+function calcRSA() {
+  const el = document.getElementById('rsaResult');
+  try {
+    const p = BigInt(document.getElementById('rsa_p').value);
+    const q = BigInt(document.getElementById('rsa_q').value);
+    const e = BigInt(document.getElementById('rsa_e').value);
+    const msg = BigInt(document.getElementById('rsa_msg').value);
+
+    const n = p * q;
+    const phi = (p - 1n) * (q - 1n);
+
+    if (gcd(e, phi) !== 1n) {
+      el.innerHTML = `<span style="color:#f87171">❌ Error: e (${e}) no es coprimo con ϕ(n) (${phi}). Elige otro e.</span>`;
+      return;
+    }
+
+    const d = modInverse(e, phi);
+    if (d === null) {
+      el.innerHTML = `<span style="color:#f87171">❌ No se pudo calcular d (inverso modular).</span>`;
+      return;
+    }
+
+    const cipher = modPow(msg, e, n);
+    const decrypted = modPow(cipher, d, n);
+
+    el.innerHTML =
+`<span style="color:var(--text-muted)">━━━ Parámetros ━━━</span>
+<span class="label">n</span> = p × q = ${p} × ${q} = <span class="val">${n}</span>
+<span class="label">ϕ(n)</span> = (p−1)(q−1) = <span class="val">${phi}</span>
+<span class="label">e</span> = <span class="val">${e}</span>  (exponente público)
+<span class="label">d</span> = <span class="val">${d}</span>  (exponente privado, calculado)
+<span class="label">e × d mod ϕ(n)</span> = ${e * d} mod ${phi} = <span class="val">${(e * d) % phi}</span>  ✅
+
+<span style="color:var(--text-muted)">━━━ Cifrado ━━━</span>
+<span class="label">Mensaje (m)</span> = ${msg}
+<span class="label">Cifrado (c)</span> = m^e mod n = ${msg}^${e} mod ${n} = <span class="result">${cipher}</span>
+
+<span style="color:var(--text-muted)">━━━ Descifrado ━━━</span>
+<span class="label">Descifrado</span> = c^d mod n = ${cipher}^${d} mod ${n} = <span class="val">${decrypted}</span>  ${decrypted === msg ? '✅ ¡Coincide!' : '❌ Error'}
+
+<span style="color:var(--text-muted)">━━━ Claves ━━━</span>
+🔓 <span class="op">Clave Pública</span>  = (n=${n}, e=${e})
+🔐 <span class="label">Clave Privada</span> = (n=${n}, d=${d})`;
+  } catch (err) {
+    el.innerHTML = `<span style="color:#f87171">❌ Error: ${err.message}</span>`;
+  }
+}
+
+// === DH Calculator ===
+function calcDH() {
+  const el = document.getElementById('dhResult');
+  try {
+    const p = BigInt(document.getElementById('dh_p').value);
+    const g = BigInt(document.getElementById('dh_g').value);
+    const a = BigInt(document.getElementById('dh_a').value);
+    const b = BigInt(document.getElementById('dh_b').value);
+
+    const A = modPow(g, a, p);
+    const B = modPow(g, b, p);
+    const keyAlice = modPow(B, a, p);
+    const keyBob = modPow(A, b, p);
+
+    el.innerHTML =
+`<span style="color:var(--text-muted)">━━━ Valores Públicos ━━━</span>
+<span class="label">p</span> = <span class="val">${p}</span>  (primo)
+<span class="label">g</span> = <span class="val">${g}</span>  (generador)
+
+<span style="color:var(--text-muted)">━━━ Secretos Privados ━━━</span>
+<span class="label">Alice (a)</span> = <span class="label">${a}</span>  🤫
+<span class="label">Bob (b)</span>   = <span class="label">${b}</span>  🤫
+
+<span style="color:var(--text-muted)">━━━ Claves Públicas (intercambiadas) ━━━</span>
+<span class="label">A</span> = g^a mod p = ${g}^${a} mod ${p} = <span class="op">${A}</span>  → Bob recibe esto
+<span class="label">B</span> = g^b mod p = ${g}^${b} mod ${p} = <span class="op">${B}</span>  → Alice recibe esto
+
+<span style="color:var(--text-muted)">━━━ Clave Secreta Compartida ━━━</span>
+<span class="label">Alice calcula:</span> B^a mod p = ${B}^${a} mod ${p} = <span class="result">${keyAlice}</span>
+<span class="label">Bob calcula:</span>   A^b mod p = ${A}^${b} mod ${p} = <span class="result">${keyBob}</span>
+
+${keyAlice === keyBob ? `✅ ¡Ambos obtienen la misma clave secreta: <span class="val">${keyAlice}</span>!` : `❌ Las claves no coinciden (revisa los valores).`}`;
+  } catch (err) {
+    el.innerHTML = `<span style="color:#f87171">❌ Error: ${err.message}</span>`;
+  }
+}
+
+// === Quiz ===
+function checkQuiz(qId, btn, isCorrect) {
+  const box = document.getElementById(qId);
+  const fb = document.getElementById(qId + '-fb');
+  const buttons = box.querySelectorAll('.quiz-option');
+
+  // Disable all buttons
+  buttons.forEach(b => { b.disabled = true; b.style.pointerEvents = 'none'; });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    fb.textContent = '✅ ¡Correcto! Excelente comprensión.';
+    fb.className = 'quiz-feedback show ok';
+  } else {
+    btn.classList.add('wrong');
+    // Highlight the correct one
+    buttons.forEach(b => {
+      if (b.onclick.toString().includes('true')) b.classList.add('correct');
+    });
+    fb.textContent = '❌ Incorrecto. La respuesta correcta está resaltada en verde.';
+    fb.className = 'quiz-feedback show nope';
+  }
+}
+
+// Run RSA demo on load
+window.addEventListener('load', () => {
+  calcRSA();
+  calcDH();
+});
+</script>
+
+</body>
+</html>

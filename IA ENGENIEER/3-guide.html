@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anatomía de un Chatbot — LangChain + Streamlit</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3a;
+  --text: #e0e0e8;
+  --text-dim: #8888a0;
+  --accent-blue: #5b8def;
+  --accent-green: #4ecdc4;
+  --accent-orange: #f7a440;
+  --accent-pink: #e84393;
+  --accent-purple: #a855f7;
+  --accent-red: #ef4444;
+  --code-bg: #0d0d14;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* HERO */
+.hero {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 50%, rgba(91,141,239,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 50%, rgba(78,205,196,0.06) 0%, transparent 50%);
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-3%, 3%) rotate(2deg); }
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  position: relative;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  color: var(--text-dim);
+  max-width: 600px;
+  position: relative;
+}
+
+.hero .tag {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent-green);
+  position: relative;
+}
+
+/* FLOW MAP */
+.flow-section {
+  padding: 3rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.flow-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.flow-section .subtitle {
+  color: var(--text-dim);
+  margin-bottom: 2.5rem;
+  font-size: 1rem;
+}
+
+.flow-pipeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.flow-node {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.8rem 1.2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  min-width: 110px;
+}
+
+.flow-node:hover, .flow-node.active {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 20px rgba(91,141,239,0.15);
+  transform: translateY(-2px);
+}
+
+.flow-node .icon { font-size: 1.3rem; display: block; margin-bottom: 0.3rem; }
+.flow-arrow { color: var(--text-dim); font-size: 1.2rem; }
+
+/* BLOCKS */
+.blocks-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+}
+
+.block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.block:hover { border-color: var(--border); }
+
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.block-header:hover { background: var(--surface2); }
+
+.block-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.block-title {
+  flex: 1;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.block-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-siempre { background: rgba(78,205,196,0.15); color: var(--accent-green); }
+.badge-config { background: rgba(247,164,64,0.15); color: var(--accent-orange); }
+.badge-logica { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+.badge-ui { background: rgba(232,67,147,0.15); color: var(--accent-pink); }
+
+.block-toggle {
+  font-size: 1.2rem;
+  color: var(--text-dim);
+  transition: transform 0.3s;
+}
+
+.block.open .block-toggle { transform: rotate(180deg); }
+
+.block-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.block.open .block-body {
+  max-height: 3000px;
+}
+
+.block-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.explanation {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  line-height: 1.8;
+}
+
+.explanation strong { color: var(--text); }
+
+.key-insight {
+  background: rgba(91,141,239,0.08);
+  border-left: 3px solid var(--accent-blue);
+  padding: 0.8rem 1rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.key-insight .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.3rem;
+}
+
+.pattern-box {
+  background: rgba(78,205,196,0.06);
+  border: 1px dashed rgba(78,205,196,0.3);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.pattern-box .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.3rem;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+
+.code-comment { color: #5a6a8a; }
+.code-keyword { color: var(--accent-pink); }
+.code-string { color: var(--accent-green); }
+.code-func { color: var(--accent-blue); }
+.code-var { color: var(--accent-orange); }
+.code-class { color: var(--accent-purple); }
+
+/* CHEATSHEET */
+.cheatsheet {
+  max-width: 900px;
+  margin: 2rem auto 4rem;
+  padding: 0 2rem;
+}
+
+.cheatsheet h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.cheat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.cheat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.2rem;
+  transition: all 0.3s;
+}
+
+.cheat-card:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.cheat-card .emoji { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.cheat-card h3 { font-size: 0.95rem; margin-bottom: 0.4rem; }
+.cheat-card p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.6; }
+.cheat-card code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--code-bg);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--accent-green);
+}
+
+/* COLOR CODING FOR BLOCKS */
+.color-blue .block-number { background: rgba(91,141,239,0.2); color: var(--accent-blue); }
+.color-green .block-number { background: rgba(78,205,196,0.2); color: var(--accent-green); }
+.color-orange .block-number { background: rgba(247,164,64,0.2); color: var(--accent-orange); }
+.color-purple .block-number { background: rgba(168,85,247,0.2); color: var(--accent-purple); }
+.color-pink .block-number { background: rgba(232,67,147,0.2); color: var(--accent-pink); }
+.color-red .block-number { background: rgba(239,68,68,0.2); color: var(--accent-red); }
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .flow-pipeline { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .block-header { padding: 1rem; }
+  pre { font-size: 0.7rem; padding: 0.8rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Anatomía de un Chatbot</h1>
+  <p>Desglose interactivo de la estructura que <strong>siempre se repite</strong> al construir un chatbot con LangChain + Streamlit</p>
+  <span class="tag">6 bloques · 1 patrón universal</span>
+</section>
+
+<!-- FLOW MAP -->
+<section class="flow-section">
+  <h2>El Pipeline Universal</h2>
+  <p class="subtitle">Todo chatbot con LangChain sigue este flujo. Memorízalo y podrás construir cualquiera.</p>
+  
+  <div class="flow-pipeline">
+    <div class="flow-node" onclick="openBlock(0)">
+      <span class="icon">📦</span>
+      Imports
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" onclick="openBlock(1)">
+      <span class="icon">⚙️</span>
+      Config UI
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" onclick="openBlock(2)">
+      <span class="icon">🧠</span>
+      Modelo LLM
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" onclick="openBlock(3)">
+      <span class="icon">💾</span>
+      Estado
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" onclick="openBlock(4)">
+      <span class="icon">🔗</span>
+      Cadena
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" onclick="openBlock(5)">
+      <span class="icon">💬</span>
+      Chat Loop
+    </div>
+  </div>
+</section>
+
+<!-- BLOCKS -->
+<div class="blocks-container">
+
+  <!-- BLOCK 1: IMPORTS -->
+  <div class="block color-blue" id="block-0">
+    <div class="block-header" onclick="toggleBlock(this)">
+      <div class="block-number">01</div>
+      <div class="block-title">Imports — Las piezas de LEGO</div>
+      <span class="block-badge badge-siempre">siempre igual</span>
+      <span class="block-toggle">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="block-content">
+        <p class="explanation">
+          Cada chatbot con LangChain importa <strong>3 familias de cosas</strong>. Esto es constante — lo que cambia es solo cuál proveedor usas (OpenAI, Google, Anthropic…).
+        </p>
+        
+        <pre><span class="code-comment"># ─── FAMILIA 1: La interfaz visual ───</span>
+<span class="code-keyword">import</span> <span class="code-class">streamlit</span> <span class="code-keyword">as</span> <span class="code-var">st</span>
+
+<span class="code-comment"># ─── FAMILIA 2: El cerebro (el modelo LLM) ───</span>
+<span class="code-keyword">from</span> <span class="code-class">langchain_google_genai</span> <span class="code-keyword">import</span> <span class="code-func">ChatGoogleGenerativeAI</span>
+<span class="code-comment"># ↑ Si usaras OpenAI sería: from langchain_openai import ChatOpenAI</span>
+<span class="code-comment"># ↑ Si usaras Anthropic: from langchain_anthropic import ChatAnthropic</span>
+
+<span class="code-comment"># ─── FAMILIA 3: Las herramientas de LangChain ───</span>
+<span class="code-keyword">from</span> <span class="code-class">langchain.schema</span> <span class="code-keyword">import</span> <span class="code-func">AIMessage</span>, <span class="code-func">HumanMessage</span>, <span class="code-func">SystemMessage</span>
+<span class="code-keyword">from</span> <span class="code-class">langchain.prompts</span> <span class="code-keyword">import</span> <span class="code-func">PromptTemplate</span></pre>
+
+        <div class="pattern-box">
+          <div class="label">🔁 Patrón constante</div>
+          <strong>Siempre importas:</strong> (1) tu framework de UI, (2) un modelo Chat de LangChain, (3) los tipos de mensaje <code>AIMessage</code>/<code>HumanMessage</code> y <code>PromptTemplate</code>. Solo cambia el proveedor.
+        </div>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Por qué AIMessage y HumanMessage?</div>
+          LangChain envuelve cada mensaje en un "tipo" para que el LLM sepa <strong>quién dijo qué</strong>. Es como las etiquetas <em>"Tú:"</em> y <em>"Bot:"</em> pero estandarizadas. Esto es obligatorio para manejar el historial de conversación.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 2: UI CONFIG -->
+  <div class="block color-orange" id="block-1">
+    <div class="block-header" onclick="toggleBlock(this)">
+      <div class="block-number">02</div>
+      <div class="block-title">Configuración de la UI — La cáscara visual</div>
+      <span class="block-badge badge-config">config</span>
+      <span class="block-toggle">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="block-content">
+        <p class="explanation">
+          Streamlit te da <strong>componentes listos</strong> para armar la interfaz. Estos 3 métodos los vas a usar en casi todos tus proyectos:
+        </p>
+
+        <pre><span class="code-comment"># ─── Metadata de la página (siempre al inicio) ───</span>
+<span class="code-var">st</span>.<span class="code-func">set_page_config</span>(page_title=<span class="code-string">"Chatbot"</span>, page_icon=<span class="code-string">"🤖"</span>)
+<span class="code-var">st</span>.<span class="code-func">title</span>(<span class="code-string">"🤖 Chatbot con LangChain"</span>)
+
+<span class="code-comment"># ─── Sidebar = Panel de control ───</span>
+<span class="code-keyword">with</span> <span class="code-var">st</span>.sidebar:
+    <span class="code-var">temperature</span> = <span class="code-var">st</span>.<span class="code-func">slider</span>(<span class="code-string">"Temperatura"</span>, 0.0, 1.0, 0.5)
+    <span class="code-var">model_name</span>  = <span class="code-var">st</span>.<span class="code-func">selectbox</span>(<span class="code-string">"Modelo"</span>, [<span class="code-string">"gemini-2.5-flash"</span>])</pre>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Qué es la "Temperatura"?</div>
+          Va de 0.0 a 1.0. <strong>0 = respuestas predecibles</strong> (para código, datos exactos). <strong>1 = respuestas creativas</strong> (para poesía, brainstorming). Es el "nivel de creatividad" del bot.
+        </div>
+
+        <div class="pattern-box">
+          <div class="label">🔁 Patrón constante</div>
+          <code>st.set_page_config()</code> <strong>siempre va primero</strong>. El <code>st.sidebar</code> es donde pones los controles que no quieres en el chat principal. Esto es estándar en toda app Streamlit.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 3: MODEL -->
+  <div class="block color-green" id="block-2">
+    <div class="block-header" onclick="toggleBlock(this)">
+      <div class="block-number">03</div>
+      <div class="block-title">Inicialización del Modelo — El cerebro</div>
+      <span class="block-badge badge-siempre">siempre igual</span>
+      <span class="block-toggle">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="block-content">
+        <p class="explanation">
+          Aquí creas la conexión con el LLM. <strong>Siempre son los mismos 2 parámetros mínimos:</strong> cuál modelo y qué temperatura. Lo único que cambia es la clase.
+        </p>
+
+        <pre><span class="code-comment"># ─── Google Gemini ───</span>
+<span class="code-var">chat_model</span> = <span class="code-class">ChatGoogleGenerativeAI</span>(
+    model=<span class="code-var">model_name</span>,
+    temperature=<span class="code-var">temperature</span>,
+    google_api_key=<span class="code-var">GOOGLE_API_KEY</span>
+)
+
+<span class="code-comment"># ─── Si fuera OpenAI, sería EXACTAMENTE igual: ───</span>
+<span class="code-comment"># chat_model = ChatOpenAI(model="gpt-4", temperature=0.7)</span>
+
+<span class="code-comment"># ─── Si fuera Anthropic: ───</span>
+<span class="code-comment"># chat_model = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.7)</span></pre>
+
+        <div class="pattern-box">
+          <div class="label">🔁 Patrón constante</div>
+          La fórmula es siempre: <code>modelo = ChatXXX(model=..., temperature=..., api_key=...)</code>. LangChain estandariza TODOS los proveedores con la misma interfaz. <strong>Cambiar de proveedor = cambiar 1 línea.</strong>
+        </div>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Por qué esto es genial?</div>
+          LangChain abstrae al proveedor. Tu código de chat, prompts, cadenas, etc. funciona <strong>idéntico</strong> sin importar si usas Google, OpenAI o Anthropic. Solo cambias el import y la línea del modelo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 4: STATE -->
+  <div class="block color-purple" id="block-3">
+    <div class="block-header" onclick="toggleBlock(this)">
+      <div class="block-number">04</div>
+      <div class="block-title">Session State — La memoria del chat</div>
+      <span class="block-badge badge-siempre">siempre igual</span>
+      <span class="block-toggle">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="block-content">
+        <p class="explanation">
+          Streamlit <strong>re-ejecuta TODO el script</strong> cada vez que el usuario interactúa. Sin <code>session_state</code>, los mensajes se perderían. Este bloque es <strong>obligatorio y siempre idéntico</strong>.
+        </p>
+
+        <pre><span class="code-comment"># ─── Crear la "memoria" si no existe ───</span>
+<span class="code-keyword">if</span> <span class="code-string">"mensajes"</span> <span class="code-keyword">not in</span> <span class="code-var">st</span>.session_state:
+    <span class="code-var">st</span>.session_state.<span class="code-var">mensajes</span> = []
+
+<span class="code-comment"># ─── Renderizar mensajes guardados ───</span>
+<span class="code-keyword">for</span> <span class="code-var">msg</span> <span class="code-keyword">in</span> <span class="code-var">st</span>.session_state.<span class="code-var">mensajes</span>:
+    <span class="code-var">role</span> = <span class="code-string">"assistant"</span> <span class="code-keyword">if</span> isinstance(<span class="code-var">msg</span>, <span class="code-class">AIMessage</span>) <span class="code-keyword">else</span> <span class="code-string">"user"</span>
+    <span class="code-keyword">with</span> <span class="code-var">st</span>.<span class="code-func">chat_message</span>(<span class="code-var">role</span>):
+        <span class="code-var">st</span>.<span class="code-func">markdown</span>(<span class="code-var">msg</span>.content)</pre>
+
+        <div class="pattern-box">
+          <div class="label">🔁 Patrón constante</div>
+          <strong>Siempre</strong> tendrás estas 2 partes:<br>
+          ① <code>if "X" not in st.session_state</code> → inicializar<br>
+          ② <code>for msg in st.session_state.X</code> → re-dibujar<br>
+          Esto es el "contrato" de Streamlit para persistir datos entre reruns.
+        </div>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Por qué isinstance(msg, AIMessage)?</div>
+          Recuerda que guardamos los mensajes como <code>HumanMessage</code> y <code>AIMessage</code>. Con <code>isinstance()</code> preguntamos "¿este mensaje es del bot?" para elegir el avatar correcto en la UI.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 5: CHAIN -->
+  <div class="block color-pink" id="block-4">
+    <div class="block-header" onclick="toggleBlock(this)">
+      <div class="block-number">05</div>
+      <div class="block-title">Prompt + Cadena (LCEL) — El alma del bot</div>
+      <span class="block-badge badge-logica">lógica core</span>
+      <span class="block-toggle">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="block-content">
+        <p class="explanation">
+          Aquí defines <strong>qué personalidad tiene tu bot</strong> y cómo conectas el prompt con el modelo. El operador <code>|</code> (pipe) es la magia de LCEL.
+        </p>
+
+        <pre><span class="code-comment"># ─── PASO 1: Define el template del prompt ───</span>
+<span class="code-var">prompt_template</span> = <span class="code-class">PromptTemplate</span>(
+    input_variables=[<span class="code-string">"mensaje"</span>, <span class="code-string">"historial"</span>],
+    template=<span class="code-string">"""Eres un asistente útil llamado ChatBot Pro.
+Historial: {historial}
+Pregunta: {mensaje}"""</span>
+)
+
+<span class="code-comment"># ─── PASO 2: Conecta prompt → modelo con el pipe ───</span>
+<span class="code-var">cadena</span> = <span class="code-var">prompt_template</span> | <span class="code-var">chat_model</span>
+
+<span class="code-comment"># Así de simple. Esto es LCEL.</span>
+<span class="code-comment"># Lee como: "toma el prompt, pásalo al modelo"</span></pre>
+
+        <div class="pattern-box">
+          <div class="label">🔁 Patrón constante</div>
+          La fórmula LCEL siempre es: <code>cadena = prompt | modelo</code>. 
+          Puedes extenderla: <code>cadena = prompt | modelo | parser</code>, pero la base es siempre esa. El <code>|</code> es como un "tubo" que pasa la salida de uno como entrada del siguiente.
+        </div>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Por qué {historial} en el prompt?</div>
+          Sin esto, el bot no recuerda lo que dijiste antes. Al inyectar el historial en cada mensaje nuevo, le das "contexto" al modelo. Es una técnica manual — existen alternativas más avanzadas como <code>ConversationBufferMemory</code>, pero esta es la más clara para empezar.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 6: CHAT LOOP -->
+  <div class="block color-red" id="block-5">
+    <div class="block-header" onclick="toggleBlock(this)">
+      <div class="block-number">06</div>
+      <div class="block-title">El Loop del Chat — Donde todo cobra vida</div>
+      <span class="block-badge badge-ui">ui + lógica</span>
+      <span class="block-toggle">▼</span>
+    </div>
+    <div class="block-body">
+      <div class="block-content">
+        <p class="explanation">
+          Este es el <strong>ciclo de interacción</strong>: usuario escribe → se muestra → bot responde con streaming → se guarda. Esto es esencialmente el mismo patrón en <strong>todos</strong> los chatbots Streamlit.
+        </p>
+
+        <pre><span class="code-comment"># ─── Input del usuario ───</span>
+<span class="code-var">pregunta</span> = <span class="code-var">st</span>.<span class="code-func">chat_input</span>(<span class="code-string">"Escribe tu mensaje:"</span>)
+
+<span class="code-keyword">if</span> <span class="code-var">pregunta</span>:
+    <span class="code-comment"># 1️⃣ Mostrar lo que escribió el usuario</span>
+    <span class="code-keyword">with</span> <span class="code-var">st</span>.<span class="code-func">chat_message</span>(<span class="code-string">"user"</span>):
+        <span class="code-var">st</span>.<span class="code-func">markdown</span>(<span class="code-var">pregunta</span>)
+
+    <span class="code-comment"># 2️⃣ Generar respuesta con STREAMING</span>
+    <span class="code-keyword">try</span>:
+        <span class="code-keyword">with</span> <span class="code-var">st</span>.<span class="code-func">chat_message</span>(<span class="code-string">"assistant"</span>):
+            <span class="code-var">placeholder</span> = <span class="code-var">st</span>.<span class="code-func">empty</span>()
+            <span class="code-var">full_response</span> = <span class="code-string">""</span>
+            
+            <span class="code-keyword">for</span> <span class="code-var">chunk</span> <span class="code-keyword">in</span> <span class="code-var">cadena</span>.<span class="code-func">stream</span>({
+                <span class="code-string">"mensaje"</span>: <span class="code-var">pregunta</span>,
+                <span class="code-string">"historial"</span>: <span class="code-var">st</span>.session_state.<span class="code-var">mensajes</span>
+            }):
+                <span class="code-var">full_response</span> += <span class="code-var">chunk</span>.content
+                <span class="code-var">placeholder</span>.<span class="code-func">markdown</span>(<span class="code-var">full_response</span> + <span class="code-string">"▌"</span>)
+            <span class="code-var">placeholder</span>.<span class="code-func">markdown</span>(<span class="code-var">full_response</span>)
+
+        <span class="code-comment"># 3️⃣ Guardar ambos mensajes en la memoria</span>
+        <span class="code-var">st</span>.session_state.<span class="code-var">mensajes</span>.<span class="code-func">append</span>(<span class="code-class">HumanMessage</span>(content=<span class="code-var">pregunta</span>))
+        <span class="code-var">st</span>.session_state.<span class="code-var">mensajes</span>.<span class="code-func">append</span>(<span class="code-class">AIMessage</span>(content=<span class="code-var">full_response</span>))
+
+    <span class="code-keyword">except</span> <span class="code-class">Exception</span> <span class="code-keyword">as</span> <span class="code-var">e</span>:
+        <span class="code-var">st</span>.<span class="code-func">error</span>(f<span class="code-string">"Error: {e}"</span>)</pre>
+
+        <div class="pattern-box">
+          <div class="label">🔁 Patrón constante</div>
+          El loop siempre tiene estos 3 pasos:<br>
+          ① <strong>Mostrar</strong> el mensaje del usuario → <code>st.chat_message("user")</code><br>
+          ② <strong>Generar</strong> respuesta → <code>cadena.stream()</code> o <code>cadena.invoke()</code><br>
+          ③ <strong>Guardar</strong> ambos → <code>session_state.mensajes.append()</code>
+        </div>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Qué hace .stream() vs .invoke()?</div>
+          <strong><code>.invoke()</code></strong> = espera toda la respuesta y la muestra de golpe.<br>
+          <strong><code>.stream()</code></strong> = va mostrando palabra por palabra (como ChatGPT). El truco del <code>"▌"</code> al final simula el cursor parpadeante. Es solo estética, pero da una experiencia profesional.
+        </div>
+
+        <div class="key-insight">
+          <div class="label">💡 ¿Por qué try/except?</div>
+          Las APIs fallan: límites de tasa, API keys inválidas, errores de red. El <code>try/except</code> evita que tu app explote y muestra un mensaje amigable al usuario. <strong>Siempre</strong> envuelve las llamadas al LLM en try/except.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CHEATSHEET -->
+<section class="cheatsheet">
+  <h2>Cheat Sheet — Lo que nunca cambia</h2>
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <div class="emoji">📦</div>
+      <h3>Los 3 imports</h3>
+      <p>UI framework + <code>ChatXXX</code> del proveedor + <code>AIMessage</code>/<code>HumanMessage</code>/<code>PromptTemplate</code></p>
+    </div>
+    <div class="cheat-card">
+      <div class="emoji">🧠</div>
+      <h3>Crear modelo</h3>
+      <p><code>ChatXXX(model=..., temperature=..., api_key=...)</code> — misma firma para todos los proveedores</p>
+    </div>
+    <div class="cheat-card">
+      <div class="emoji">🔗</div>
+      <h3>LCEL Pipe</h3>
+      <p><code>cadena = prompt | modelo</code> — el pipe <code>|</code> conecta componentes. Extensible con parsers, tools, etc.</p>
+    </div>
+    <div class="cheat-card">
+      <div class="emoji">💾</div>
+      <h3>Session State</h3>
+      <p><code>if "X" not in st.session_state</code> → inicializar. Obligatorio porque Streamlit re-ejecuta todo el script.</p>
+    </div>
+    <div class="cheat-card">
+      <div class="emoji">💬</div>
+      <h3>El loop de chat</h3>
+      <p>Mostrar → Generar (<code>.stream()</code>) → Guardar (<code>.append()</code>). Siempre en ese orden.</p>
+    </div>
+    <div class="cheat-card">
+      <div class="emoji">🛡️</div>
+      <h3>Try/Except</h3>
+      <p>Siempre envuelve la llamada al LLM. Las APIs fallan, y tu app no debería explotar por eso.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  Haz clic en cada bloque para expandirlo · Los patrones marcados como <span style="color:var(--accent-green)">SIEMPRE IGUAL</span> son los que memorizas una vez y reutilizas siempre.
+</footer>
+
+<script>
+function toggleBlock(header) {
+  const block = header.parentElement;
+  block.classList.toggle('open');
+}
+
+function openBlock(index) {
+  const block = document.getElementById('block-' + index);
+  if (block && !block.classList.contains('open')) {
+    block.classList.add('open');
+    block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// Open first block by default
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('block-0').classList.add('open');
+});
+</script>
+
+</body>
+</html>

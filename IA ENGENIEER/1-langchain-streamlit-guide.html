@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏗️ LangChain & Streamlit — Guía Interactiva</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent-orange: #f0883e;
+    --accent-green: #3fb950;
+    --accent-blue: #58a6ff;
+    --accent-purple: #bc8cff;
+    --accent-pink: #f778ba;
+    --accent-yellow: #d29922;
+    --accent-red: #f85149;
+    --code-bg: #0d1117;
+    --glow-orange: rgba(240, 136, 62, 0.15);
+    --glow-green: rgba(63, 185, 80, 0.12);
+    --glow-blue: rgba(88, 166, 255, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* === HERO === */
+  .hero {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 50%, var(--glow-orange) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, var(--glow-blue) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, var(--glow-green) 0%, transparent 40%);
+    animation: heroGlow 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes heroGlow {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-3%, 3%) rotate(5deg); }
+  }
+
+  .hero-content { position: relative; z-index: 1; }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fadeUp 1s ease-out;
+  }
+
+  .hero p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    animation: fadeUp 1s ease-out 0.2s both;
+  }
+
+  .level-badges {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 1s ease-out 0.4s both;
+  }
+
+  .level-badge {
+    padding: 0.5rem 1.2rem;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .level-badge.beginner { border-color: var(--accent-green); color: var(--accent-green); }
+  .level-badge.intermediate { border-color: var(--accent-orange); color: var(--accent-orange); }
+  .level-badge.advanced { border-color: var(--accent-red); color: var(--accent-red); }
+
+  .level-badge:hover { transform: translateY(-2px); }
+  .level-badge.beginner:hover { background: rgba(63, 185, 80, 0.15); }
+  .level-badge.intermediate:hover { background: rgba(240, 136, 62, 0.15); }
+  .level-badge.advanced:hover { background: rgba(248, 81, 73, 0.15); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === NAV === */
+  .toc {
+    max-width: 900px;
+    margin: 0 auto 3rem;
+    padding: 0 2rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .toc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .toc-card:hover {
+    border-color: var(--accent-orange);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(240, 136, 62, 0.1);
+  }
+
+  .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent-orange);
+    opacity: 0.6;
+  }
+
+  .toc-label { font-weight: 400; font-size: 0.95rem; }
+
+  /* === SECTIONS === */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+  }
+
+  .section {
+    margin-bottom: 5rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .section-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  /* === ANALOGY BOX === */
+  .analogy {
+    background: linear-gradient(135deg, var(--surface), var(--surface2));
+    border-left: 4px solid var(--accent-orange);
+    border-radius: 0 12px 12px 0;
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+    position: relative;
+  }
+
+  .analogy::before {
+    content: '💡';
+    position: absolute;
+    top: -12px;
+    left: -12px;
+    font-size: 1.4rem;
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 50%;
+  }
+
+  .analogy-title {
+    font-weight: 600;
+    color: var(--accent-orange);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  /* === INTERACTIVE ARCHITECTURE === */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+  }
+
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .arch-layer {
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+  }
+
+  .arch-layer:hover {
+    transform: scale(1.03);
+  }
+
+  .arch-layer.app {
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+  }
+
+  .arch-layer.main {
+    background: rgba(240, 136, 62, 0.1);
+    border: 1px solid rgba(240, 136, 62, 0.3);
+  }
+
+  .arch-layer-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .arch-layer-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+
+  .arch-connector {
+    width: 2px;
+    height: 20px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .arch-connector::after {
+    content: '▼';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--border);
+    font-size: 0.6rem;
+  }
+
+  .arch-bottom {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .arch-bottom .arch-layer {
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .arch-layer.core {
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+  }
+
+  .arch-layer.community {
+    background: rgba(188, 140, 255, 0.1);
+    border: 1px solid rgba(188, 140, 255, 0.3);
+  }
+
+  .arch-layer.partners {
+    background: rgba(247, 120, 186, 0.1);
+    border: 1px solid rgba(247, 120, 186, 0.3);
+  }
+
+  /* Detail panel */
+  .arch-detail {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    display: none;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .arch-detail.active { display: block; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === CODE BLOCKS === */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .code-header {
+    background: var(--surface);
+    padding: 0.6rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    color: var(--accent-green);
+    font-weight: 600;
+  }
+
+  .code-copy {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .code-copy:hover {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  pre {
+    padding: 1.2rem 1.5rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  .kw { color: var(--accent-purple); }
+  .fn { color: var(--accent-blue); }
+  .str { color: var(--accent-green); }
+  .cm { color: var(--text-muted); font-style: italic; }
+  .var { color: var(--accent-orange); }
+  .dec { color: var(--accent-yellow); }
+
+  /* === ACCORDION === */
+  .accordion {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .accordion-item {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .accordion-item:last-child { border-bottom: none; }
+
+  .accordion-trigger {
+    width: 100%;
+    background: var(--surface);
+    border: none;
+    color: var(--text);
+    padding: 1rem 1.5rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+  }
+
+  .accordion-trigger:hover { background: var(--surface2); }
+
+  .accordion-arrow {
+    transition: transform 0.3s;
+    color: var(--accent-orange);
+  }
+
+  .accordion-trigger.open .accordion-arrow {
+    transform: rotate(180deg);
+  }
+
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out;
+    background: var(--bg);
+  }
+
+  .accordion-content-inner {
+    padding: 1.2rem 1.5rem;
+  }
+
+  /* === CARDS === */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-blue);
+  }
+
+  .card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* === COMPARISON TABLE === */
+  .comparison {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+
+  .comparison table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .comparison th {
+    background: var(--surface);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent-orange);
+    white-space: nowrap;
+  }
+
+  .comparison td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comparison tr:hover td {
+    background: var(--surface);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+  }
+
+  .tag.green { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
+  .tag.orange { background: rgba(240, 136, 62, 0.15); color: var(--accent-orange); }
+  .tag.purple { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
+  .tag.blue { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
+  .tag.pink { background: rgba(247, 120, 186, 0.15); color: var(--accent-pink); }
+
+  /* === TIPS === */
+  .tip-box {
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .tip-box.warning {
+    background: rgba(210, 153, 34, 0.1);
+    border: 1px solid rgba(210, 153, 34, 0.3);
+  }
+
+  .tip-box.success {
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+  }
+
+  .tip-box.danger {
+    background: rgba(248, 81, 73, 0.1);
+    border: 1px solid rgba(248, 81, 73, 0.3);
+  }
+
+  .tip-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+  .tip-text { font-size: 0.9rem; }
+  .tip-text strong { display: block; margin-bottom: 0.3rem; }
+
+  /* === PROGRESS TRACKER === */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-orange), var(--accent-pink), var(--accent-blue));
+    z-index: 1000;
+    transition: width 0.2s;
+  }
+
+  /* === FLOW DIAGRAM === */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 2rem 0;
+  }
+
+  .flow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    transition: all 0.3s;
+  }
+
+  .flow-step:hover {
+    border-color: var(--accent-green);
+    transform: scale(1.02);
+  }
+
+  .flow-step-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent-green);
+    font-weight: 600;
+  }
+
+  .flow-step-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+
+  .flow-arrow {
+    color: var(--border);
+    font-size: 1.2rem;
+    padding: 0.3rem 0;
+  }
+
+  /* === RECOMMENDATION SECTION === */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .rec-do, .rec-dont {
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .rec-do {
+    background: rgba(63, 185, 80, 0.06);
+    border: 1px solid rgba(63, 185, 80, 0.2);
+  }
+
+  .rec-dont {
+    background: rgba(248, 81, 73, 0.06);
+    border: 1px solid rgba(248, 81, 73, 0.2);
+  }
+
+  .rec-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .rec-do .rec-title { color: var(--accent-green); }
+  .rec-dont .rec-title { color: var(--accent-red); }
+
+  .rec-list {
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .rec-list li {
+    padding: 0.3rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+
+  .rec-do .rec-list li::before { content: '✓'; position: absolute; left: 0; color: var(--accent-green); }
+  .rec-dont .rec-list li::before { content: '✗'; position: absolute; left: 0; color: var(--accent-red); }
+
+  /* === QUIZ === */
+  .quiz {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .quiz-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .quiz-question {
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .quiz-option {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    text-align: left;
+    width: 100%;
+  }
+
+  .quiz-option:hover:not(.selected) {
+    border-color: var(--accent-blue);
+    background: rgba(88, 166, 255, 0.05);
+  }
+
+  .quiz-option.correct {
+    border-color: var(--accent-green);
+    background: rgba(63, 185, 80, 0.1);
+    color: var(--accent-green);
+  }
+
+  .quiz-option.wrong {
+    border-color: var(--accent-red);
+    background: rgba(248, 81, 73, 0.1);
+    color: var(--accent-red);
+  }
+
+  .quiz-feedback {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: rgba(63, 185, 80, 0.1); color: var(--accent-green); }
+  .quiz-feedback.wrong-fb { background: rgba(248, 81, 73, 0.1); color: var(--accent-red); }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 640px) {
+    .arch-bottom { grid-template-columns: 1fr; }
+    .rec-grid { grid-template-columns: 1fr; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* paragraph spacing */
+  .section p { margin-bottom: 1rem; font-size: 0.95rem; }
+  .section p + p { margin-top: 0; }
+
+  /* inline code */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--accent-orange);
+  }
+
+  a { color: var(--accent-blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .section-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-orange), transparent);
+    border-radius: 3px;
+    margin: 4rem auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>LangChain & Streamlit</h1>
+    <p>Guía interactiva de arquitectura — de lo más simple a lo más avanzado, con ejemplos claros y recomendaciones prácticas.</p>
+    <div class="level-badges">
+      <span class="level-badge beginner">🟢 Principiante</span>
+      <span class="level-badge intermediate">🟠 Intermedio</span>
+      <span class="level-badge advanced">🔴 Avanzado</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TABLE OF CONTENTS ===== -->
+<nav class="toc">
+  <div class="toc-grid">
+    <a href="#sec1" class="toc-card"><span class="toc-num">01</span><span class="toc-label">¿Qué es LangChain?</span></a>
+    <a href="#sec2" class="toc-card"><span class="toc-num">02</span><span class="toc-label">Arquitectura de paquetes</span></a>
+    <a href="#sec3" class="toc-card"><span class="toc-num">03</span><span class="toc-label">Imports y ejemplos</span></a>
+    <a href="#sec4" class="toc-card"><span class="toc-num">04</span><span class="toc-label">¿Qué es Streamlit?</span></a>
+    <a href="#sec5" class="toc-card"><span class="toc-num">05</span><span class="toc-label">Comandos esenciales</span></a>
+    <a href="#sec6" class="toc-card"><span class="toc-num">06</span><span class="toc-label">Recomendaciones</span></a>
+  </div>
+</nav>
+
+<!-- ===== CONTENT ===== -->
+<main class="container">
+
+  <!-- SECTION 1 -->
+  <section class="section" id="sec1">
+    <div class="section-header">
+      <div class="section-icon" style="background: var(--glow-green);">🧩</div>
+      <h2>¿Qué es LangChain?</h2>
+    </div>
+
+    <p>LangChain es un <strong>framework de Python</strong> que te permite construir aplicaciones con modelos de lenguaje (LLMs) de forma modular. En vez de hablar con la API de OpenAI o Anthropic directamente, LangChain te da piezas que encajan entre sí: prompts, cadenas, agentes, memoria y herramientas.</p>
+
+    <div class="analogy">
+      <div class="analogy-title">Analogía para entender</div>
+      <p>Imagina que un LLM es un <strong>chef muy talentoso</strong>. LangChain es la <strong>cocina completa</strong>: los utensilios, las recetas, el refrigerador (memoria), y los proveedores de ingredientes (APIs). Sin LangChain, tienes al chef solo con sus manos. Con LangChain, tiene todo para cocinar platos complejos.</p>
+    </div>
+
+    <p>Lo importante es que LangChain no es un modelo de IA — es el <strong>pegamento</strong> que conecta modelos con datos, herramientas y lógica de negocio.</p>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 2 -->
+  <section class="section" id="sec2">
+    <div class="section-header">
+      <div class="section-icon" style="background: var(--glow-orange);">🏗️</div>
+      <h2>Arquitectura de Paquetes</h2>
+    </div>
+
+    <p>LangChain se dividió en módulos separados para que solo instales lo que necesitas. Haz <strong>clic en cada capa</strong> para ver qué contiene:</p>
+
+    <div class="arch-diagram">
+      <div class="arch-layers">
+        <div class="arch-layer app" onclick="showDetail('app')">
+          <div class="arch-layer-name">📱 Tu Aplicación</div>
+          <div class="arch-layer-desc">Tu código, tu chatbot, tu agente</div>
+        </div>
+
+        <div class="arch-connector"></div>
+
+        <div class="arch-layer main" onclick="showDetail('main')">
+          <div class="arch-layer-name">🔗 langchain</div>
+          <div class="arch-layer-desc">Chains, Agents, Memory — funcionalidad de alto nivel</div>
+        </div>
+
+        <div class="arch-connector"></div>
+
+        <div class="arch-bottom">
+          <div class="arch-layer core" onclick="showDetail('core')">
+            <div class="arch-layer-name" style="font-size: 0.8rem;">langchain-core</div>
+            <div class="arch-layer-desc">Abstracciones base, LCEL</div>
+          </div>
+          <div class="arch-layer community" onclick="showDetail('community')">
+            <div class="arch-layer-name" style="font-size: 0.8rem;">langchain-community</div>
+            <div class="arch-layer-desc">Integraciones terceros</div>
+          </div>
+          <div class="arch-layer partners" onclick="showDetail('partners')">
+            <div class="arch-layer-name" style="font-size: 0.8rem;">Partner Packages</div>
+            <div class="arch-layer-desc">OpenAI, Anthropic, etc.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-detail" id="detail-app">
+        <p>🔹 <strong>Tu aplicación</strong> es donde combinas todo. Puede ser un chatbot con Streamlit, un agente RAG, un pipeline de datos con IA, etc. Aquí importas lo que necesitas de las capas inferiores.</p>
+      </div>
+      <div class="arch-detail" id="detail-main">
+        <p>🔹 <strong>langchain</strong> tiene la lógica de alto nivel: <code>ConversationChain</code>, agentes que usan herramientas, memoria del chat, y callbacks. Es lo que "orquesta" todo.</p>
+      </div>
+      <div class="arch-detail" id="detail-core">
+        <p>🔹 <strong>langchain-core</strong> son los cimientos. Contiene las clases abstractas (<code>BaseLanguageModel</code>, <code>Runnable</code>), las plantillas de prompts, y el LCEL (LangChain Expression Language) para componer cadenas con <code>|</code>.</p>
+      </div>
+      <div class="arch-detail" id="detail-community">
+        <p>🔹 <strong>langchain-community</strong> conecta con herramientas de terceros: FAISS para vectores, loaders de PDF, conectores de bases de datos, etc. Son integraciones mantenidas por la comunidad.</p>
+      </div>
+      <div class="arch-detail" id="detail-partners">
+        <p>🔹 <strong>Partner Packages</strong> son paquetes oficiales optimizados: <code>langchain-openai</code>, <code>langchain-anthropic</code>, <code>langchain-ollama</code>. Tienen mejor soporte y se actualizan independientemente.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="analogy-title">¿Por qué se separó en módulos?</div>
+      <p>Antes todo venía en un solo paquete gigante. Si solo usabas OpenAI, igual instalabas dependencias de 50 proveedores más. Ahora es como un <strong>menú a la carta</strong>: solo pides lo que necesitas y pagas (en dependencias) solo por eso.</p>
+    </div>
+
+    <!-- Ventajas -->
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🪶</div>
+        <h4>Instalación ligera</h4>
+        <p>Solo instalas lo que usas. ¿Solo OpenAI? → <code>langchain-core</code> + <code>langchain-openai</code></p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h4>Updates independientes</h4>
+        <p>Cada partner package se actualiza sin esperar un release del paquete principal.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧹</div>
+        <h4>Menos conflictos</h4>
+        <p>Las dependencias de una integración no rompen otra. Cada paquete vive aislado.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛠️</div>
+        <h4>Mejor mantenimiento</h4>
+        <p>Cada integración puede evolucionar a su propio ritmo con su propio equipo.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 3 -->
+  <section class="section" id="sec3">
+    <div class="section-header">
+      <div class="section-icon" style="background: var(--glow-blue);">💻</div>
+      <h2>Imports y Ejemplos Prácticos</h2>
+    </div>
+
+    <p>Cada import te dice <strong>de dónde viene la pieza</strong> que estás usando. Esto es clave para saber qué instalar:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Python</span>
+        <button class="code-copy" onclick="copyCode(this)">Copiar</button>
+      </div>
+      <pre><span class="cm"># 1. Abstracciones base → langchain-core</span>
+<span class="kw">from</span> <span class="var">langchain_core.prompts</span> <span class="kw">import</span> <span class="fn">ChatPromptTemplate</span>
+
+<span class="cm"># 2. Funcionalidad de alto nivel → langchain</span>
+<span class="kw">from</span> <span class="var">langchain.chains</span> <span class="kw">import</span> <span class="fn">ConversationChain</span>
+
+<span class="cm"># 3. Integración específica → partner package</span>
+<span class="kw">from</span> <span class="var">langchain_openai</span> <span class="kw">import</span> <span class="fn">ChatOpenAI</span>
+
+<span class="cm"># 4. Herramienta de terceros → community</span>
+<span class="kw">from</span> <span class="var">langchain_community.vectorstores</span> <span class="kw">import</span> <span class="fn">FAISS</span></pre>
+    </div>
+
+    <div class="comparison">
+      <table>
+        <thead>
+          <tr>
+            <th>Import desde...</th>
+            <th>Paquete</th>
+            <th>¿Qué obtienes?</th>
+            <th>Instalar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>langchain_core.*</code></td>
+            <td><span class="tag green">core</span></td>
+            <td>Prompts, Runnables, LCEL, interfaces base</td>
+            <td><code>pip install langchain-core</code></td>
+          </tr>
+          <tr>
+            <td><code>langchain.*</code></td>
+            <td><span class="tag orange">langchain</span></td>
+            <td>Chains, Agents, Memory</td>
+            <td><code>pip install langchain</code></td>
+          </tr>
+          <tr>
+            <td><code>langchain_openai.*</code></td>
+            <td><span class="tag pink">partner</span></td>
+            <td>ChatOpenAI, embeddings de OpenAI</td>
+            <td><code>pip install langchain-openai</code></td>
+          </tr>
+          <tr>
+            <td><code>langchain_community.*</code></td>
+            <td><span class="tag purple">community</span></td>
+            <td>FAISS, loaders, herramientas varias</td>
+            <td><code>pip install langchain-community</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box warning">
+      <span class="tip-icon">⚡</span>
+      <div class="tip-text">
+        <strong>Regla de oro</strong>
+        Si el import dice <code>langchain_openai</code> (con guión bajo y nombre del proveedor), es un partner package. Si dice <code>langchain_community</code>, es una integración comunitaria. Si dice <code>langchain_core</code>, es una abstracción fundamental.
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 4 -->
+  <section class="section" id="sec4">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(247, 120, 186, 0.15);">🚀</div>
+      <h2>¿Qué es Streamlit?</h2>
+    </div>
+
+    <p>Streamlit convierte tu script de Python en una <strong>aplicación web interactiva</strong> sin necesidad de saber HTML, CSS ni JavaScript. Es el puente más rápido entre tu lógica de LangChain y una interfaz visual para el usuario.</p>
+
+    <div class="analogy">
+      <div class="analogy-title">Analogía para entender</div>
+      <p>Si LangChain es el <strong>motor del auto</strong> (la lógica, el cerebro), Streamlit es la <strong>carrocería + tablero</strong>: lo que el usuario ve y toca. Tu script Python se convierte directamente en botones, gráficos y chats.</p>
+    </div>
+
+    <h3 style="margin: 2rem 0 1rem; font-family: 'Fraunces', serif;">Los 3 conceptos clave</h3>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span>1️⃣ Script as App — tu código ES la app</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <p>No hay archivos HTML separados. El orden en que escribes las funciones en tu <code>.py</code> es el orden en que aparecen en pantalla. Arriba en el código = arriba en la web.</p>
+            <div class="code-block" style="margin: 1rem 0;">
+              <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" onclick="copyCode(this)">Copiar</button></div>
+              <pre><span class="kw">import</span> <span class="var">streamlit</span> <span class="kw">as</span> <span class="var">st</span>
+
+<span class="fn">st.title</span>(<span class="str">"Mi Chatbot"</span>)        <span class="cm"># Aparece primero</span>
+<span class="fn">st.write</span>(<span class="str">"Bienvenido 👋"</span>)     <span class="cm"># Aparece segundo</span>
+<span class="var">pregunta</span> = <span class="fn">st.chat_input</span>(<span class="str">"Escribe algo..."</span>) <span class="cm"># Aparece al final</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span>2️⃣ The Rerun — cada interacción re-ejecuta TODO</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <p>Cuando el usuario hace clic o escribe algo, <strong>el script completo se ejecuta de nuevo</strong> de arriba a abajo. Esto simplifica el desarrollo pero tiene una consecuencia importante: las variables normales se pierden.</p>
+            <div class="flow">
+              <div class="flow-step">
+                <div class="flow-step-title">Usuario escribe "Hola"</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="flow-step-title">Streamlit re-ejecuta app.py completo</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="flow-step-title">Se renderiza la página con los nuevos datos</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="flow-step-title">Variables locales se pierden 💨</div>
+                <div class="flow-step-desc">Por eso necesitas st.session_state</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span>3️⃣ st.session_state — la memoria que sobrevive</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <p><code>st.session_state</code> es un diccionario especial que <strong>persiste entre ejecuciones</strong>. Es donde guardas el historial del chat, configuraciones del usuario, y cualquier dato que no quieras perder.</p>
+            <div class="code-block" style="margin: 1rem 0;">
+              <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" onclick="copyCode(this)">Copiar</button></div>
+              <pre><span class="cm"># Inicializar historial (solo la primera vez)</span>
+<span class="kw">if</span> <span class="str">"messages"</span> <span class="kw">not in</span> <span class="var">st.session_state</span>:
+    <span class="var">st.session_state</span>[<span class="str">"messages"</span>] = []
+
+<span class="cm"># Agregar mensaje (persiste entre reruns)</span>
+<span class="var">st.session_state</span>[<span class="str">"messages"</span>].<span class="fn">append</span>({
+    <span class="str">"role"</span>: <span class="str">"user"</span>,
+    <span class="str">"content"</span>: <span class="str">"Hola!"</span>
+})</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 5 -->
+  <section class="section" id="sec5">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(188, 140, 255, 0.15);">🛠️</div>
+      <h2>Comandos Esenciales de Streamlit</h2>
+    </div>
+
+    <p>Organizados por categoría, de los más usados a los más especializados:</p>
+
+    <!-- Chat -->
+    <h3 style="margin: 2rem 0 1rem; color: var(--accent-green);">💬 Chat (lo que más usarás con LangChain)</h3>
+
+    <div class="comparison">
+      <table>
+        <thead><tr><th>Comando</th><th>Qué hace</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>st.chat_input()</code></td>
+            <td>Caja de texto tipo WhatsApp</td>
+            <td><code>msg = st.chat_input("Pregunta...")</code></td>
+          </tr>
+          <tr>
+            <td><code>st.chat_message()</code></td>
+            <td>Burbuja con avatar</td>
+            <td><code>with st.chat_message("user"): st.write(msg)</code></td>
+          </tr>
+          <tr>
+            <td><code>st.session_state</code></td>
+            <td>Memoria entre reruns</td>
+            <td><code>st.session_state["history"] = []</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Layout -->
+    <h3 style="margin: 2rem 0 1rem; color: var(--accent-blue);">🎨 Layout (organizar la interfaz)</h3>
+
+    <div class="comparison">
+      <table>
+        <thead><tr><th>Comando</th><th>Qué hace</th><th>Cuándo usarlo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>st.sidebar</code></td>
+            <td>Barra lateral colapsable</td>
+            <td>Configuraciones, menús, filtros</td>
+          </tr>
+          <tr>
+            <td><code>st.columns()</code></td>
+            <td>Divide en columnas</td>
+            <td>Mostrar datos lado a lado</td>
+          </tr>
+          <tr>
+            <td><code>st.tabs()</code></td>
+            <td>Pestañas navegables</td>
+            <td>Separar vistas sin cambiar de página</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Data & Viz -->
+    <h3 style="margin: 2rem 0 1rem; color: var(--accent-orange);">📊 Datos y Visualización</h3>
+
+    <div class="comparison">
+      <table>
+        <thead><tr><th>Comando</th><th>Qué hace</th><th>Cuándo usarlo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>st.dataframe()</code></td>
+            <td>Tabla interactiva</td>
+            <td>Explorar datos tabulares</td>
+          </tr>
+          <tr>
+            <td><code>st.plotly_chart()</code></td>
+            <td>Gráfico interactivo</td>
+            <td>Visualizaciones complejas</td>
+          </tr>
+          <tr>
+            <td><code>st.file_uploader()</code></td>
+            <td>Subir archivos</td>
+            <td>RAG: subir PDFs para consultar</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Optimization -->
+    <h3 style="margin: 2rem 0 1rem; color: var(--accent-yellow);">⚡ Optimización</h3>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" onclick="copyCode(this)">Copiar</button></div>
+      <pre><span class="cm"># Cachear datos (se recalculan solo si cambian)</span>
+<span class="dec">@st.cache_data</span>
+<span class="kw">def</span> <span class="fn">cargar_csv</span>(<span class="var">path</span>):
+    <span class="kw">return</span> <span class="var">pd</span>.<span class="fn">read_csv</span>(<span class="var">path</span>)
+
+<span class="cm"># Cachear recursos pesados (se cargan UNA sola vez)</span>
+<span class="dec">@st.cache_resource</span>
+<span class="kw">def</span> <span class="fn">cargar_modelo</span>():
+    <span class="kw">return</span> <span class="fn">ChatOpenAI</span>(<span class="var">model</span>=<span class="str">"gpt-4"</span>)</pre>
+    </div>
+
+    <div class="tip-box success">
+      <span class="tip-icon">💡</span>
+      <div class="tip-text">
+        <strong>@cache_data vs @cache_resource</strong>
+        Usa <code>@cache_data</code> para datos (DataFrames, CSVs, resultados de cálculos). Usa <code>@cache_resource</code> para objetos globales pesados (modelos de ML, conexiones a BD). La diferencia: <code>cache_data</code> serializa una copia, <code>cache_resource</code> reutiliza el mismo objeto.
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 6 -->
+  <section class="section" id="sec6">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(63, 185, 80, 0.15);">🎯</div>
+      <h2>Recomendaciones</h2>
+    </div>
+
+    <h3 style="margin: 0 0 1rem; font-family: 'Fraunces', serif;">LangChain</h3>
+
+    <div class="rec-grid">
+      <div class="rec-do">
+        <div class="rec-title">✅ SÍ hacer</div>
+        <ul class="rec-list">
+          <li>Instalar solo los paquetes que necesitas</li>
+          <li>Usar partner packages sobre community cuando existan</li>
+          <li>Aprender LCEL (el pipe <code>|</code>) — es el futuro de LangChain</li>
+          <li>Fijar versiones en <code>requirements.txt</code></li>
+          <li>Empezar con cadenas simples antes de crear agentes</li>
+        </ul>
+      </div>
+      <div class="rec-dont">
+        <div class="rec-title">❌ NO hacer</div>
+        <ul class="rec-list">
+          <li>Instalar <code>langchain[all]</code> — trae dependencias innecesarias</li>
+          <li>Importar desde <code>langchain.llms</code> (deprecated) — usar partner packages</li>
+          <li>Mezclar versiones incompatibles de core y partners</li>
+          <li>Hardcodear API keys en el código</li>
+          <li>Crear agentes complejos sin entender primero las cadenas</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin: 2rem 0 1rem; font-family: 'Fraunces', serif;">Streamlit</h3>
+
+    <div class="rec-grid">
+      <div class="rec-do">
+        <div class="rec-title">✅ SÍ hacer</div>
+        <ul class="rec-list">
+          <li>Usar <code>st.session_state</code> para el historial del chat</li>
+          <li>Guardar API keys en <code>.streamlit/secrets.toml</code></li>
+          <li>Cachear modelos con <code>@st.cache_resource</code></li>
+          <li>Usar <code>st.sidebar</code> para configuración</li>
+          <li>Agregar <code>.streamlit/</code> al <code>.gitignore</code></li>
+        </ul>
+      </div>
+      <div class="rec-dont">
+        <div class="rec-title">❌ NO hacer</div>
+        <ul class="rec-list">
+          <li>Poner API keys directamente en el código</li>
+          <li>Olvidar que cada interacción re-ejecuta todo el script</li>
+          <li>Crear el modelo LLM dentro del flujo principal (se recrea cada rerun)</li>
+          <li>Ignorar el caché — tu app será lenta sin él</li>
+          <li>Subir <code>secrets.toml</code> al repositorio</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tip-box danger">
+      <span class="tip-icon">🔐</span>
+      <div class="tip-text">
+        <strong>Seguridad — nunca olvidar</strong>
+        Nunca pongas API keys en el código. Usa <code>st.secrets["OPENAI_API_KEY"]</code> con un archivo <code>.streamlit/secrets.toml</code> local, o variables de entorno en producción. Y asegúrate de que <code>.streamlit/</code> esté en tu <code>.gitignore</code>.
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- QUIZ -->
+  <section class="section" id="quiz">
+    <div class="quiz">
+      <div class="quiz-title">🧠 Verifica lo que aprendiste</div>
+      <div class="quiz-question">Si necesitas usar FAISS como vector store, ¿desde qué paquete lo importas?</div>
+      <div class="quiz-options">
+        <button class="quiz-option" onclick="checkQuiz(this, false)"><code>langchain_core.vectorstores</code></button>
+        <button class="quiz-option" onclick="checkQuiz(this, true)"><code>langchain_community.vectorstores</code></button>
+        <button class="quiz-option" onclick="checkQuiz(this, false)"><code>langchain_openai.vectorstores</code></button>
+        <button class="quiz-option" onclick="checkQuiz(this, false)"><code>langchain.vectorstores</code></button>
+      </div>
+      <div class="quiz-feedback" id="quiz1-fb"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="quiz-title">🧠 Pregunta 2</div>
+      <div class="quiz-question">¿Por qué necesitas <code>st.session_state</code> en Streamlit?</div>
+      <div class="quiz-options">
+        <button class="quiz-option" onclick="checkQuiz2(this, false)">Para hacer la app más rápida</button>
+        <button class="quiz-option" onclick="checkQuiz2(this, false)">Para conectar con la API de OpenAI</button>
+        <button class="quiz-option" onclick="checkQuiz2(this, true)">Porque cada interacción re-ejecuta el script y las variables se pierden</button>
+        <button class="quiz-option" onclick="checkQuiz2(this, false)">Para guardar datos en una base de datos</button>
+      </div>
+      <div class="quiz-feedback" id="quiz2-fb"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="quiz-title">🧠 Pregunta 3</div>
+      <div class="quiz-question">¿Cuál es la diferencia entre <code>@st.cache_data</code> y <code>@st.cache_resource</code>?</div>
+      <div class="quiz-options">
+        <button class="quiz-option" onclick="checkQuiz3(this, false)">No hay diferencia, son lo mismo</button>
+        <button class="quiz-option" onclick="checkQuiz3(this, true)">cache_data serializa copias de datos, cache_resource reutiliza el mismo objeto pesado</button>
+        <button class="quiz-option" onclick="checkQuiz3(this, false)">cache_data es para producción, cache_resource es para desarrollo</button>
+        <button class="quiz-option" onclick="checkQuiz3(this, false)">cache_resource es más rápido en todos los casos</button>
+      </div>
+      <div class="quiz-feedback" id="quiz3-fb"></div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+  });
+
+  // Architecture detail
+  function showDetail(id) {
+    document.querySelectorAll('.arch-detail').forEach(d => {
+      d.classList.remove('active');
+    });
+    const el = document.getElementById('detail-' + id);
+    if (el) el.classList.add('active');
+  }
+
+  // Accordion
+  function toggleAccordion(btn) {
+    const content = btn.nextElementSibling;
+    const isOpen = btn.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.accordion-trigger').forEach(t => t.classList.remove('open'));
+    document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
+
+    if (!isOpen) {
+      btn.classList.add('open');
+      content.style.maxHeight = content.scrollHeight + 'px';
+    }
+  }
+
+  // Copy code
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.textContent).then(() => {
+      btn.textContent = '✓ Copiado';
+      setTimeout(() => btn.textContent = 'Copiar', 2000);
+    });
+  }
+
+  // Quiz 1
+  function checkQuiz(btn, correct) {
+    const fb = document.getElementById('quiz1-fb');
+    btn.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(o => {
+      o.disabled = true;
+      o.style.pointerEvents = 'none';
+    });
+    if (correct) {
+      btn.classList.add('correct');
+      fb.className = 'quiz-feedback show correct-fb';
+      fb.textContent = '✅ ¡Correcto! FAISS es una herramienta de terceros, por eso viene de langchain-community.';
+    } else {
+      btn.classList.add('wrong');
+      fb.className = 'quiz-feedback show wrong-fb';
+      fb.textContent = '❌ No exactamente. FAISS es una integración comunitaria → langchain_community.vectorstores.';
+    }
+  }
+
+  // Quiz 2
+  function checkQuiz2(btn, correct) {
+    const fb = document.getElementById('quiz2-fb');
+    btn.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(o => {
+      o.disabled = true;
+      o.style.pointerEvents = 'none';
+    });
+    if (correct) {
+      btn.classList.add('correct');
+      fb.className = 'quiz-feedback show correct-fb';
+      fb.textContent = '✅ ¡Exacto! Streamlit re-ejecuta todo el script en cada interacción, así que session_state es la forma de persistir datos entre reruns.';
+    } else {
+      btn.classList.add('wrong');
+      fb.className = 'quiz-feedback show wrong-fb';
+      fb.textContent = '❌ La razón principal es que Streamlit re-ejecuta el script completo en cada interacción, y sin session_state las variables se pierden.';
+    }
+  }
+
+  // Quiz 3
+  function checkQuiz3(btn, correct) {
+    const fb = document.getElementById('quiz3-fb');
+    btn.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(o => {
+      o.disabled = true;
+      o.style.pointerEvents = 'none';
+    });
+    if (correct) {
+      btn.classList.add('correct');
+      fb.className = 'quiz-feedback show correct-fb';
+      fb.textContent = '✅ ¡Perfecto! cache_data guarda copias serializadas (ideal para DataFrames), cache_resource reutiliza el mismo objeto en memoria (ideal para modelos o conexiones a BD).';
+    } else {
+      btn.classList.add('wrong');
+      fb.className = 'quiz-feedback show wrong-fb';
+      fb.textContent = '❌ La diferencia clave es: cache_data serializa copias de datos, cache_resource reutiliza el mismo objeto pesado (como un modelo o conexión a BD).';
+    }
+  }
+
+  // Smooth scroll for TOC
+  document.querySelectorAll('.toc-card').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

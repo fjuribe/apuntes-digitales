@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking Secure Protocols — TryHackMe Room 4/4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060610;--bg2:#0b0b1a;--bg3:#101025;
+  --text:#e8e8f0;--muted:#a0a0b8;--dim:#707088;--faint:#505068;--dark:#353548;
+  --border:rgba(255,255,255,0.06);
+  --cyan:#00e5c8;--yellow:#ffd639;--pink:#f050a0;--purple:#a855f7;
+  --blue:#3b9eff;--red:#ff5555;--green:#22d68a;--orange:#ff9030;
+  --teal:#14b8a6;--sky:#38bdf8;--rose:#fb7185;--lime:#84cc16;
+  --mono:'IBM Plex Mono',monospace;--ui:'Outfit',sans-serif;
+}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse 600px 400px at 15% 15%,rgba(34,214,138,0.025),transparent),radial-gradient(ellipse 500px 500px at 85% 85%,rgba(59,158,255,0.025),transparent);pointer-events:none;z-index:0}
+
+.header{position:relative;background:linear-gradient(160deg,#08081a 0%,#081a12 40%,#081420 100%);padding:30px 20px 22px;border-bottom:1px solid rgba(34,214,138,0.12);overflow:hidden}
+.header::after{content:"";position:absolute;bottom:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--green),var(--blue),var(--purple),transparent)}
+.header-inner{max-width:940px;margin:0 auto;position:relative;z-index:1}
+.header-tag{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:3px;text-transform:uppercase;opacity:.8}
+.header h1{font-size:clamp(22px,4vw,28px);font-weight:900;margin:4px 0 2px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .sub{color:var(--faint);font-size:13px}
+.room-badge{display:inline-block;background:var(--green);color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;margin-left:8px;vertical-align:middle}
+
+.nav{background:rgba(6,6,16,0.97);border-bottom:1px solid var(--border);padding:10px 20px;overflow-x:auto;position:sticky;top:0;z-index:200;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.nav-inner{max-width:940px;margin:0 auto;display:flex;gap:4px;min-width:max-content}
+.nav-btn{background:transparent;color:var(--faint);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .25s;font-family:var(--mono)}
+.nav-btn:hover{color:var(--muted);border-color:rgba(255,255,255,0.12)}
+.nav-btn.active{border:none;color:var(--bg)}
+.content{max-width:940px;margin:0 auto;padding:24px 20px 100px;position:relative;z-index:1}
+.sec-title{font-size:22px;font-weight:900;margin:0 0 4px}
+.sec-sub{color:var(--faint);font-size:13px;margin-bottom:20px}
+
+.box{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color .3s}
+.terminal{background:#07070e;border:1px solid rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;margin:12px 0}
+.term-bar{background:rgba(255,255,255,0.025);padding:6px 14px;font-size:10px;color:var(--faint);display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.term-dots{display:flex;gap:5px}
+.term-dots span{width:9px;height:9px;border-radius:50%}
+.terminal pre{padding:16px;margin:0;font-size:11.5px;line-height:1.7;font-family:var(--mono);color:var(--muted);overflow-x:auto;white-space:pre-wrap}
+.cmd{color:#22d68a}.hl{color:#00e5c8}.warn{color:#ffd639}.ip{color:#f050a0}.srv{color:#3b9eff}.err{color:#ff5555}
+
+.tip{border-left:3px solid;border-radius:0 12px 12px 0;padding:12px 16px;margin:12px 0;background:rgba(255,255,255,0.012)}
+.tip-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px;font-family:var(--mono)}
+.tip-body{color:var(--muted);font-size:13px;line-height:1.65}
+.tip-body strong{color:var(--text)}
+.tip-body code{font-family:var(--mono);background:rgba(0,229,200,0.08);color:var(--cyan);padding:1px 6px;border-radius:4px;font-size:11.5px}
+.badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.3px;display:inline-block}
+.P{color:var(--muted);font-size:14px;line-height:1.8;margin:0 0 10px}
+.P strong{color:var(--text)}
+.P code{font-family:var(--mono);background:rgba(0,229,200,0.08);color:var(--cyan);padding:1px 6px;border-radius:4px;font-size:12px}
+.H{font-weight:800;font-size:15px;margin-bottom:8px}
+.expand-item{border:1.5px solid rgba(255,255,255,0.05);border-radius:12px;padding:13px 16px;cursor:pointer;transition:all .3s;background:rgba(255,255,255,0.01)}
+.expand-item:hover{background:rgba(255,255,255,0.018)}
+.tab-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.tab-btn{border-radius:10px;padding:7px 16px;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--mono);transition:all .25s;border:1.5px solid}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.grid-200{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.grid-250{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.flex-col{display:flex;flex-direction:column}
+.gap-4{gap:4px}.gap-5{gap:5px}.gap-6{gap:6px}.gap-8{gap:8px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}
+.port-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-left:3px solid;background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0;transition:background .2s}
+.port-row:hover{background:rgba(255,255,255,0.03)}
+.vs-card{border-radius:12px;padding:16px;border-top:3px solid;background:rgba(255,255,255,0.015)}
+.lock-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-size:16px;flex-shrink:0}
+.step-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0}
+.quiz-opt{background:rgba(255,255,255,0.02);border:2px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 18px;color:#ccc;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all .3s;width:100%;display:block;font-family:var(--ui)}
+.quiz-opt:hover{border-color:rgba(255,255,255,0.15)}
+.quiz-next{background:var(--orange);color:var(--bg);border:none;border-radius:12px;padding:12px 0;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--mono);display:block;width:100%;margin-top:18px}
+.quiz-reset{background:var(--green);color:var(--bg);border:none;border-radius:12px;padding:12px 32px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--mono)}
+::-webkit-scrollbar{height:4px;width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
+@media(max-width:600px){.grid-200,.grid-250{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner">
+  <div class="header-tag">TryHackMe · Room 4/4 🔒</div>
+  <h1>Networking Secure Protocols <span class="room-badge">Room 4</span></h1>
+  <p class="sub">TLS/SSL · HTTPS · SMTPS · POP3S · IMAPS · SSH · VPN — Seguridad en la capa de transporte 🛡️</p>
+</div></div>
+<div class="nav"><div class="nav-inner" id="nav"></div></div>
+<div class="content"><div id="sh"></div><div id="sc"></div></div>
+
+<script>
+const TABS=[
+  {id:"intro",icon:"🏠",label:"Inicio",color:"#22d68a"},
+  {id:"tls",icon:"🔒",label:"TLS/SSL",color:"#3b9eff"},
+  {id:"https",icon:"🌐",label:"HTTPS",color:"#22d68a"},
+  {id:"email",icon:"📧",label:"Email Seguro",color:"#f050a0"},
+  {id:"ssh",icon:"💻",label:"SSH",color:"#a855f7"},
+  {id:"vpn",icon:"🛡️",label:"VPN",color:"#14b8a6"},
+  {id:"ports",icon:"🚪",label:"Puertos",color:"#38bdf8"},
+  {id:"compare",icon:"⚔️",label:"Inseguro vs Seguro",color:"#ff9030"},
+  {id:"tools",icon:"🛠️",label:"Tools",color:"#84cc16"},
+  {id:"quiz",icon:"🧠",label:"Quiz",color:"#ff9030"},
+];
+const QS=[
+  {q:"¿Qué significa la S en HTTPS?",o:["Server","Secure","Socket","Session"],c:1},
+  {q:"¿En qué puerto opera HTTPS por defecto?",o:["80","8443","443","22"],c:2},
+  {q:"¿Qué protocolo proporciona cifrado a HTTPS?",o:["SSH","IPSec","TLS/SSL","AES"],c:2},
+  {q:"¿En qué año se liberó TLS 1.3?",o:["2015","2016","2017","2018"],c:3},
+  {q:"¿Qué tres propiedades protege TLS?",o:["Velocidad, tamaño, formato","Confidencialidad, integridad, autenticidad","Routing, switching, bridging","DNS, HTTP, FTP"],c:1},
+  {q:"¿En qué puerto opera SSH?",o:["23","21","443","22"],c:3},
+  {q:"¿Qué protocolo reemplazó SSH?",o:["FTP","HTTP","TELNET","SMTP"],c:2},
+  {q:"¿SMTPS usa qué puerto(s)?",o:["25","465 y 587","993","995"],c:1},
+  {q:"¿POP3S usa qué puerto?",o:["110","143","993","995"],c:3},
+  {q:"¿IMAPS usa qué puerto?",o:["110","143","993","995"],c:2},
+  {q:"¿Qué es un CSR?",o:["Certificate Signing Request","Crypto Security Router","Central Server Registry","Client Session Record"],c:0},
+  {q:"¿Quién firma los certificados TLS?",o:["El usuario","El ISP","Una Certificate Authority (CA)","El router"],c:2},
+  {q:"¿Qué permite SSH con el argumento -X?",o:["Transferir archivos","X11 Forwarding (GUI remota)","Cifrado extra","Modo verbose"],c:1},
+  {q:"¿SFTP usa qué puerto?",o:["21","990","22","443"],c:2},
+  {q:"¿Cuál es la diferencia entre SFTP y FTPS?",o:["Son iguales","SFTP usa SSH, FTPS usa TLS","SFTP usa TLS, FTPS usa SSH","SFTP es más lento"],c:1},
+  {q:"¿Para qué se usa una VPN?",o:["Acelerar Internet","Crear una red privada sobre una red insegura","Reemplazar DNS","Bloquear malware"],c:1},
+  {q:"¿Qué ven los servidores cuando usas VPN?",o:["Tu IP real","La IP del VPN server","Tu MAC address","Nada"],c:1},
+  {q:"¿Let's Encrypt proporciona...?",o:["Hosting gratis","Certificados TLS gratuitos","VPN gratis","SSH gratis"],c:1},
+  {q:"SSL fue desarrollado por...",o:["Microsoft","Google","Netscape Communications","Apple"],c:2},
+  {q:"¿Qué tipo de certificado NO puede probar autenticidad ante terceros?",o:["CA-signed","EV Certificate","Self-signed","Wildcard"],c:2},
+];
+
+let activeTab="intro",expState={},httpCompare="steps",emailTab="overview";
+let qCur=0,qSel=null,qAns=false,qScore=0,qDone=false;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function badge(t,c){return`<span class="badge" style="background:${c}18;color:${c}">${t}</span>`}
+function box(h,g,x=""){return`<div class="box" style="${g?`border-color:${g}35;box-shadow:0 0 25px ${g}08;`:''}${x}">${h}</div>`}
+function term(c,t="Terminal"){return`<div class="terminal"><div class="term-bar"><span class="term-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></span>${t}</div><pre>${c}</pre></div>`}
+function tip(type,body){const s={tip:{i:"💡",c:"#ffd639",l:"Tip"},hacker:{i:"🏴‍☠️",c:"#ff5555",l:"Nota Hacker"},key:{i:"🔑",c:"#22d68a",l:"Concepto Clave"},warn:{i:"⚠️",c:"#ff9030",l:"Atención"},deep:{i:"🔬",c:"#a855f7",l:"Profundizar"},exam:{i:"📝",c:"#3b9eff",l:"Para el examen"},shield:{i:"🛡️",c:"#14b8a6",l:"Seguridad"}}[type]||{i:"💡",c:"#ffd639",l:"Tip"};return`<div class="tip" style="background:${s.c}06;border-left-color:${s.c}"><div class="tip-label" style="color:${s.c}">${s.i} ${s.l}</div><div class="tip-body">${body}</div></div>`}
+function tabBar(tabs,act,fn){return`<div class="tab-bar">${tabs.map(t=>`<button class="tab-btn" onclick="${fn}('${t.id}')" style="background:${act===t.id?t.color:'transparent'};color:${act===t.id?'var(--bg)':t.color};border-color:${t.color}">${t.label}</button>`).join("")}</div>`}
+function accordion(items,color,group){return`<div class="flex-col gap-5">${items.map((it,i)=>{const open=expState[group]===i;return`<div class="expand-item" onclick="toggleExp('${group}',${i})" style="background:${open?color+'0a':''};border-color:${open?color+'50':'rgba(255,255,255,0.05)'}"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:10px">${it.icon?`<span style="font-size:18px">${it.icon}</span>`:''}<div><div style="color:#fff;font-weight:700;font-size:14px">${it.title}</div>${it.sub?`<div style="color:var(--faint);font-size:11px;margin-top:2px">${it.sub}</div>`:''}</div></div><span style="color:var(--dark)">${open?"▲":"▼"}</span></div>${open?`<div style="margin-top:12px">${it.content}</div>`:''}</div>`}).join("")}</div>`}
+function toggleExp(g,i){expState[g]=expState[g]===i?null:i;render()}
+function steps(items,color){return`<div class="flex-col gap-8">${items.map((s,i)=>`<div style="display:flex;gap:12px;align-items:flex-start"><div class="step-num" style="background:${color};color:var(--bg)">${i+1}</div><div><div style="color:var(--text);font-weight:700;font-size:14px">${s.title}</div><div style="color:var(--muted);font-size:13px;margin-top:4px;line-height:1.6">${s.desc}</div></div></div>`).join("")}</div>`}
+
+function renderNav(){document.getElementById("nav").innerHTML=TABS.map(t=>{const a=activeTab===t.id;return`<button class="nav-btn ${a?'active':''}" style="${a?`background:${t.color};`:''}" onclick="setTab('${t.id}')">${t.icon} ${t.label}</button>`}).join("")}
+function setTab(id){activeTab=id;renderNav();render();window.scrollTo({top:0,behavior:'smooth'})}
+function render(){
+  const t=TABS.find(x=>x.id===activeTab);
+  const subs={intro:"Bienvenido al último room de la serie de Networking",tls:"Transport Layer Security — La base de toda la seguridad web",https:"HTTP sobre TLS — Navegación web cifrada",email:"SMTPS, POP3S, IMAPS — Email protegido",ssh:"Secure Shell — Acceso remoto seguro",vpn:"Virtual Private Network — Red privada sobre Internet",ports:"Tabla completa: puertos inseguros vs seguros",compare:"Comparación directa: antes y después de TLS",tools:"Herramientas para este room",quiz:"20 preguntas — ¿Cuánto aprendiste?"};
+  document.getElementById("sh").innerHTML=`<h2 class="sec-title" style="color:${t.color}">${t.icon} ${t.label}</h2><p class="sec-sub">${subs[t.id]||""}</p>`;
+  document.getElementById("sc").innerHTML=({intro:rIntro,tls:rTLS,https:rHTTPS,email:rEmail,ssh:rSSH,vpn:rVPN,ports:rPorts,compare:rCompare,tools:rTools,quiz:rQuiz})[activeTab]();
+}
+
+// ══════ INTRO ══════
+function rIntro(){
+  const topics=[
+    {icon:"🔒",t:"TLS/SSL",d:"Cifrado que protege todos los protocolos",c:"#3b9eff",port:"—"},
+    {icon:"🌐",t:"HTTPS",d:"HTTP + TLS = web segura",c:"#22d68a",port:"443"},
+    {icon:"📧",t:"Email Seguro",d:"SMTPS · POP3S · IMAPS",c:"#f050a0",port:"465/995/993"},
+    {icon:"💻",t:"SSH",d:"Acceso remoto cifrado",c:"#a855f7",port:"22"},
+    {icon:"🛡️",t:"VPN",d:"Red privada sobre Internet",c:"#14b8a6",port:"Varios"},
+  ];
+  return`<p class="P">Bienvenido al <strong style="color:var(--green)">último room</strong> de la serie de networking. En el Room 3 aprendimos protocolos como HTTP, FTP, SMTP, POP3 e IMAP. El problema: <strong>todos envían datos en texto plano</strong>. Cualquiera con un sniffer puede leer tus contraseñas, emails y datos sensibles.</p>
+  <p class="P">Este room resuelve ese problema con <strong style="color:var(--green)">protocolos seguros</strong> que agregan cifrado, integridad y autenticación.</p>
+  ${box(`<div class="H" style="color:var(--red)">⚠️ Sin seguridad, un atacante puede:</div>
+  <div class="grid-auto mt-8">${[{icon:"👁️",t:"Leer tu tráfico",d:"Contraseñas, emails, tarjetas de crédito"},{icon:"✏️",t:"Modificar datos",d:"Cambiar montos de pago, inyectar código"},{icon:"🎭",t:"Suplantar servidores",d:"Hacerse pasar por tu banco o email"}].map(c=>`<div style="background:rgba(255,85,85,0.06);border:1px solid rgba(255,85,85,0.15);border-radius:10px;padding:12px"><div style="font-size:20px">${c.icon}</div><div style="color:var(--red);font-weight:700;font-size:12px;margin-top:4px">${c.t}</div><div style="color:var(--dim);font-size:11px">${c.d}</div></div>`).join("")}</div>`,"#ff5555")}
+  <div class="grid-auto mt-20 mb-20">${topics.map(t=>box(`<div style="font-size:26px;margin-bottom:6px">${t.icon}</div><div style="color:${t.c};font-weight:800;font-size:14px">${t.t}</div><div style="color:var(--dim);font-size:11px;margin-top:2px">${t.d}</div>${t.port!=="—"?`<div style="margin-top:6px">${badge("Puerto "+t.port,t.c)}</div>`:''}`,t.c)).join("")}</div>
+  ${tip("key",'La solución principal es <strong>TLS (Transport Layer Security)</strong>. Se agrega a los protocolos existentes: HTTP→HTTPS, SMTP→SMTPS, POP3→POP3S, IMAP→IMAPS. La <strong>S</strong> siempre significa <strong>Secure</strong>.')}
+  ${box(`<div style="color:var(--green);font-weight:700;font-size:13px;margin-bottom:8px">📚 Serie completa de rooms</div>${["1. Networking Concepts ✅","2. Networking Essentials ✅","3. Networking Core Protocols ✅","4. Networking Secure Protocols ← Estás aquí"].map((r,i)=>`<div style="color:${i===3?'var(--green)':'var(--faint)'};font-size:13px;padding:3px 0;font-weight:${i===3?700:400};font-family:var(--mono)">${r}</div>`).join("")}`,"var(--green)","margin-top:16px;")}`;
+}
+
+// ══════ TLS ══════
+function rTLS(){
+  return`<p class="P">En los 90s, bastaba con poner tu tarjeta de red en <strong>modo promiscuo</strong> para capturar todo el tráfico de la red y leer contraseñas en texto plano. No había nada que el usuario pudiera hacer. <strong style="color:#3b9eff">TLS</strong> cambió todo eso.</p>
+  ${box(`<div class="H" style="color:#3b9eff">🔒 ¿Qué protege TLS?</div>
+  <div class="grid-auto mt-8">${[{icon:"🔐",t:"Confidencialidad",d:"Nadie puede <strong>leer</strong> los datos interceptados. El tráfico va cifrado.",c:"#22d68a"},{icon:"✅",t:"Integridad",d:"Nadie puede <strong>modificar</strong> los datos en tránsito sin ser detectado.",c:"#3b9eff"},{icon:"🎫",t:"Autenticidad",d:"Garantiza que hablas con el <strong>servidor correcto</strong>, no uno falso.",c:"#a855f7"}].map(c=>`<div style="background:${c.c}08;border:1px solid ${c.c}25;border-radius:10px;padding:14px"><div style="font-size:22px">${c.icon}</div><div style="color:${c.c};font-weight:800;font-size:14px;margin-top:6px">${c.t}</div><div style="color:var(--muted);font-size:12px;margin-top:4px;line-height:1.6">${c.d}</div></div>`).join("")}</div>`,"#3b9eff")}
+
+  <div class="mt-20"><div class="H" style="color:#3b9eff">📜 Historia: de SSL a TLS 1.3</div></div>
+  ${accordion([
+    {icon:"🏛️",title:"1995 — SSL 2.0 (Netscape Communications)",sub:"Primera versión pública",content:`<p class="P"><strong>Netscape</strong> reconoció la necesidad de comunicación segura en la web y desarrolló SSL (Secure Sockets Layer). SSL 2.0 fue la primera versión pública. Tenía vulnerabilidades significativas.</p>`},
+    {icon:"🔄",title:"1999 — TLS 1.0 (IETF)",sub:"Upgrade de SSL 3.0",content:`<p class="P">El <strong>IETF</strong> (Internet Engineering Task Force) desarrolló TLS como mejora de SSL 3.0. Aunque muy similares, TLS 1.0 ofrecía mejoras de seguridad importantes.</p>`},
+    {icon:"🚀",title:"2018 — TLS 1.3",sub:"Overhaul significativo del protocolo",content:`<p class="P"><strong>TLS 1.3</strong> fue una renovación mayor: handshake más rápido (1-RTT vs 2-RTT), eliminación de algoritmos inseguros, y mejor rendimiento. Es la versión actual y recomendada.</p>`},
+  ],"#3b9eff","tls-hist")}
+
+  <div class="mt-20"><div class="H" style="color:#3b9eff">🎫 Certificados TLS: cómo funciona la confianza</div></div>
+  <p class="P">Para que TLS funcione, el servidor necesita un <strong>certificado digital firmado</strong>. Este es el proceso:</p>
+  ${box(steps([
+    {title:"📝 CSR — Certificate Signing Request",desc:"El administrador del servidor genera un CSR con la información del dominio y la clave pública."},
+    {title:"🏢 CA — Certificate Authority firma el certificado",desc:"Una <strong>Autoridad Certificadora</strong> (como Let's Encrypt, DigiCert, Comodo) verifica la solicitud y firma el certificado digital."},
+    {title:"📥 Instalación en el servidor",desc:"El certificado firmado se instala en el servidor web. Ahora puede identificarse ante los clientes."},
+    {title:"✅ Navegador verifica el certificado",desc:"Tu navegador tiene preinstalados los certificados de las CAs confiables (como se ve en el Certificate Manager del room). Si la firma coincide, la conexión es segura."},
+  ],"#3b9eff"),"#3b9eff")}
+
+  ${tip("key",'Tu navegador viene con certificados de <strong>Certificate Authorities</strong> preinstalados. Puedes verlos en Firefox: Settings → Privacy → Certificates → View Certificates → Authorities.')}
+
+  ${tip("tip",'<strong>Let\'s Encrypt</strong> permite obtener certificados TLS <strong>gratuitos</strong>. Antes, había que pagar una tarifa anual.')}
+  ${tip("warn",'Un <strong>certificado self-signed</strong> (auto-firmado) cifra el tráfico, pero <strong>no puede probar autenticidad</strong> porque ningún tercero lo ha verificado. Tu navegador mostrará una advertencia.')}
+
+  <div class="mt-20"><div class="H" style="color:#3b9eff">🌐 Protocolos asegurados con TLS</div></div>
+  <p class="P">TLS se puede agregar a prácticamente cualquier protocolo. La belleza es que <strong>no requiere cambios</strong> en las capas inferiores (TCP, IP) ni en el protocolo superior:</p>
+  <div class="grid-200 mt-8">${[
+    {from:"HTTP",to:"HTTPS",c:"#22d68a"},{from:"SMTP",to:"SMTPS",c:"#f050a0"},
+    {from:"POP3",to:"POP3S",c:"#ffd639"},{from:"IMAP",to:"IMAPS",c:"#14b8a6"},
+    {from:"DNS",to:"DoT",c:"#3b9eff"},{from:"MQTT",to:"MQTTS",c:"#a855f7"},
+    {from:"FTP",to:"FTPS",c:"#ff9030"},{from:"SIP",to:"SIPS",c:"#fb7185"},
+  ].map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-left:3px solid ${p.c};background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0"><span style="color:var(--red);font-family:var(--mono);font-size:12px;text-decoration:line-through">${p.from}</span><span style="color:var(--faint)">→</span><span style="color:${p.c};font-family:var(--mono);font-size:12px;font-weight:700">${p.to}</span></div>`).join("")}</div>
+  ${tip("deep",'Investiga: <strong>TLS Handshake</strong> (Client Hello, Server Hello, Key Exchange), <strong>Perfect Forward Secrecy (PFS)</strong>, diferencias entre TLS 1.2 y 1.3, y el room <strong>Network Security Protocols</strong> en TryHackMe.')}`;
+}
+
+// ══════ HTTPS ══════
+function rHTTPS(){
+  return`<p class="P"><strong style="color:#22d68a">HTTPS</strong> = HTTP + TLS. Es exactamente el mismo HTTP que aprendiste en el Room 3, pero con una capa de cifrado TLS que protege todo el tráfico entre tu navegador y el servidor.</p>
+  ${tip("key",'HTTPS usa <strong>TCP puerto 443</strong>. HTTP usa puerto 80. Los puertos alternativos son 8443 (HTTPS) y 8080 (HTTP).')}
+
+  <div class="mt-16"><div class="H" style="color:#22d68a">📊 HTTP vs HTTPS: Pasos de conexión</div></div>
+  <div class="grid-250 mt-12">${[
+    {t:"HTTP (inseguro)",c:"#ff5555",icon:"🔓",steps:["1. TCP 3-way handshake","2. HTTP request (GET, POST...)","— Todo en texto plano —"]},
+    {t:"HTTPS (seguro)",c:"#22d68a",icon:"🔒",steps:["1. TCP 3-way handshake","2. TLS handshake (negociar cifrado)","3. HTTP request cifrado","— Todo encriptado —"]},
+  ].map(p=>`<div class="vs-card" style="border-top-color:${p.c}"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:20px">${p.icon}</span><span style="color:${p.c};font-weight:900;font-size:15px">${p.t}</span></div><div class="flex-col gap-4">${p.steps.map(s=>`<div style="color:${s.startsWith("—")?'var(--faint)':'var(--muted)'};font-size:12px;font-family:var(--mono);padding:4px 8px;background:rgba(0,0,0,0.2);border-radius:6px">${s}</div>`).join("")}</div></div>`).join("")}</div>
+
+  <div class="mt-20"><div class="H" style="color:#22d68a">🦈 Wireshark: HTTP vs HTTPS</div></div>
+  <p class="P">En la captura HTTP del room anterior, podías ver todo: el GET, los headers, el HTML completo. Con HTTPS, Wireshark solo ve <strong>"Application Data"</strong> cifrado:</p>
+  ${term(`<span class="dim">── HTTP (texto plano — VISIBLE) ──</span>
+<span class="err">GET / HTTP/1.1</span>
+<span class="err">Host: 10.10.41.192</span>
+<span class="srv">HTTP/1.1 200 OK</span>
+<span class="srv">Server: nginx/1.18.0</span>
+<span class="srv">&lt;html&gt;The Art of Espresso...&lt;/html&gt;</span>
+
+<span class="dim">── HTTPS (cifrado — ILEGIBLE) ──</span>
+<span class="warn">Application Data: 17 03 03 00 9a 5f 2b 8c d4 12 a9...</span>
+<span class="warn">Application Data: 17 03 03 01 2f 7e 3c b1 f8 90 44...</span>
+<span class="dim">(Solo se ve gibberish sin la clave de descifrado)</span>`,"Comparación: HTTP en texto plano vs HTTPS cifrado")}
+
+  ${tip("exam",'Con HTTPS, Wireshark muestra <strong>"Application Data"</strong> porque no puede saber si es HTTP u otro protocolo. Todo va cifrado. Solo puedes ver el contenido si tienes la <strong>clave privada</strong> del servidor.')}
+
+  <div class="mt-20"><div class="H" style="color:#22d68a">🔑 ¿Es posible descifrar HTTPS?</div></div>
+  <p class="P">Sí, pero solo si tienes acceso a la clave privada del servidor. En el room, Wireshark descifra el tráfico HTTPS cuando se le proporciona la clave, y muestra el HTTP normal debajo (GET requests, headers, HTML).</p>
+  ${tip("hacker",'En pentesting, herramientas como <strong>Burp Suite</strong> actúan como proxy MITM: tu navegador confía en el certificado de Burp, que descifra el HTTPS, lo analiza, y lo reenvía al servidor. Esto es la base del testing de aplicaciones web.')}
+  ${tip("deep",'Investiga: <strong>HSTS</strong> (HTTP Strict Transport Security) que fuerza HTTPS, <strong>Certificate Pinning</strong>, y cómo configurar Wireshark con la clave privada (<code>ssl.keylog</code>) para descifrar tráfico TLS.')}`;
+}
+
+// ══════ EMAIL SEGURO ══════
+function rEmail(){
+  return`<p class="P">Agregar TLS a los protocolos de email funciona exactamente igual que con HTTP. Los mismos protocolos del Room 3 (SMTP, POP3, IMAP) se convierten en sus versiones seguras.</p>
+
+  <div class="mt-16"><div class="H" style="color:#f050a0">📊 Inseguro → Seguro: Puertos de Email</div></div>
+  <div class="grid-250 mt-12">${[
+    {t:"Inseguros (texto plano)",c:"#ff5555",icon:"🔓",items:[{p:"SMTP",port:25},{p:"POP3",port:110},{p:"IMAP",port:143}]},
+    {t:"Seguros (con TLS)",c:"#22d68a",icon:"🔒",items:[{p:"SMTPS",port:"465 / 587"},{p:"POP3S",port:995},{p:"IMAPS",port:993}]},
+  ].map(g=>`<div class="vs-card" style="border-top-color:${g.c}"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:20px">${g.icon}</span><span style="color:${g.c};font-weight:900;font-size:15px">${g.t}</span></div><div class="flex-col gap-4">${g.items.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.2);border-radius:8px"><span style="color:var(--text);font-weight:700;font-size:13px">${i.p}</span><span style="color:${g.c};font-family:var(--mono);font-weight:900;font-size:14px">${i.port}</span></div>`).join("")}</div></div>`).join("")}</div>
+
+  ${tip("key",'<strong>SMTPS</strong> tiene dos puertos: <strong>465</strong> (SMTP sobre TLS implícito — deprecated pero aún usado) y <strong>587</strong> (submission con STARTTLS — el recomendado actualmente).')}
+
+  <div class="mt-20"><div class="H" style="color:#f050a0">🔒 ¿Qué cambia con TLS?</div></div>
+  <p class="P">Los <strong>comandos del protocolo son exactamente los mismos</strong> (HELO, MAIL FROM, USER, PASS, FETCH...). La única diferencia es que viajan dentro de un túnel TLS cifrado. Es como meter una carta en un sobre blindado en lugar de enviarla abierta.</p>
+
+  ${box(`<div class="H" style="color:#f050a0">📨 El viaje seguro de un email</div>
+  ${steps([
+    {title:"✍️ Compones el email",desc:"En tu cliente de correo (Gmail, Outlook, Thunderbird...)."},
+    {title:"🔒 SMTPS: Tu cliente → Tu servidor (puerto 465/587)",desc:"El email se envía cifrado con TLS al servidor de correo saliente."},
+    {title:"🔒 SMTPS: Tu servidor → Servidor del destinatario",desc:"Los servidores se comunican entre sí también con TLS."},
+    {title:"🔒 IMAPS/POP3S: El destinatario lee el email (puerto 993/995)",desc:"El destinatario descarga o sincroniza el email también sobre TLS."},
+  ],"#f050a0")}`,"#f050a0")}
+
+  ${tip("warn",'Recuerda del Room 3: en las capturas de Wireshark de POP3, se veían <strong>contraseñas en texto plano</strong>. Con POP3S/IMAPS, eso ya no es posible — todo va cifrado.')}
+  ${tip("exam",'Memoriza los puertos seguros: <strong>SMTPS=465/587</strong>, <strong>POP3S=995</strong>, <strong>IMAPS=993</strong>. Nota el patrón: los puertos seguros son números más altos que los inseguros.')}
+  ${tip("deep",'Investiga: <strong>STARTTLS</strong> (upgrade de conexión plana a TLS) vs <strong>TLS implícito</strong> (TLS desde el inicio). STARTTLS es vulnerable a ataques de downgrade si no se implementa correctamente.')}`;
+}
+
+// ══════ SSH ══════
+function rSSH(){
+  return`<p class="P">En el Room 1 usamos <strong>TELNET</strong> para conectarnos a servidores remotos. El problema: todo el tráfico (incluyendo contraseñas) viaja en texto plano. <strong style="color:#a855f7">SSH</strong> (Secure Shell) resuelve esto.</p>
+
+  ${box(`<div class="H" style="color:#a855f7">📜 Historia rápida</div>
+  <div class="flex-col gap-4 mt-8">${[
+    {y:"1995",ev:"Tatu Ylönen desarrolla SSH-1 y lo publica como freeware",c:"#a855f7"},
+    {y:"1996",ev:"SSH-2 — versión más segura del protocolo",c:"#3b9eff"},
+    {y:"1999",ev:"OpenSSH — implementación open-source por los desarrolladores de OpenBSD",c:"#22d68a"},
+    {y:"Hoy",ev:"OpenSSH es la implementación más usada en el mundo. Casi todo cliente SSH la usa.",c:"#ffd639"},
+  ].map(e=>`<div style="display:flex;gap:10px;align-items:center;padding:6px 10px;border-left:3px solid ${e.c};background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0"><span style="color:${e.c};font-family:var(--mono);font-weight:900;font-size:13px;min-width:42px">${e.y}</span><span style="color:var(--muted);font-size:12px">${e.ev}</span></div>`).join("")}</div>`,"#a855f7")}
+
+  ${tip("key",'SSH usa <strong>TCP puerto 22</strong>. Reemplaza completamente a TELNET (puerto 23) para acceso remoto seguro.')}
+
+  <div class="mt-20"><div class="H" style="color:#a855f7">✨ Beneficios de SSH (OpenSSH)</div></div>
+  ${accordion([
+    {icon:"🔑",title:"Autenticación segura",sub:"Múltiples métodos",content:`<p class="P">SSH soporta: <strong>contraseña</strong>, <strong>clave pública/privada</strong> (más seguro), y <strong>autenticación de dos factores</strong>. Con clave pública, ni siquiera necesitas escribir una contraseña.</p>`},
+    {icon:"🔐",title:"Confidencialidad",sub:"Cifrado end-to-end",content:`<p class="P">Todo el tráfico va <strong>cifrado de punta a punta</strong>. SSH también te notifica si la clave del servidor cambia, protegiéndote contra ataques <strong>Man-in-the-Middle</strong>.</p>`},
+    {icon:"✅",title:"Integridad",sub:"Protección contra alteración",content:`<p class="P">La criptografía no solo cifra, también <strong>protege contra modificaciones</strong> del tráfico en tránsito.</p>`},
+    {icon:"🚇",title:"Tunneling (Port Forwarding)",sub:"VPN-like",content:`<p class="P">SSH puede crear <strong>túneles seguros</strong> para enrutar otros protocolos. Esto permite conexiones tipo VPN: <code>ssh -L 8080:destino:80 servidor</code> crea un túnel local.</p>`},
+    {icon:"🖥️",title:"X11 Forwarding",sub:"GUI remota",content:`<p class="P">Con <code>ssh -X usuario@servidor</code> puedes ejecutar <strong>aplicaciones gráficas</strong> del servidor remoto en tu pantalla local. En el room se muestra Wireshark ejecutándose remotamente en Kali Linux.</p>`},
+  ],"#a855f7","ssh-ben")}
+
+  <div class="mt-20"><div class="H" style="color:#a855f7">💻 Comandos SSH esenciales</div></div>
+  ${term(`<span class="dim">── Conexión básica ──</span>
+<span class="cmd">$</span> ssh <span class="hl">usuario@hostname</span>
+<span class="cmd">$</span> ssh <span class="hl">hostname</span>  <span class="dim"># si tu usuario local = usuario remoto</span>
+
+<span class="dim">── Con X11 Forwarding (GUI remota) ──</span>
+<span class="cmd">$</span> ssh <span class="hl">192.168.124.148 -X</span>
+<span class="dim"># Ahora puedes ejecutar apps gráficas como wireshark</span>
+<span class="cmd">$</span> wireshark
+
+<span class="dim">── Clave pública (sin contraseña) ──</span>
+<span class="cmd">$</span> ssh-keygen -t ed25519  <span class="dim"># generar par de claves</span>
+<span class="cmd">$</span> ssh-copy-id <span class="hl">usuario@servidor</span>  <span class="dim"># copiar clave pública</span>
+
+<span class="dim">── Port forwarding (túnel) ──</span>
+<span class="cmd">$</span> ssh -L <span class="warn">8080</span>:<span class="ip">destino</span>:<span class="warn">80</span> <span class="hl">servidor</span>
+<span class="dim"># Ahora localhost:8080 apunta a destino:80 via servidor</span>`,"SSH — Comandos esenciales")}
+
+  <div class="mt-20"><div class="H" style="color:#a855f7">📁 SFTP vs FTPS</div></div>
+  <p class="P">No los confundas — son protocolos diferentes que logran lo mismo (transferencia segura de archivos):</p>
+  <div class="grid-250 mt-12">${[
+    {t:"SFTP",sub:"SSH File Transfer Protocol",c:"#a855f7",port:"22",sec:"Parte de SSH",desc:"Fácil de configurar (solo habilitar en OpenSSH). Un solo puerto. Comandos tipo Unix.",fire:"✅ Fácil con firewalls"},
+    {t:"FTPS",sub:"FTP over TLS",c:"#ff9030",port:"990",sec:"Usa TLS (como HTTPS)",desc:"Requiere certificado TLS. Dos canales separados (control + datos). Comandos FTP.",fire:"⚠️ Complicado con firewalls"},
+  ].map(p=>`<div class="vs-card" style="border-top-color:${p.c}"><div style="color:${p.c};font-weight:900;font-size:16px">${p.t}</div><div style="color:var(--faint);font-size:10px;margin-bottom:8px">${p.sub}</div>${badge("Puerto "+p.port,p.c)}<div style="color:var(--muted);font-size:12px;margin-top:8px;line-height:1.6">${p.desc}</div><div style="color:var(--dim);font-size:11px;margin-top:6px">${p.fire}</div></div>`).join("")}</div>
+
+  ${tip("hacker",'En pentesting, si encuentras SSH abierto (puerto 22), prueba: <code>hydra -l admin -P wordlist.txt ssh://target</code> para fuerza bruta, o busca claves privadas expuestas en el servidor.')}
+  ${tip("deep",'Investiga: <strong>SSH tunneling</strong> (local/remote/dynamic port forwarding), <strong>SSH keys</strong> (Ed25519 vs RSA), <strong>ssh-agent</strong>, y configuración avanzada en <code>~/.ssh/config</code>.')}`;
+}
+
+// ══════ VPN ══════
+function rVPN(){
+  return`<p class="P">Imagina una empresa con oficinas en diferentes ciudades. ¿Cómo conectar todas para que compartan recursos como si estuvieran en la misma red? La respuesta: <strong style="color:#14b8a6">VPN</strong> (Virtual Private Network).</p>
+
+  ${box(`<div class="H" style="color:#14b8a6">🛡️ VPN en una frase</div>
+  <p class="P" style="font-size:16px;text-align:center;margin-top:8px"><strong style="color:var(--teal)">V</strong>irtual = sobre Internet existente · <strong style="color:var(--teal)">P</strong>rivate = cifrado, solo tú y el servidor ven el contenido · <strong style="color:var(--teal)">N</strong>etwork = conecta redes remotas</p>`,"#14b8a6","text-align:center;padding:20px;")}
+
+  <div class="mt-20"><div class="H" style="color:#14b8a6">🏢 Ejemplo del room: empresa con sucursales</div></div>
+  <p class="P">En el diagrama del room, una empresa tiene una <strong>sucursal principal</strong> (Main Branch) con VPN Server, y dos <strong>sucursales remotas</strong> con VPN Clients. El tráfico azul es el <strong>túnel VPN cifrado</strong> que pasa por Internet. El tráfico verde es el tráfico <strong>descifrado</strong> dentro de cada red local.</p>
+
+  ${box(`<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center">
+    <div style="background:rgba(34,214,138,0.08);border:1.5px solid rgba(34,214,138,0.2);border-radius:12px;padding:12px 16px;text-align:center;min-width:140px"><div style="font-size:22px">🏢</div><div style="color:var(--green);font-weight:800;font-size:12px;margin-top:4px">Main Branch</div><div style="color:var(--dim);font-size:10px">VPN Server</div><div style="color:var(--dim);font-size:10px">DNS · Email · Firewall</div></div>
+    <div style="text-align:center"><div style="color:var(--sky);font-size:20px">🔒</div><div style="color:var(--sky);font-size:10px;font-family:var(--mono)">Túnel VPN<br>(cifrado)</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="background:rgba(59,158,255,0.08);border:1.5px solid rgba(59,158,255,0.2);border-radius:12px;padding:10px 14px;text-align:center"><div style="font-size:18px">🏬</div><div style="color:var(--blue);font-weight:700;font-size:11px">Remote Branch 1</div><div style="color:var(--dim);font-size:10px">VPN Client</div></div>
+      <div style="background:rgba(168,85,247,0.08);border:1.5px solid rgba(168,85,247,0.2);border-radius:12px;padding:10px 14px;text-align:center"><div style="font-size:18px">🏬</div><div style="color:var(--purple);font-weight:700;font-size:11px">Remote Branch 2</div><div style="color:var(--dim);font-size:10px">VPN Client</div></div>
+    </div>
+  </div>`,"#14b8a6","padding:24px;")}
+
+  <div class="mt-20"><div class="H" style="color:#14b8a6">🌍 ¿Qué hace una VPN por ti?</div></div>
+  ${accordion([
+    {icon:"🔐",title:"Cifra todo tu tráfico",sub:"Tu ISP solo ve datos cifrados",content:`<p class="P">Todo el tráfico de Internet pasa por el <strong>túnel VPN cifrado</strong>. Tu ISP (proveedor de Internet) solo ve tráfico encriptado, no puede saber qué sitios visitas ni qué datos envías.</p>`},
+    {icon:"🌍",title:"Cambia tu IP pública",sub:"Los servidores ven la IP del VPN",content:`<p class="P">Los sitios web y servicios ven la <strong>IP del servidor VPN</strong>, no la tuya. Si te conectas a un servidor VPN en Japón, los sitios piensan que estás en Japón (como se ve en el room con Google mostrando la versión japonesa).</p>`},
+    {icon:"🔓",title:"Elude restricciones geográficas",sub:"Accede a contenido bloqueado por región",content:`<p class="P">Al cambiar tu IP aparente, puedes acceder a contenido restringido por ubicación. Esto es por lo que muchos usuarios usan VPN para streaming, por ejemplo.</p>`},
+    {icon:"🏢",title:"Conecta redes remotas",sub:"Como si estuvieras en la oficina",content:`<p class="P">El uso empresarial original: conectar sucursales y trabajadores remotos a la red corporativa de forma segura, accediendo a recursos internos como si estuvieras físicamente ahí.</p>`},
+  ],"#14b8a6","vpn-ben")}
+
+  ${tip("warn",'<strong>Advertencias del room:</strong><br>• Algunas VPNs <strong>no enrutan todo el tráfico</strong> — solo te dan acceso a una red privada sin proteger tu navegación.<br>• Algunas VPNs <strong>pueden filtrar tu IP real</strong> (DNS leak). Usa un <strong>DNS leak test</strong> para verificar.<br>• En <strong>algunos países, usar VPN es ilegal</strong>. Verifica las leyes locales antes de usar una, especialmente al viajar.')}
+
+  ${tip("hacker",'<strong>VPN en pentesting:</strong> TryHackMe y HackTheBox te dan un archivo <code>.ovpn</code> para conectarte a su red de labs: <code>sudo openvpn tryhackme.ovpn</code>. Protocolos comunes: <strong>OpenVPN</strong>, <strong>WireGuard</strong>, <strong>IPSec/IKEv2</strong>.')}
+  ${tip("deep",'Investiga: <strong>WireGuard</strong> (VPN moderno y rápido), <strong>OpenVPN</strong>, <strong>IPSec</strong>, <strong>Split tunneling</strong> (solo enrutar parte del tráfico por VPN), y <strong>Tor</strong> vs VPN.')}`;
+}
+
+// ══════ PORTS ══════
+function rPorts(){
+  const ports=[
+    {proto:"HTTP",insec:80,sec:443,secName:"HTTPS",c:"#22d68a"},
+    {proto:"SMTP",insec:25,sec:"465/587",secName:"SMTPS",c:"#f050a0"},
+    {proto:"POP3",insec:110,sec:995,secName:"POP3S",c:"#ffd639"},
+    {proto:"IMAP",insec:143,sec:993,secName:"IMAPS",c:"#14b8a6"},
+    {proto:"FTP",insec:21,sec:990,secName:"FTPS",c:"#ff9030"},
+    {proto:"TELNET",insec:23,sec:22,secName:"SSH",c:"#a855f7"},
+    {proto:"DNS",insec:53,sec:853,secName:"DoT",c:"#3b9eff"},
+  ];
+  return`<p class="P">La tabla definitiva: cada protocolo con su <strong>versión insegura</strong> y su <strong>versión segura</strong>, incluyendo puertos.</p>
+  <div class="flex-col gap-4 mt-16">${ports.map(p=>`<div style="display:flex;align-items:center;gap:0;border-radius:10px;overflow:hidden;border:1px solid ${p.c}20">
+    <div style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,85,85,0.04)"><span style="color:var(--red);font-size:14px">🔓</span><span style="color:var(--text);font-weight:700;font-size:13px;min-width:55px">${p.proto}</span><span style="color:var(--red);font-family:var(--mono);font-weight:900;font-size:15px">${p.insec}</span></div>
+    <div style="color:var(--faint);padding:0 8px;font-size:16px">→</div>
+    <div style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:${p.c}08"><span style="color:${p.c};font-size:14px">🔒</span><span style="color:${p.c};font-weight:700;font-size:13px;min-width:55px">${p.secName}</span><span style="color:${p.c};font-family:var(--mono);font-weight:900;font-size:15px">${p.sec}</span></div>
+  </div>`).join("")}</div>
+  ${tip("exam",'Memoriza esta tabla. Patrón útil: los puertos seguros de email son <strong>9xx</strong> (993, 995) y <strong>4xx/5xx</strong> (443, 465, 587). SSH es <strong>22</strong>, justo al lado de TELNET <strong>23</strong>.')}`;
+}
+
+// ══════ COMPARE ══════
+function rCompare(){
+  return`<p class="P">Comparación directa entre los protocolos del Room 3 (inseguros) y sus versiones seguras de este Room 4.</p>
+  ${accordion([
+    {icon:"🌐",title:"HTTP vs HTTPS",sub:"Web insegura vs segura",content:`<p class="P"><strong style="color:#ff5555">HTTP (puerto 80):</strong> Todo visible en Wireshark — URLs, cookies, contraseñas, HTML completo. En el room vimos el GET request y toda la página "The Art of Espresso" en texto plano.</p><p class="P"><strong style="color:#22d68a">HTTPS (puerto 443):</strong> Wireshark solo muestra "Application Data" cifrado. Imposible leer sin la clave privada. Los mismos comandos HTTP van dentro del túnel TLS.</p>`},
+    {icon:"📤",title:"SMTP vs SMTPS",sub:"Envío de email inseguro vs seguro",content:`<p class="P"><strong style="color:#ff5555">SMTP (puerto 25):</strong> En el room vimos cómo enviar un email con telnet y los comandos HELO, MAIL FROM, RCPT TO eran completamente visibles en Wireshark.</p><p class="P"><strong style="color:#22d68a">SMTPS (puerto 465/587):</strong> Los mismos comandos, pero dentro de TLS. Un sniffer solo ve datos cifrados.</p>`},
+    {icon:"📥",title:"POP3 vs POP3S",sub:"Descarga de email insegura vs segura",content:`<p class="P"><strong style="color:#ff5555">POP3 (puerto 110):</strong> En la captura de Wireshark del room se veían claramente USER strategos y PASS [password] en texto plano. Cualquiera en la red podía robar esas credenciales.</p><p class="P"><strong style="color:#22d68a">POP3S (puerto 995):</strong> Mismos comandos, pero protegidos por TLS. Las credenciales van cifradas.</p>`},
+    {icon:"🔄",title:"IMAP vs IMAPS",sub:"Sincronización de email insegura vs segura",content:`<p class="P"><strong style="color:#ff5555">IMAP (puerto 143):</strong> LOGIN, SELECT, FETCH visibles. En el room, toda la sesión IMAP incluyendo el contenido del email era legible.</p><p class="P"><strong style="color:#22d68a">IMAPS (puerto 993):</strong> Todo cifrado. Las carpetas, flags, y contenido de emails son invisibles para sniffers.</p>`},
+    {icon:"💻",title:"TELNET vs SSH",sub:"Acceso remoto inseguro vs seguro",content:`<p class="P"><strong style="color:#ff5555">TELNET (puerto 23):</strong> Cada tecla que presionas se envía en texto plano. Tu usuario, contraseña, y todos los comandos son visibles.</p><p class="P"><strong style="color:#a855f7">SSH (puerto 22):</strong> Todo cifrado. Además soporta autenticación por clave pública, tunneling, X11 forwarding, y SFTP integrado.</p>`},
+    {icon:"📁",title:"FTP vs SFTP/FTPS",sub:"Transferencia de archivos insegura vs segura",content:`<p class="P"><strong style="color:#ff5555">FTP (puerto 21):</strong> En el room vimos USER anonymous y toda la sesión en texto plano. El archivo coffee.txt se transfería sin cifrar.</p><p class="P"><strong style="color:#a855f7">SFTP (puerto 22):</strong> Usa SSH. Un solo puerto, fácil con firewalls.</p><p class="P"><strong style="color:#ff9030">FTPS (puerto 990):</strong> Usa TLS. Dos canales, más complejo con firewalls.</p>`},
+  ],"#ff9030","compare")}
+  ${tip("key",'El patrón es siempre el mismo: <strong>protocolo inseguro + TLS = protocolo seguro</strong>. Los comandos del protocolo no cambian, solo se envuelven en cifrado. La excepción es SSH, que es un protocolo completamente nuevo que reemplaza TELNET.')}`;
+}
+
+// ══════ TOOLS ══════
+function rTools(){
+  const tools=[
+    {n:"openssl",d:"Verificar certificados TLS, probar conexiones SSL/TLS",s:"openssl s_client -connect example.com:443",l:"Intermedio",c:"#3b9eff"},
+    {n:"curl -v",d:"Ver negociación TLS y headers HTTPS",s:"curl -v https://example.com",l:"Básico",c:"#22d68a"},
+    {n:"ssh",d:"Conexión remota segura",s:"ssh usuario@servidor",l:"Básico",c:"#a855f7"},
+    {n:"ssh-keygen",d:"Generar par de claves SSH",s:"ssh-keygen -t ed25519",l:"Básico",c:"#a855f7"},
+    {n:"sftp",d:"Transferencia segura de archivos via SSH",s:"sftp usuario@servidor",l:"Básico",c:"#a855f7"},
+    {n:"scp",d:"Copiar archivos via SSH (un solo comando)",s:"scp archivo.txt usuario@servidor:/ruta/",l:"Básico",c:"#a855f7"},
+    {n:"openvpn",d:"Cliente VPN (OpenVPN)",s:"sudo openvpn config.ovpn",l:"Básico",c:"#14b8a6"},
+    {n:"Wireshark",d:"Analizar tráfico cifrado vs no cifrado",s:"wireshark (GUI)",l:"Intermedio",c:"#38bdf8"},
+    {n:"nmap --script ssl*",d:"Escanear configuración TLS de un servidor",s:"nmap --script ssl-enum-ciphers -p 443 target",l:"Avanzado",c:"#ff5555"},
+    {n:"testssl.sh",d:"Auditoría completa de TLS/SSL de un servidor",s:"testssl.sh https://example.com",l:"Avanzado",c:"#ff9030"},
+  ];
+  return`<p class="P">Herramientas para trabajar con protocolos seguros, verificar certificados y auditar configuraciones TLS.</p>
+  <div class="flex-col gap-5 mt-16">${tools.map(t=>`<div style="display:flex;align-items:center;gap:10px;border-left:3px solid ${t.c};padding:8px 12px;background:rgba(255,255,255,0.015);border-radius:0 8px 8px 0">
+    <div style="min-width:120px"><span style="color:${t.c};font-weight:700;font-family:var(--mono);font-size:13px">${t.n}</span><div style="margin-top:2px">${badge(t.l,t.l==="Básico"?"#22d68a":t.l==="Intermedio"?"#ff9030":"#ff5555")}</div></div>
+    <div style="flex:1"><div style="color:var(--muted);font-size:12px">${t.d}</div><div style="color:var(--faint);font-size:10px;font-family:var(--mono);margin-top:2px">$ ${esc(t.s)}</div></div>
+  </div>`).join("")}</div>
+  ${tip("hacker",'<strong>Next level:</strong> Investiga <code>testssl.sh</code> para auditar servidores, <code>sslscan</code> para detectar cifrados débiles, <code>Burp Suite</code> como proxy HTTPS, y <code>mitmproxy</code> para interceptar tráfico TLS en pentesting.')}`;
+}
+
+// ══════ QUIZ ══════
+function rQuiz(){
+  if(qDone){const pct=Math.round(qScore/QS.length*100);const emoji=pct>=80?"🏆":pct>=60?"👍":"📚";const color=pct>=80?"#22d68a":pct>=60?"#ffd639":"#ff5555";const msg=pct>=80?"¡Excelente! Dominas los Secure Protocols.":pct>=60?"¡Bien! Repasa las secciones donde fallaste.":"Sigue estudiando, ¡vuelve a intentarlo!";return`<div style="text-align:center;padding:30px 0"><div style="font-size:60px">${emoji}</div><div style="font-size:36px;font-weight:900;font-family:var(--mono);color:${color}">${qScore}/${QS.length} (${pct}%)</div><div style="color:var(--muted);font-size:14px;margin:8px 0 24px">${msg}</div><button class="quiz-reset" onclick="resetQ()">Reintentar</button></div>`}
+  const q=QS[qCur];const pct=((qCur+1)/QS.length*100);
+  return`<div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:var(--dim);font-family:var(--mono);font-size:12px">${qCur+1}/${QS.length}</span><span style="color:#22d68a;font-family:var(--mono);font-size:12px">Score: ${qScore}</span></div><div style="background:rgba(255,255,255,0.04);height:3px;border-radius:3px;margin-bottom:18px;overflow:hidden"><div style="background:var(--orange);height:100%;width:${pct}%;transition:width .4s"></div></div><h3 style="color:#fff;font-size:16px;font-weight:700;margin-bottom:16px">${q.q}</h3><div class="flex-col gap-8">${q.o.map((o,i)=>{let bg="rgba(255,255,255,0.02)",bd="rgba(255,255,255,0.06)",cl="#ccc";if(qAns&&i===q.c){bg="#22d68a15";bd="#22d68a";cl="#22d68a"}else if(qAns&&i===qSel){bg="#ff555515";bd="#ff5555";cl="#ff5555"}return`<button class="quiz-opt" style="background:${bg};border-color:${bd};color:${cl};cursor:${qAns?'default':'pointer'}" onclick="pickQ(${i})">${o}</button>`}).join("")}</div>${qAns?`<button class="quiz-next" onclick="nextQ()">${qCur+1>=QS.length?"Ver resultados":"Siguiente →"}</button>`:''}`;
+}
+function pickQ(i){if(qAns)return;qSel=i;qAns=true;if(i===QS[qCur].c)qScore++;render()}
+function nextQ(){if(qCur+1>=QS.length)qDone=true;else{qCur++;qSel=null;qAns=false}render()}
+function resetQ(){qCur=0;qSel=null;qAns=false;qScore=0;qDone=false;render()}
+
+renderNav();render();
+</script>
+</body>
+</html>

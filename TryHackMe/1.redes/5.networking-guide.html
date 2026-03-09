@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía Interactiva de Redes — TryHackMe</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#0a0a1a;
+    --bg-header:linear-gradient(135deg,#0a0a2e 0%,#1a1a4e 50%,#0a0a2e 100%);
+    --text:#fff;
+    --muted:#aaa;
+    --dim:#888;
+    --faint:#666;
+    --subtle:#555;
+    --border:rgba(255,255,255,0.08);
+    --card-bg:rgba(255,255,255,0.04);
+    --card-bg-hover:rgba(255,255,255,0.03);
+    --black-overlay:rgba(0,0,0,0.3);
+    --black-overlay-dark:rgba(0,0,0,0.4);
+    --cyan:#00f5d4;
+    --yellow:#fee440;
+    --pink:#f15bb5;
+    --purple:#9b5de5;
+    --blue:#00bbf9;
+    --red:#ff6b6b;
+    --green:#06d6a0;
+    --orange:#ffa726;
+    --lime:#8bc34a;
+    --font-mono:'Space Mono',monospace;
+    --font-ui:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+
+  body{
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    line-height:1.5;
+  }
+
+  /* Header */
+  .header{
+    background:var(--bg-header);
+    padding:32px 24px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .header-inner{max-width:800px;margin:0 auto}
+  .header-tag{
+    font-family:var(--font-mono);font-size:11px;color:var(--green);
+    letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;
+  }
+  .header h1{
+    font-size:28px;font-weight:900;margin:0 0 4px;
+    background:linear-gradient(90deg,#00f5d4,#00bbf9,#9b5de5);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .header p{color:var(--faint);font-size:14px}
+
+  /* Nav */
+  .nav{
+    background:rgba(10,10,26,0.95);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    padding:12px 24px;
+    overflow-x:auto;
+    position:sticky;top:0;z-index:100;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  }
+  .nav-inner{
+    max-width:800px;margin:0 auto;
+    display:flex;gap:6px;min-width:max-content;
+  }
+  .nav-btn{
+    background:transparent;color:var(--faint);
+    border:1px solid var(--border);
+    border-radius:10px;padding:6px 14px;
+    font-size:12px;font-weight:700;cursor:pointer;
+    white-space:nowrap;transition:all .3s;
+    font-family:var(--font-mono);
+  }
+  .nav-btn.active{border:none}
+
+  /* Content */
+  .content{max-width:800px;margin:0 auto;padding:24px 24px 80px}
+  .section-title{font-size:24px;font-weight:900;margin:0 0 4px}
+  .section-subtitle{color:var(--subtle);font-size:14px;margin:0 0 24px}
+
+  /* Card */
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:16px;padding:24px;
+    transition:all .3s;
+  }
+
+  /* Shared */
+  .intro-text{color:var(--muted);line-height:1.7;margin-bottom:16px}
+  .intro-text strong{color:var(--text)}
+
+  /* Toggle button base */
+  .toggle-btn{
+    border-radius:12px;padding:10px 20px;cursor:pointer;
+    font-weight:700;font-family:var(--font-mono);font-size:13px;
+    margin-bottom:16px;transition:all .3s;
+  }
+
+  /* OSI layers */
+  .osi-layer{
+    background:var(--card-bg-hover);
+    border:2px solid rgba(255,255,255,0.06);
+    border-radius:12px;padding:14px 18px;
+    cursor:pointer;transition:all .3s;
+  }
+  .osi-layer-header{display:flex;align-items:center;gap:12px}
+  .osi-num{
+    border-radius:8px;width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;font-family:var(--font-mono);
+    color:#0a0a2e;flex-shrink:0;
+  }
+  .osi-name{font-weight:700;color:#fff;font-size:15px}
+  .osi-name-es{color:#888;font-weight:400}
+  .osi-examples-small{color:#666;font-size:12px;margin-top:2px}
+  .osi-arrow{color:#555;font-size:18px;margin-left:auto}
+  .osi-detail{margin-top:14px;padding-left:48px}
+  .osi-detail p{color:#ddd;font-size:14px;line-height:1.6;margin:0 0 10px}
+  .analogy-box{
+    background:var(--black-overlay);border-radius:8px;padding:12px;margin-bottom:10px;
+  }
+  .analogy-label{color:#888;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+  .analogy-text{color:var(--cyan);font-size:13px;margin:4px 0 0;line-height:1.5}
+  .protocol-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .protocol-tag{
+    padding:3px 10px;border-radius:20px;font-size:12px;
+    font-family:var(--font-mono);
+  }
+
+  /* Mnemonic */
+  .mnemonic-box{
+    background:rgba(254,228,64,0.1);border:1px solid var(--yellow);
+    border-radius:12px;padding:16px;margin-bottom:20px;
+    font-family:var(--font-mono);font-size:14px;color:var(--yellow);
+  }
+  .mnemonic-box span{color:var(--muted);font-size:12px}
+
+  /* TCP/IP grid */
+  .tcpip-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:24px;
+  }
+  .tcpip-header{
+    background:rgba(255,255,255,0.08);padding:10px 14px;
+    font-weight:700;font-size:13px;
+  }
+  .tcpip-left{padding:12px 14px;border-left-width:3px;border-left-style:solid}
+  .tcpip-right{background:rgba(255,255,255,0.02);padding:12px 14px}
+
+  /* IP analyzer */
+  .ip-input{
+    background:rgba(0,0,0,0.4);border:2px solid var(--pink);
+    border-radius:10px;padding:12px 16px;color:#fff;
+    font-size:20px;font-family:var(--font-mono);
+    width:100%;outline:none;
+  }
+  .ip-tag{
+    padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;
+    display:inline-block;
+  }
+  .ip-binary{font-family:var(--font-mono);font-size:13px;color:var(--pink)}
+
+  /* Private ranges */
+  .range-item{
+    padding:10px 14px;border-left-width:3px;border-left-style:solid;
+    border-radius:0 8px 8px 0;
+  }
+  .range-item .range-text{color:#fff;font-family:var(--font-mono);font-size:14px}
+  .range-item .range-meta{color:#888;font-size:12px}
+
+  /* Pills */
+  .pill{
+    border-radius:24px;padding:8px 18px;font-size:14px;
+    font-weight:600;cursor:pointer;transition:all .3s;
+    font-family:var(--font-mono);
+  }
+  .pill.inactive{
+    background:rgba(255,255,255,0.06);color:#ccc;
+    border:1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Handshake */
+  .handshake-step{
+    border:2px solid rgba(255,255,255,0.06);border-radius:12px;
+    padding:12px 16px;cursor:pointer;transition:all .4s;
+  }
+  .handshake-num{
+    border-radius:50%;width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:13px;flex-shrink:0;
+  }
+
+  /* Comparison table */
+  .cmp-table{width:100%;border-collapse:collapse;font-size:13px}
+  .cmp-table th{padding:10px 12px;text-align:left}
+  .cmp-table td{padding:8px 12px;border-bottom:1px solid #1a1a3e}
+
+  /* Encapsulation */
+  .enc-btn{
+    border-radius:10px;padding:8px 14px;cursor:pointer;
+    font-weight:700;font-family:var(--font-mono);font-size:12px;
+    transition:all .3s;
+  }
+  .enc-layers{
+    display:flex;gap:2px;justify-content:center;align-items:center;
+    flex-wrap:wrap;padding:16px 0;
+  }
+  .enc-block{
+    color:#0a0a2e;padding:10px 16px;font-weight:700;
+    font-size:12px;font-family:var(--font-mono);white-space:nowrap;
+  }
+
+  /* Tools */
+  .tool-item{
+    border:2px solid rgba(255,255,255,0.06);border-radius:14px;
+    padding:14px 18px;cursor:pointer;transition:all .3s;
+  }
+  .tool-name{font-family:var(--font-mono);font-weight:700;font-size:16px}
+  .tool-level{
+    color:#555;font-size:12px;margin-left:10px;
+    background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:8px;
+  }
+  .tool-syntax{
+    background:var(--black-overlay-dark);border-radius:10px;padding:14px;
+    font-family:var(--font-mono);margin-top:14px;
+  }
+  .tool-syntax-label{color:#555;font-size:11px;margin-bottom:6px}
+  .tool-example{
+    font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:4px 0;
+  }
+
+  /* Quiz */
+  .quiz-progress{
+    background:var(--card-bg);height:4px;border-radius:4px;
+    margin-bottom:20px;overflow:hidden;
+  }
+  .quiz-progress-bar{
+    background:var(--green);height:100%;border-radius:4px;transition:width .4s;
+  }
+  .quiz-option{
+    background:var(--card-bg);border:2px solid var(--border);
+    border-radius:12px;padding:12px 18px;color:#ccc;
+    font-size:15px;font-weight:600;cursor:pointer;
+    text-align:left;transition:all .3s;font-family:var(--font-ui);
+    width:100%;display:block;
+  }
+  .quiz-next{
+    background:var(--blue);color:#0a0a2e;border:none;
+    border-radius:12px;padding:12px 28px;font-weight:700;
+    font-size:14px;cursor:pointer;margin-top:20px;
+    font-family:var(--font-mono);display:block;width:100%;
+  }
+  .quiz-reset{
+    background:var(--green);color:#0a0a2e;border:none;
+    border-radius:12px;padding:12px 28px;font-weight:700;
+    font-size:14px;cursor:pointer;margin-top:20px;
+    font-family:var(--font-mono);
+  }
+
+  /* Info boxes */
+  .info-box{
+    border-radius:12px;padding:16px;margin-top:20px;
+  }
+  .info-label{
+    font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;
+  }
+  .info-text{font-size:13px;line-height:1.6;color:var(--muted)}
+  .info-text strong{color:#fff}
+
+  /* Utility */
+  .hidden{display:none}
+  .flex-col{display:flex;flex-direction:column}
+  .gap-6{gap:6px}
+  .gap-8{gap:8px}
+  .gap-10{gap:10px}
+  .mb-8{margin-bottom:8px}
+  .mb-10{margin-bottom:10px}
+  .mb-16{margin-bottom:16px}
+  .mb-20{margin-bottom:20px}
+  .mb-24{margin-bottom:24px}
+  .mt-10{margin-top:10px}
+  .mt-12{margin-top:12px}
+  .mt-14{margin-top:14px}
+  .mt-16{margin-top:16px}
+  .mt-20{margin-top:20px}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{height:4px;width:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-tag">TryHackMe · Networking Concepts</div>
+    <h1>Guía Interactiva de Redes</h1>
+    <p>De básico a intermedio · Aprende jugando 🏴‍☠️</p>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+  <div class="nav-inner" id="nav"></div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div id="section-header"></div>
+  <div id="section-content"></div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const SECTIONS = [
+  { id:"osi", title:"🧱 Modelo OSI", subtitle:"Las 7 capas de la comunicación", color:"#00f5d4", accent:"#0a0a2e" },
+  { id:"tcpip", title:"🌐 TCP/IP Model", subtitle:"El modelo real de Internet", color:"#fee440", accent:"#0a0a2e" },
+  { id:"ip", title:"📍 Direcciones IP", subtitle:"Tu dirección en la red", color:"#f15bb5", accent:"#0a0a2e" },
+  { id:"udptcp", title:"📦 UDP vs TCP", subtitle:"Transporte de datos", color:"#9b5de5", accent:"#fff" },
+  { id:"encap", title:"📨 Encapsulación", subtitle:"La vida de un paquete", color:"#00bbf9", accent:"#0a0a2e" },
+  { id:"tools", title:"🛠️ Herramientas Hacker", subtitle:"Tu kit de reconocimiento", color:"#ff6b6b", accent:"#fff" },
+  { id:"quiz", title:"🧠 Quiz Final", subtitle:"¿Cuánto aprendiste?", color:"#06d6a0", accent:"#0a0a2e" },
+];
+
+const OSI_LAYERS = [
+  { num:7, name:"Application", nameEs:"Aplicación", emoji:"🌍", color:"#ff6b6b", examples:"HTTP, FTP, DNS, SMTP, IMAP, POP3", desc:"Donde viven tus apps: navegador, email, etc. Es la capa que TÚ tocas.", analogy:"Es como la app de mensajería en tu teléfono — la interfaz que usas para comunicarte." },
+  { num:6, name:"Presentation", nameEs:"Presentación", emoji:"🎨", color:"#ffa726", examples:"JPEG, PNG, MIME, ASCII, Unicode, MPEG", desc:"Traduce, comprime y cifra los datos. Convierte formatos.", analogy:"Como un traductor que convierte tu carta al idioma del destinatario." },
+  { num:5, name:"Session", nameEs:"Sesión", emoji:"🤝", color:"#fee440", examples:"NFS, RPC", desc:"Establece, mantiene y sincroniza la comunicación entre apps.", analogy:"Como iniciar una llamada telefónica — marcas, te conectan, y mantienes la línea abierta." },
+  { num:4, name:"Transport", nameEs:"Transporte", emoji:"🚚", color:"#06d6a0", examples:"TCP, UDP", desc:"Comunicación extremo a extremo. Control de flujo y segmentación.", analogy:"Como elegir entre enviar por correo certificado (TCP) o correo normal sin confirmación (UDP)." },
+  { num:3, name:"Network", nameEs:"Red", emoji:"🗺️", color:"#00bbf9", examples:"IP, ICMP, IPSec, VPN", desc:"Direccionamiento lógico y enrutamiento entre redes distintas.", analogy:"Como la oficina de correos que decide por qué ruta enviar tu paquete a otra ciudad." },
+  { num:2, name:"Data Link", nameEs:"Enlace de Datos", emoji:"🔗", color:"#9b5de5", examples:"Ethernet (802.3), WiFi (802.11)", desc:"Transferencia confiable entre nodos adyacentes. Usa direcciones MAC (6 bytes).", analogy:"Como el cartero de tu barrio que entrega cartas entre casas vecinas." },
+  { num:1, name:"Physical", nameEs:"Física", emoji:"⚡", color:"#f15bb5", examples:"Cables, fibra óptica, WiFi (2.4/5/6 GHz)", desc:"La conexión física real: cables, señales eléctricas, ópticas o inalámbricas.", analogy:"Como la carretera o el camino físico por donde viaja el cartero." },
+];
+
+const QUIZ_QUESTIONS = [
+  { q:"¿Cuántas capas tiene el modelo OSI?", options:["4","5","7","6"], correct:2 },
+  { q:"¿En qué capa opera un router?", options:["Capa 1","Capa 2","Capa 3","Capa 4"], correct:2 },
+  { q:"¿Qué protocolo usa un three-way handshake?", options:["UDP","IP","TCP","ICMP"], correct:2 },
+  { q:"¿Cuántos bits tiene una dirección IPv4?", options:["16","32","64","128"], correct:1 },
+  { q:"¿Cuál es el rango de puertos posibles?", options:["0-1024","1-65535","0-255","1-1024"], correct:1 },
+  { q:"¿Qué dirección MAC tiene 6 bytes?", options:["IP","MAC","TCP","UDP"], correct:1 },
+  { q:"¿192.168.1.10 es una dirección...?", options:["Pública","Privada","Broadcast","Reservada"], correct:1 },
+  { q:"¿Qué comando muestra tu IP en Linux?", options:["ipconfig","ifconfig","netstat","ping"], correct:1 },
+  { q:"¿UDP es connectionless (sin conexión)?", options:["Sí","No"], correct:0 },
+  { q:"¿Qué capa agrega el Ethernet Header y Trailer?", options:["Network","Transport","Link (Enlace)","Application"], correct:2 },
+];
+
+// ==================== STATE ====================
+let activeSection = "osi";
+let osiSelected = null;
+let showMnemonic = false;
+let showPrivate = false;
+let ipInput = "192.168.1.100";
+let udpTab = "tcp";
+let handshakeStep = 0;
+let encStep = 0;
+let toolExpanded = null;
+let quizCurrent = 0;
+let quizSelected = null;
+let quizScore = 0;
+let quizAnswered = false;
+let quizFinished = false;
+
+// ==================== RENDER NAV ====================
+function renderNav() {
+  const nav = document.getElementById("nav");
+  nav.innerHTML = SECTIONS.map(s => {
+    const isActive = activeSection === s.id;
+    const style = isActive
+      ? `background:${s.color};color:${s.accent};border:none;`
+      : "";
+    return `<button class="nav-btn ${isActive ? 'active' : ''}" style="${style}" onclick="setSection('${s.id}')">${s.title}</button>`;
+  }).join("");
+}
+
+function setSection(id) {
+  activeSection = id;
+  renderNav();
+  renderContent();
+}
+
+// ==================== RENDER CONTENT ====================
+function renderContent() {
+  const sec = SECTIONS.find(s => s.id === activeSection);
+  document.getElementById("section-header").innerHTML = `
+    <h2 class="section-title" style="color:${sec.color}">${sec.title}</h2>
+    <p class="section-subtitle">${sec.subtitle}</p>
+  `;
+  const el = document.getElementById("section-content");
+  switch(activeSection) {
+    case "osi": el.innerHTML = renderOSI(); break;
+    case "tcpip": el.innerHTML = renderTCPIP(); break;
+    case "ip": el.innerHTML = renderIP(); break;
+    case "udptcp": el.innerHTML = renderUDPTCP(); break;
+    case "encap": el.innerHTML = renderEncap(); break;
+    case "tools": el.innerHTML = renderTools(); break;
+    case "quiz": el.innerHTML = renderQuiz(); break;
+  }
+}
+
+// ==================== OSI ====================
+function renderOSI() {
+  const mnemonicHTML = showMnemonic ? `
+    <div class="mnemonic-box mb-20">
+      <strong>"Please Do Not Throw Spinach Pizza Away"</strong><br>
+      <span>Physical → Data Link → Network → Transport → Session → Presentation → Application</span>
+    </div>` : "";
+
+  const layersHTML = OSI_LAYERS.map(l => {
+    const isOpen = osiSelected === l.num;
+    const borderColor = isOpen ? l.color : "rgba(255,255,255,0.06)";
+    const bg = isOpen ? `${l.color}15` : "rgba(255,255,255,0.03)";
+    const detailHTML = isOpen ? `
+      <div class="osi-detail">
+        <p>${l.desc}</p>
+        <div class="analogy-box">
+          <div class="analogy-label">Analogía</div>
+          <p class="analogy-text">${l.analogy}</p>
+        </div>
+        <div class="protocol-tags">
+          ${l.examples.split(", ").map(ex => `<span class="protocol-tag" style="background:${l.color}22;color:${l.color}">${ex}</span>`).join("")}
+        </div>
+      </div>` : "";
+
+    return `
+      <div class="osi-layer" style="background:${bg};border-color:${borderColor}" onclick="toggleOSI(${l.num})">
+        <div class="osi-layer-header">
+          <div class="osi-num" style="background:${l.color}">${l.num}</div>
+          <div style="flex:1">
+            <div class="osi-name">${l.emoji} ${l.name} <span class="osi-name-es">(${l.nameEs})</span></div>
+            ${!isOpen ? `<div class="osi-examples-small">${l.examples}</div>` : ""}
+          </div>
+          <span class="osi-arrow">${isOpen ? "▲" : "▼"}</span>
+        </div>
+        ${detailHTML}
+      </div>`;
+  }).join("");
+
+  return `
+    <p class="intro-text">El modelo <strong style="color:#00f5d4">OSI (Open Systems Interconnection)</strong> fue creado por la ISO como un marco teórico de 7 capas para entender cómo viajan los datos en una red. Piensa en cada capa como un empleado en una cadena de correo: cada uno tiene un trabajo específico.</p>
+    <button class="toggle-btn mb-20" style="background:${showMnemonic ? '#fee440' : 'transparent'};color:${showMnemonic ? '#0a0a2e' : '#fee440'};border:2px solid #fee440" onclick="toggleMnemonic()">
+      💡 ${showMnemonic ? 'Ocultar' : 'Ver'} Mnemotécnico
+    </button>
+    ${mnemonicHTML}
+    <div class="flex-col gap-6">${layersHTML}</div>`;
+}
+function toggleOSI(num) { osiSelected = osiSelected === num ? null : num; renderContent(); }
+function toggleMnemonic() { showMnemonic = !showMnemonic; renderContent(); }
+
+// ==================== TCP/IP ====================
+function renderTCPIP() {
+  const layers = [
+    { tcp:"Application", osi:"7, 6, 5", color:"#ff6b6b", protocols:"HTTP, HTTPS, FTP, SSH, SMTP, DNS", desc:"Combina las capas 5-7 del OSI. Aquí viven todos los protocolos que usas a diario." },
+    { tcp:"Transport", osi:"4", color:"#06d6a0", protocols:"TCP, UDP", desc:"Igual que en OSI. TCP para conexiones confiables, UDP para velocidad." },
+    { tcp:"Internet", osi:"3", color:"#00bbf9", protocols:"IP, ICMP, IPSec", desc:"Se llama 'Internet' en vez de 'Network'. Maneja el enrutamiento entre redes." },
+    { tcp:"Link", osi:"2 (y 1)", color:"#9b5de5", protocols:"Ethernet, WiFi", desc:"Combina las capas 1 y 2 del OSI. La conexión física y el protocolo de enlace." },
+  ];
+
+  const rows = layers.map(l => `
+    <div style="background:${l.color}15;border-left:3px solid ${l.color};padding:12px 14px">
+      <div style="color:#fff;font-weight:700;font-size:14px">${l.tcp}</div>
+      <div style="color:#888;font-size:11px;margin-top:4px">${l.protocols}</div>
+    </div>
+    <div class="tcpip-right">
+      <div style="color:#aaa;font-size:13px">Capas OSI: <strong style="color:#fff">${l.osi}</strong></div>
+      <div style="color:#666;font-size:11px;margin-top:4px">${l.desc}</div>
+    </div>
+  `).join("");
+
+  return `
+    <p class="intro-text mb-8">El modelo <strong style="color:#fee440">TCP/IP</strong> es el modelo <em>real</em> que usa Internet. Fue creado por el Departamento de Defensa de EE.UU. en los 70s. Tiene 4 capas (a veces 5 si incluyes la física).</p>
+    <p style="color:#888;font-size:13px;margin-bottom:20px">🎯 <strong style="color:#fee440">Dato hacker:</strong> Se diseñó para que la red siga funcionando aunque partes sean destruidas (ej: ataque militar).</p>
+    <div class="tcpip-grid">
+      <div class="tcpip-header" style="border-radius:12px 0 0 0;color:#fee440">TCP/IP</div>
+      <div class="tcpip-header" style="border-radius:0 12px 0 0;color:#00f5d4">OSI Equivalente</div>
+      ${rows}
+    </div>`;
+}
+
+// ==================== IP ====================
+function analyzeIP(ip) {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) return { valid: false };
+  let type = "Pública";
+  if (parts[0] === 10) type = "Privada (Clase A: 10.0.0.0/8)";
+  else if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) type = "Privada (Clase B: 172.16.0.0/12)";
+  else if (parts[0] === 192 && parts[1] === 168) type = "Privada (Clase C: 192.168.0.0/16)";
+  else if (parts[0] === 127) type = "Loopback (localhost)";
+  return { valid: true, type, binary: parts.map(p => p.toString(2).padStart(8,"0")).join(".") };
+}
+
+function renderIP() {
+  const result = analyzeIP(ipInput);
+  let resultHTML = "";
+  if (result.valid) {
+    let tagBg, tagColor;
+    if (result.type.includes("Privada")) { tagBg="#9b5de522"; tagColor="#9b5de5"; }
+    else if (result.type.includes("Loopback")) { tagBg="#fee44022"; tagColor="#fee440"; }
+    else { tagBg="#06d6a022"; tagColor="#06d6a0"; }
+    resultHTML = `
+      <div style="margin-top:14px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <span class="ip-tag" style="background:${tagBg};color:${tagColor}">${result.type}</span>
+        </div>
+        <div class="ip-binary">Binario: ${result.binary}</div>
+      </div>`;
+  } else {
+    resultHTML = `<div style="color:#ff6b6b;margin-top:8px;font-size:13px">⚠️ IP inválida</div>`;
+  }
+
+  const privateHTML = showPrivate ? `
+    <div class="flex-col gap-8">
+      ${[
+        { range:"10.0.0.0 – 10.255.255.255", cidr:"/8", hosts:"~16.7M", color:"#ff6b6b" },
+        { range:"172.16.0.0 – 172.31.255.255", cidr:"/12", hosts:"~1M", color:"#ffa726" },
+        { range:"192.168.0.0 – 192.168.255.255", cidr:"/16", hosts:"~65K", color:"#9b5de5" },
+      ].map(r => `
+        <div class="range-item" style="background:${r.color}10;border-left-color:${r.color}">
+          <div class="range-text">${r.range}</div>
+          <div class="range-meta">CIDR: ${r.cidr} · ~${r.hosts} hosts</div>
+        </div>`).join("")}
+    </div>` : "";
+
+  return `
+    <p class="intro-text">Una dirección <strong style="color:#f15bb5">IPv4</strong> es como tu dirección postal en Internet. Tiene <strong>4 octetos = 32 bits</strong>, y cada octeto va de 0 a 255.</p>
+    <div class="card mb-20" style="box-shadow:0 0 30px #f15bb533">
+      <div style="font-size:12px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🔍 Analizador de IP — Prueba cualquier dirección</div>
+      <input class="ip-input" type="text" value="${ipInput}" oninput="updateIP(this.value)">
+      ${resultHTML}
+    </div>
+    <button class="toggle-btn mb-16" style="background:${showPrivate ? '#f15bb5' : 'transparent'};color:${showPrivate ? '#0a0a2e' : '#f15bb5'};border:2px solid #f15bb5" onclick="togglePrivate()">
+      📋 Rangos Privados (RFC 1918)
+    </button>
+    ${privateHTML}
+    <div class="card mt-20" style="border-color:#fee44033">
+      <div class="info-label" style="color:#fee440">🛣️ Routing (Enrutamiento)</div>
+      <p class="info-text">Un <strong>router</strong> funciona en la <strong style="color:#00bbf9">Capa 3</strong>. Es como una oficina de correos: inspecciona la dirección IP de destino y reenvía el paquete por la mejor ruta. Un paquete suele pasar por múltiples routers antes de llegar.</p>
+      <p style="color:#666;font-size:12px;margin-top:8px">💡 Para que una IP privada acceda a Internet, el router necesita <strong style="color:#f15bb5">NAT</strong> (Network Address Translation).</p>
+    </div>`;
+}
+function updateIP(val) { ipInput = val; renderContent(); }
+function togglePrivate() { showPrivate = !showPrivate; renderContent(); }
+
+// ==================== UDP vs TCP ====================
+function renderUDPTCP() {
+  const pillHTML = (id, label, color) => {
+    const isActive = udpTab === id;
+    return `<button class="pill ${isActive ? '' : 'inactive'}" style="${isActive ? `background:${color};color:#0a0a2e;border:none` : ''}" onclick="setUDPTab('${id}')">${label}</button>`;
+  };
+
+  let tabContent = "";
+  if (udpTab === "tcp") {
+    const steps = [
+      { step:"SYN →", desc:"Cliente envía SYN con su número de secuencia inicial aleatorio" },
+      { step:"← SYN-ACK", desc:"Servidor responde con SYN-ACK y su propio número de secuencia" },
+      { step:"ACK →", desc:"Cliente confirma con ACK. ¡Conexión establecida!" },
+    ];
+    const stepsHTML = steps.map((s,i) => {
+      const done = handshakeStep > i;
+      const visible = handshakeStep >= i;
+      return `
+        <div class="handshake-step" onclick="advanceHandshake(${i+1})"
+          style="background:${done ? '#06d6a015' : 'rgba(255,255,255,0.02)'};border-color:${done ? '#06d6a0' : 'rgba(255,255,255,0.06)'};opacity:${visible ? 1 : 0.3}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="handshake-num" style="background:${done ? '#06d6a0' : '#333'};color:${done ? '#0a0a2e' : '#888'}">${i+1}</span>
+            <div>
+              <div style="font-family:var(--font-mono);color:#06d6a0;font-weight:700;font-size:15px">${s.step}</div>
+              <div style="color:#aaa;font-size:12px;margin-top:2px">${s.desc}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+    tabContent = `
+      <div class="card" style="box-shadow:0 0 30px #06d6a033">
+        <h3 style="color:#06d6a0;margin:0 0 10px;font-size:18px">TCP — Transmission Control Protocol</h3>
+        <p style="color:#aaa;font-size:14px;line-height:1.6">Orientado a conexión. Garantiza entrega ordenada y sin pérdidas. Cada octeto tiene un <strong style="color:#fff">número de secuencia</strong> y el receptor envía <strong style="color:#fff">ACKs</strong>.</p>
+        <p style="color:#888;font-size:13px;margin-bottom:4px">📬 Analogía: Correo certificado con confirmación de entrega.</p>
+      </div>
+      <div class="mt-20">
+        <div style="font-size:13px;color:#06d6a0;font-weight:700;margin-bottom:12px;font-family:var(--font-mono)">🤝 THREE-WAY HANDSHAKE — Haz clic para avanzar</div>
+        <div class="flex-col gap-8">${stepsHTML}</div>
+        ${handshakeStep >= 3 ? '<div style="text-align:center;margin-top:12px;color:#06d6a0;font-weight:700;font-size:14px">✅ ¡Conexión TCP establecida! Ahora pueden intercambiar datos.</div>' : ''}
+      </div>`;
+  } else if (udpTab === "udp") {
+    tabContent = `
+      <div class="card" style="box-shadow:0 0 30px #ff6b6b33">
+        <h3 style="color:#ff6b6b;margin:0 0 10px;font-size:18px">UDP — User Datagram Protocol</h3>
+        <p style="color:#aaa;font-size:14px;line-height:1.6">Sin conexión (<em>connectionless</em>). No hay handshake, no hay confirmación de entrega, no hay orden garantizado. Pero es <strong style="color:#fff">más rápido</strong>.</p>
+        <p style="color:#888;font-size:13px;margin-top:10px">📬 Analogía: Correo estándar sin tracking — barato y rápido, pero sin garantía.</p>
+        <div style="margin-top:16px;background:rgba(0,0,0,0.3);border-radius:10px;padding:14px">
+          <div style="color:#ff6b6b;font-weight:700;font-size:13px;margin-bottom:6px">¿Cuándo usar UDP?</div>
+          <div style="color:#aaa;font-size:13px;line-height:1.6">Streaming de video, videollamadas, juegos online, DNS queries — donde la velocidad importa más que perder algún paquete.</div>
+        </div>
+      </div>`;
+  } else {
+    const rows = [
+      ["Conexión","Orientado a conexión","Sin conexión"],
+      ["Handshake","Three-way handshake","No"],
+      ["Confirmación","ACK por cada segmento","No hay ACK"],
+      ["Orden","Garantizado","No garantizado"],
+      ["Velocidad","Más lento","Más rápido"],
+      ["Uso típico","HTTP, SSH, Email","DNS, Streaming, Gaming"],
+    ].map(([feat,tcp,udp]) => `
+      <tr>
+        <td class="cmp-table" style="color:#ccc;font-weight:600">${feat}</td>
+        <td class="cmp-table" style="color:#06d6a0;text-align:center">${tcp}</td>
+        <td class="cmp-table" style="color:#ff6b6b;text-align:center">${udp}</td>
+      </tr>`).join("");
+
+    tabContent = `
+      <div style="overflow-x:auto">
+        <table class="cmp-table">
+          <thead><tr>
+            <th style="padding:10px 12px;border-bottom:2px solid #333;color:#888;text-align:left">Característica</th>
+            <th style="padding:10px 12px;border-bottom:2px solid #06d6a0;color:#06d6a0;text-align:center">TCP</th>
+            <th style="padding:10px 12px;border-bottom:2px solid #ff6b6b;color:#ff6b6b;text-align:center">UDP</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  return `
+    <p class="intro-text">Ambos son protocolos de la <strong style="color:#9b5de5">Capa 4 (Transporte)</strong>. Usan <strong>números de puerto</strong> (1–65535) para identificar procesos en cada host.</p>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      ${pillHTML("tcp","TCP","#06d6a0")}
+      ${pillHTML("udp","UDP","#ff6b6b")}
+      ${pillHTML("vs","Comparación","#fee440")}
+    </div>
+    ${tabContent}`;
+}
+function setUDPTab(t) { udpTab = t; renderContent(); }
+function advanceHandshake(s) { handshakeStep = Math.max(handshakeStep, s); renderContent(); }
+
+// ==================== ENCAPSULATION ====================
+function renderEncap() {
+  const steps = [
+    { label:"Application Data", color:"#8bc34a", layers:["Application Data"], desc:"El usuario escribe una búsqueda y presiona Enter. El navegador prepara un request HTTP." },
+    { label:"+ TCP/UDP Header", color:"#00bbf9", layers:["TCP/UDP Header","Application Data"], desc:"La capa de Transporte agrega el header TCP (o UDP). Ahora es un segmento TCP o datagrama UDP." },
+    { label:"+ IP Header", color:"#9b5de5", layers:["IP Header","TCP/UDP Header","Application Data"], desc:"La capa de Red agrega el header IP con las IPs de origen y destino. Ahora es un paquete IP." },
+    { label:"+ Ethernet Frame", color:"#f15bb5", layers:["Eth Header","IP Header","TCP/UDP Header","Application Data","Eth Trailer"], desc:"La capa de Enlace agrega header Y trailer Ethernet/WiFi. Ahora es un frame listo para transmitir." },
+  ];
+  const current = steps[encStep];
+
+  const btns = steps.map((s,i) => `
+    <button class="enc-btn" onclick="setEncStep(${i})"
+      style="background:${encStep === i ? s.color : 'transparent'};color:${encStep === i ? '#0a0a2e' : s.color};border:2px solid ${s.color}">
+      Paso ${i+1}
+    </button>`).join("");
+
+  function blockColor(name) {
+    if (name.includes("Eth")) return "#f15bb5";
+    if (name.includes("IP")) return "#9b5de5";
+    if (name.includes("TCP")) return "#00bbf9";
+    return "#8bc34a";
+  }
+
+  const layerBlocks = current.layers.map((l,i) => {
+    const r = i === 0 ? "10px 4px 4px 10px" : i === current.layers.length - 1 ? "4px 10px 10px 4px" : "4px";
+    return `<div class="enc-block" style="background:${blockColor(l)};border-radius:${r}">${l}</div>`;
+  }).join("");
+
+  return `
+    <p class="intro-text"><strong style="color:#00bbf9">Encapsulación</strong> es como poner una carta en un sobre, luego ese sobre en otro más grande, y así sucesivamente. Cada capa agrega su propio header (y a veces trailer).</p>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">${btns}</div>
+    <div class="card mb-16" style="box-shadow:0 0 30px ${current.color}33">
+      <div style="font-size:14px;color:${current.color};font-weight:700;margin-bottom:8px">${current.label}</div>
+      <div class="enc-layers">${layerBlocks}</div>
+      <p style="color:#ccc;font-size:13px;line-height:1.6;margin:0">${current.desc}</p>
+    </div>
+    <div class="card" style="border-color:#fee44033">
+      <div class="info-label" style="color:#fee440">🔄 En el receptor...</div>
+      <p class="info-text">El proceso se invierte: cada capa quita su header/trailer y pasa los datos a la capa superior, hasta llegar a la aplicación.</p>
+    </div>`;
+}
+function setEncStep(i) { encStep = i; renderContent(); }
+
+// ==================== TOOLS ====================
+function renderTools() {
+  const tools = [
+    { name:"telnet", desc:"Conectarse a puertos TCP abiertos y enviar comandos de texto", usage:"telnet <IP> <puerto>", level:"Básico", color:"#ff6b6b", examples:["telnet 10.10.1.1 80","telnet 10.10.1.1 7 (echo)","telnet 10.10.1.1 13 (daytime)"] },
+    { name:"ifconfig", desc:"Ver configuración de red en Linux (IP, máscara, MAC)", usage:"ifconfig", level:"Básico", color:"#06d6a0", examples:["ifconfig","ifconfig eth0"] },
+    { name:"ip a s", desc:"Versión moderna de ifconfig (ip address show)", usage:"ip a s", level:"Básico", color:"#00bbf9", examples:["ip a s","ip addr show wlo1"] },
+    { name:"ipconfig", desc:"Equivalente de ifconfig para Windows", usage:"ipconfig", level:"Básico", color:"#fee440", examples:["ipconfig","ipconfig /all"] },
+  ];
+
+  const toolsHTML = tools.map((t,i) => {
+    const isOpen = toolExpanded === i;
+    const detailHTML = isOpen ? `
+      <div class="tool-syntax">
+        <div class="tool-syntax-label">SINTAXIS</div>
+        <div style="color:${t.color};font-size:14px">$ ${t.usage}</div>
+      </div>
+      <div class="mt-10">
+        <div class="tool-syntax-label">EJEMPLOS</div>
+        ${t.examples.map(ex => `<div class="tool-example"><span style="color:#06d6a0">$</span> ${ex}</div>`).join("")}
+      </div>` : "";
+
+    return `
+      <div class="tool-item" onclick="toggleTool(${i})"
+        style="background:${isOpen ? t.color+'10' : 'rgba(255,255,255,0.03)'};border-color:${isOpen ? t.color : 'rgba(255,255,255,0.06)'}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <span class="tool-name" style="color:${t.color}">${t.name}</span>
+            <span class="tool-level">${t.level}</span>
+          </div>
+          <span style="color:#555">${isOpen ? "▲" : "▼"}</span>
+        </div>
+        <div style="color:#888;font-size:13px;margin-top:4px">${t.desc}</div>
+        ${detailHTML}
+      </div>`;
+  }).join("");
+
+  return `
+    <p class="intro-text">Aquí tienes las herramientas que aparecen en este room. <strong style="color:#ff6b6b">¡Anótalas en tu listado hacker!</strong> 🏴‍☠️</p>
+    <div class="flex-col gap-10">${toolsHTML}</div>
+    <div class="card mt-20" style="border-color:#ff6b6b33">
+      <div class="info-label" style="color:#ff6b6b">⚠️ Nota de seguridad</div>
+      <p class="info-text">Los servicios <strong>echo</strong> (puerto 7) y <strong>daytime</strong> (puerto 13) son riesgos de seguridad y no deberían correr en producción. Se usan aquí solo para practicar.</p>
+    </div>`;
+}
+function toggleTool(i) { toolExpanded = toolExpanded === i ? null : i; renderContent(); }
+
+// ==================== QUIZ ====================
+function renderQuiz() {
+  if (quizFinished) {
+    const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+    const emoji = pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📚";
+    const color = pct >= 80 ? "#06d6a0" : pct >= 50 ? "#fee440" : "#ff6b6b";
+    const msg = pct >= 80 ? "¡Excelente! Dominas los conceptos." : pct >= 50 ? "¡Bien! Repasa las secciones anteriores." : "Sigue estudiando, ¡tú puedes!";
+    return `
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:60px;margin-bottom:10px">${emoji}</div>
+        <div style="font-size:36px;font-weight:900;color:${color};font-family:var(--font-mono)">${quizScore}/${QUIZ_QUESTIONS.length}</div>
+        <div style="color:#aaa;font-size:16px;margin-top:8px">${msg}</div>
+        <button class="quiz-reset" onclick="resetQuiz()">Intentar de nuevo</button>
+      </div>`;
+  }
+
+  const q = QUIZ_QUESTIONS[quizCurrent];
+  const progress = ((quizCurrent + 1) / QUIZ_QUESTIONS.length) * 100;
+
+  const optionsHTML = q.options.map((opt, i) => {
+    let bg = "rgba(255,255,255,0.04)";
+    let border = "rgba(255,255,255,0.08)";
+    let col = "#ccc";
+    if (quizAnswered) {
+      if (i === q.correct) { bg="#06d6a020"; border="#06d6a0"; col="#06d6a0"; }
+      else if (i === quizSelected) { bg="#ff6b6b20"; border="#ff6b6b"; col="#ff6b6b"; }
+    }
+    return `<button class="quiz-option" style="background:${bg};border-color:${border};color:${col};cursor:${quizAnswered ? 'default' : 'pointer'}" onclick="answerQuiz(${i})">${opt}</button>`;
+  }).join("");
+
+  const nextBtn = quizAnswered ? `
+    <button class="quiz-next" onclick="nextQuiz()">
+      ${quizCurrent + 1 >= QUIZ_QUESTIONS.length ? "Ver resultados" : "Siguiente →"}
+    </button>` : "";
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="color:#888;font-family:var(--font-mono);font-size:13px">Pregunta ${quizCurrent + 1}/${QUIZ_QUESTIONS.length}</span>
+      <span style="color:#06d6a0;font-family:var(--font-mono);font-size:13px">Score: ${quizScore}</span>
+    </div>
+    <div class="quiz-progress"><div class="quiz-progress-bar" style="width:${progress}%"></div></div>
+    <h3 style="color:#fff;font-size:18px;font-weight:700;margin-bottom:20px">${q.q}</h3>
+    <div class="flex-col gap-8">${optionsHTML}</div>
+    ${nextBtn}`;
+}
+function answerQuiz(i) {
+  if (quizAnswered) return;
+  quizSelected = i;
+  quizAnswered = true;
+  if (i === QUIZ_QUESTIONS[quizCurrent].correct) quizScore++;
+  renderContent();
+}
+function nextQuiz() {
+  if (quizCurrent + 1 >= QUIZ_QUESTIONS.length) { quizFinished = true; }
+  else { quizCurrent++; quizSelected = null; quizAnswered = false; }
+  renderContent();
+}
+function resetQuiz() {
+  quizCurrent = 0; quizSelected = null; quizScore = 0;
+  quizAnswered = false; quizFinished = false;
+  renderContent();
+}
+
+// ==================== INIT ====================
+renderNav();
+renderContent();
+</script>
+</body>
+</html>
