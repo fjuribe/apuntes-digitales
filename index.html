@@ -4,21 +4,554 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apuntes Digitales</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #080b12;
+      --surface: #0f1520;
+      --s2:      #161e2e;
+      --border:  #1c2840;
+      --border2: #243050;
+      --cyan:    #06d6f5;
+      --green:   #10f5a0;
+      --purple:  #a78bfa;
+      --pink:    #f472b6;
+      --yellow:  #ffd166;
+      --text:    #dce8f5;
+      --muted:   #4a6080;
+      --muted2:  #7a90b0;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content:'';
+      position:fixed; inset:0;
+      background:
+        radial-gradient(ellipse 800px 400px at 10% 20%, rgba(6,214,245,.04) 0%, transparent 60%),
+        radial-gradient(ellipse 600px 400px at 90% 80%, rgba(167,139,250,.04) 0%, transparent 60%);
+      pointer-events:none; z-index:0;
+    }
+    body::after {
+      content:'';
+      position:fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(6,214,245,.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6,214,245,.022) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events:none; z-index:0;
+    }
+
+    .page {
+      position:relative; z-index:1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 52px 24px 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      margin-bottom: 52px;
+      animation: fadeDown .55s ease both;
+    }
+    @keyframes fadeDown {
+      from { opacity:0; transform:translateY(-14px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .eyebrow {
+      font-family:'JetBrains Mono', monospace;
+      font-size:10px; letter-spacing:5px;
+      color:var(--cyan); opacity:.6;
+      text-transform:uppercase; margin-bottom:12px;
+    }
+    h1 {
+      font-family:'Syne', sans-serif;
+      font-size: clamp(2rem,5vw,3.4rem);
+      font-weight:800; letter-spacing:-2px; line-height:1;
+      background: linear-gradient(100deg,#fff 25%,var(--cyan) 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .header-sub {
+      margin-top:12px;
+      color:var(--muted2); font-size:13.5px; line-height:1.7;
+      max-width:460px;
+    }
+
+    /* ── ACCORDION ── */
+    .accordion { display:flex; flex-direction:column; gap:10px; }
+
+    .acc-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color .25s ease;
+      animation: fadeUp .45s ease both;
+    }
+    .acc-item:nth-child(1){ animation-delay:.05s; }
+    .acc-item:nth-child(2){ animation-delay:.12s; }
+    .acc-item:nth-child(3){ animation-delay:.19s; }
+    .acc-item:nth-child(4){ animation-delay:.26s; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .acc-item.open { border-color: var(--border2); }
+    .acc-item.open.color-cyan   { border-color: rgba(6,214,245,.3); }
+    .acc-item.open.color-purple { border-color: rgba(167,139,250,.3); }
+    .acc-item.open.color-pink   { border-color: rgba(244,114,182,.3); }
+    .acc-item.open.color-green  { border-color: rgba(16,245,160,.3); }
+
+    /* Trigger row */
+    .acc-trigger {
+      width:100%;
+      background: var(--surface);
+      border:none; cursor:pointer;
+      padding: 18px 22px;
+      display:flex; align-items:center; gap:14px;
+      transition: background .2s ease;
+      text-align:left;
+    }
+    .acc-trigger:hover { background: var(--s2); }
+    .acc-item.open .acc-trigger { background: var(--s2); }
+
+    .acc-icon {
+      width:38px; height:38px;
+      border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:17px; flex-shrink:0;
+    }
+    .color-cyan   .acc-icon { background:rgba(6,214,245,.1);   border:1px solid rgba(6,214,245,.2); }
+    .color-purple .acc-icon { background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.2); }
+    .color-pink   .acc-icon { background:rgba(244,114,182,.1); border:1px solid rgba(244,114,182,.2); }
+    .color-green  .acc-icon { background:rgba(16,245,160,.1);  border:1px solid rgba(16,245,160,.2); }
+
+    .acc-meta { flex:1; min-width:0; }
+
+    .acc-title {
+      font-family:'Syne', sans-serif;
+      font-size:.98rem; font-weight:700;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .color-cyan   .acc-title { color:var(--cyan); }
+    .color-purple .acc-title { color:var(--purple); }
+    .color-pink   .acc-title { color:var(--pink); }
+    .color-green  .acc-title { color:var(--green); }
+
+    .acc-subtitle {
+      font-family:'JetBrains Mono', monospace;
+      font-size:9.5px; letter-spacing:2px;
+      color:var(--muted); text-transform:uppercase;
+      margin-top:2px;
+    }
+
+    .acc-right {
+      display:flex; align-items:center; gap:12px; flex-shrink:0;
+    }
+
+    .acc-count {
+      font-family:'JetBrains Mono', monospace;
+      font-size:10px; color:var(--muted);
+    }
+
+    .acc-chevron {
+      width:22px; height:22px;
+      border-radius:6px;
+      background:var(--border);
+      display:flex; align-items:center; justify-content:center;
+      transition: transform .3s ease, background .2s ease;
+      color:var(--muted2); font-size:11px;
+    }
+    .acc-item.open .acc-chevron {
+      transform: rotate(180deg);
+      background: var(--border2);
+    }
+
+    /* Body */
+    .acc-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .4s cubic-bezier(.4,0,.2,1);
+    }
+    .acc-item.open .acc-body {
+      max-height: 1200px;
+    }
+
+    .acc-inner {
+      padding: 6px 22px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── ROADMAP inside accordion ── */
+    .roadmap {
+      position:relative;
+      display:flex; flex-direction:column;
+      padding-top:16px;
+    }
+
+    .roadmap::before {
+      content:'';
+      position:absolute;
+      left:23px; top:32px; bottom:16px;
+      width:1px;
+      background:linear-gradient(to bottom, var(--border2) 80%, transparent);
+    }
+
+    .step {
+      display:flex; gap:16px;
+      align-items:flex-start;
+      position:relative; z-index:1;
+      margin-bottom:10px;
+    }
+
+    .step-num {
+      width:46px; height:46px;
+      border-radius:10px;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      font-family:'JetBrains Mono', monospace;
+      flex-shrink:0;
+      border:1px solid var(--border2);
+      transition:transform .2s ease;
+    }
+    .step:hover .step-num { transform:scale(1.07); }
+
+    .step-n {
+      font-family:'Syne', sans-serif;
+      font-weight:800; font-size:1.05rem; line-height:1;
+    }
+    .step-s { font-size:8px; opacity:.45; letter-spacing:1px; }
+
+    .lv-start .step-num  { background:rgba(16,245,160,.1);  border-color:rgba(16,245,160,.3);  color:var(--green); }
+    .lv-mid   .step-num  { background:rgba(6,214,245,.1);   border-color:rgba(6,214,245,.3);   color:var(--cyan); }
+    .lv-adv   .step-num  { background:rgba(255,209,102,.1); border-color:rgba(255,209,102,.3); color:var(--yellow); }
+    .lv-pro   .step-num  { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.3); color:var(--purple); }
+    .lv-ref   .step-num  { background:rgba(244,114,182,.1); border-color:rgba(244,114,182,.3); color:var(--pink); }
+
+    .step-card {
+      flex:1;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:13px 16px;
+      text-decoration:none;
+      color:inherit;
+      display:block;
+      transition: all .2s ease;
+      position:relative;
+    }
+    .step-card::after {
+      content:'→';
+      position:absolute; right:13px; top:50%;
+      transform:translateY(-50%) translateX(5px);
+      opacity:0; transition:all .2s ease;
+      font-size:13px; color:var(--muted2);
+    }
+    .step-card:hover { background:var(--s2); transform:translateX(4px); }
+    .step-card:hover::after { opacity:1; transform:translateY(-50%) translateX(0); }
+
+    .lv-start .step-card:hover { border-color:rgba(16,245,160,.3);  box-shadow:-3px 0 0 var(--green); }
+    .lv-mid   .step-card:hover { border-color:rgba(6,214,245,.3);   box-shadow:-3px 0 0 var(--cyan); }
+    .lv-adv   .step-card:hover { border-color:rgba(255,209,102,.3); box-shadow:-3px 0 0 var(--yellow); }
+    .lv-pro   .step-card:hover { border-color:rgba(167,139,250,.3); box-shadow:-3px 0 0 var(--purple); }
+    .lv-ref   .step-card:hover { border-color:rgba(244,114,182,.3); box-shadow:-3px 0 0 var(--pink); }
+
+    .step-top { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+
+    .lbl {
+      font-family:'JetBrains Mono', monospace;
+      font-size:9px; font-weight:700;
+      letter-spacing:2px; text-transform:uppercase;
+      padding:2px 7px; border-radius:4px;
+    }
+    .lbl-start { background:rgba(16,245,160,.1);  color:var(--green); }
+    .lbl-mid   { background:rgba(6,214,245,.1);   color:var(--cyan); }
+    .lbl-adv   { background:rgba(255,209,102,.1); color:var(--yellow); }
+    .lbl-pro   { background:rgba(167,139,250,.1); color:var(--purple); }
+    .lbl-ref   { background:rgba(244,114,182,.1); color:var(--pink); }
+
+    .step-name {
+      font-family:'Syne', sans-serif;
+      font-size:.92rem; font-weight:700; color:var(--text);
+    }
+    .step-desc {
+      font-size:12px; color:var(--muted2); line-height:1.55; margin-top:3px;
+    }
+    .step-tags {
+      display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;
+    }
+    .tag {
+      font-family:'JetBrains Mono', monospace;
+      font-size:9px; padding:2px 6px;
+      border-radius:4px;
+      background:var(--s2); border:1px solid var(--border2); color:var(--muted2);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      display:flex;
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      margin-top:40px;
+    }
+    .fstat {
+      flex:1; padding:18px 0;
+      border-right:1px solid var(--border);
+      text-align:center;
+    }
+    .fstat:last-child { border-right:none; }
+    .fnum {
+      font-family:'Syne', sans-serif;
+      font-size:1.7rem; font-weight:800; line-height:1;
+    }
+    .fstat:nth-child(1) .fnum { color:var(--cyan); }
+    .fstat:nth-child(2) .fnum { color:var(--purple); }
+    .fstat:nth-child(3) .fnum { color:var(--green); }
+    .fstat:nth-child(4) .fnum { color:var(--pink); }
+    .flbl {
+      font-family:'JetBrains Mono', monospace;
+      font-size:8.5px; letter-spacing:2px;
+      text-transform:uppercase; color:var(--muted);
+      margin-top:5px;
+    }
+
+    @media(max-width:580px){
+      .roadmap::before { left:18px; }
+      .step-num { width:38px; height:38px; }
+      .footer { flex-wrap:wrap; }
+      .fstat { flex:1 1 50%; border-bottom:1px solid var(--border); }
+    }
+  </style>
 </head>
 <body>
-  <h1>Apuntes Digitales</h1>
+<div class="page">
 
-  <h2>TryHackMe</h2>
-  <ul>
-    <li><a href="TryHackMe/1.redes/3.networking-core-protocols.html">Networking Core Protocols</a></li>
-    <li><a href="TryHackMe/1.redes/4.networking-secure-protocols.html">Networking Secure Protocols</a></li>
-    <li><a href="TryHackMe/1.redes/5.networking-guide.html">Networking Guide</a></li>
-    <li><a href="TryHackMe/2.criptografia/Guia_Criptografia_Clave_Publica.html">Guía Criptografía Clave Pública</a></li>
-  </ul>
+  <header>
+    <div class="eyebrow">// learning path</div>
+    <h1>Apuntes Digitales</h1>
+    <p class="header-sub">Abre cada categoría y sigue el orden numerado — de fundamentos a avanzado.</p>
+  </header>
 
-  <h2>IA ENGINEER</h2>
-  <ul>
-    <li><a href="IA%20ENGINEER/">Abrir carpeta IA ENGINEER</a></li>
-  </ul>
+  <div class="accordion">
+
+    <!-- ══════════════════════════════════════
+         TRACK 1 · NETWORKING
+    ═══════════════════════════════════════ -->
+    <div class="acc-item color-cyan" id="track-networking">
+      <button class="acc-trigger" onclick="toggle('track-networking')">
+        <div class="acc-icon">🌐</div>
+        <div class="acc-meta">
+          <div class="acc-title">TryHackMe — Networking</div>
+          <div class="acc-subtitle">redes · protocolos · fundamentos</div>
+        </div>
+        <div class="acc-right">
+          <span class="acc-count">4 módulos</span>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </button>
+      <div class="acc-body">
+        <div class="acc-inner">
+          <div class="roadmap">
+
+            <div class="step lv-start">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">1</span></div>
+              <a class="step-card" href="TryHackMe/1.redes/1.resumen-redes.html">
+                <div class="step-top"><span class="lbl lbl-start">EMPIEZA AQUÍ</span></div>
+                <div class="step-name">Resumen de Redes</div>
+                <div class="step-desc">Visión general — OSI, TCP/IP, conceptos base. Ideal si no tienes experiencia previa.</div>
+                <div class="step-tags"><span class="tag">OSI</span><span class="tag">TCP/IP</span><span class="tag">Intro</span></div>
+              </a>
+            </div>
+
+            <div class="step lv-start">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">2</span></div>
+              <a class="step-card" href="TryHackMe/1.redes/2.networking-essentials.html">
+                <div class="step-top"><span class="lbl lbl-start">FUNDAMENTOS</span></div>
+                <div class="step-name">Networking Essentials</div>
+                <div class="step-desc">Direccionamiento IP, subnetting y routing. Cimiento para todo lo que viene.</div>
+                <div class="step-tags"><span class="tag">IP</span><span class="tag">Subnetting</span><span class="tag">Routing</span></div>
+              </a>
+            </div>
+
+            <div class="step lv-mid">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">3</span></div>
+              <a class="step-card" href="TryHackMe/1.redes/3.networking-core-protocols.html">
+                <div class="step-top"><span class="lbl lbl-mid">INTERMEDIO</span></div>
+                <div class="step-name">Networking Core Protocols</div>
+                <div class="step-desc">DNS, HTTP, FTP, SMTP, POP3, IMAP — los protocolos de Capa 7 que mueven Internet.</div>
+                <div class="step-tags"><span class="tag">DNS</span><span class="tag">HTTP/S</span><span class="tag">FTP</span><span class="tag">SMTP</span><span class="tag">IMAP</span></div>
+              </a>
+            </div>
+
+            <div class="step lv-adv">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">4</span></div>
+              <a class="step-card" href="TryHackMe/1.redes/4.networking-secure-protocols.html">
+                <div class="step-top"><span class="lbl lbl-adv">AVANZADO</span></div>
+                <div class="step-name">Networking Secure Protocols</div>
+                <div class="step-desc">TLS, SSH, SFTP, DNSSEC — las versiones cifradas. Requiere el paso 3.</div>
+                <div class="step-tags"><span class="tag">TLS</span><span class="tag">SSH</span><span class="tag">SFTP</span><span class="tag">DNSSEC</span></div>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TRACK 2 · CRIPTOGRAFÍA
+    ═══════════════════════════════════════ -->
+    <div class="acc-item color-pink" id="track-cripto">
+      <button class="acc-trigger" onclick="toggle('track-cripto')">
+        <div class="acc-icon">🔐</div>
+        <div class="acc-meta">
+          <div class="acc-title">TryHackMe — Criptografía</div>
+          <div class="acc-subtitle">cifrado · claves · PKI</div>
+        </div>
+        <div class="acc-right">
+          <span class="acc-count">1 módulo</span>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </button>
+      <div class="acc-body">
+        <div class="acc-inner">
+          <div class="roadmap">
+
+            <div class="step lv-adv">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">1</span></div>
+              <a class="step-card" href="TryHackMe/2.criptografia/Guia_Criptografia_Clave_Publica.html">
+                <div class="step-top"><span class="lbl lbl-adv">AVANZADO</span></div>
+                <div class="step-name">Guía Criptografía Clave Pública</div>
+                <div class="step-desc">RSA, PKI, certificados y firmas digitales. Recomendado después de Secure Protocols.</div>
+                <div class="step-tags"><span class="tag">RSA</span><span class="tag">PKI</span><span class="tag">Certificados</span><span class="tag">Firmas</span></div>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TRACK 3 · IA ENGINEER
+    ═══════════════════════════════════════ -->
+    <div class="acc-item color-purple" id="track-ia">
+      <button class="acc-trigger" onclick="toggle('track-ia')">
+        <div class="acc-icon">🧠</div>
+        <div class="acc-meta">
+          <div class="acc-title">IA Engineer — LLMs &amp; Frameworks</div>
+          <div class="acc-subtitle">llm · langchain · ai apps</div>
+        </div>
+        <div class="acc-right">
+          <span class="acc-count">3 módulos</span>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </button>
+      <div class="acc-body">
+        <div class="acc-inner">
+          <div class="roadmap">
+
+            <div class="step lv-start">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">1</span></div>
+              <a class="step-card" href="IA ENGINEER/0-masterclass-llm-v2.html">
+                <div class="step-top"><span class="lbl lbl-start">EMPIEZA AQUÍ</span></div>
+                <div class="step-name">Masterclass LLM v2</div>
+                <div class="step-desc">Cómo funcionan los LLMs — tokens, embeddings, fine-tuning. Base obligatoria.</div>
+                <div class="step-tags"><span class="tag">Transformers</span><span class="tag">Tokens</span><span class="tag">Embeddings</span></div>
+              </a>
+            </div>
+
+            <div class="step lv-mid">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">2</span></div>
+              <a class="step-card" href="IA ENGINEER/1-langchain-streamlit-guide.html">
+                <div class="step-top"><span class="lbl lbl-mid">INTERMEDIO</span></div>
+                <div class="step-name">LangChain + Streamlit</div>
+                <div class="step-desc">Construye apps con LLMs — chains, agentes, memory y UI. Requiere paso 1.</div>
+                <div class="step-tags"><span class="tag">LangChain</span><span class="tag">Streamlit</span><span class="tag">Agents</span></div>
+              </a>
+            </div>
+
+            <div class="step lv-ref">
+              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">3</span></div>
+              <a class="step-card" href="IA ENGINEER/3-guide.html">
+                <div class="step-top"><span class="lbl lbl-ref">REFERENCIA</span></div>
+                <div class="step-name">AI Engineer Guide</div>
+                <div class="step-desc">Arquitecturas, patrones y buenas prácticas. Úsalo como consulta una vez avanzado.</div>
+                <div class="step-tags"><span class="tag">RAG</span><span class="tag">MLOps</span><span class="tag">Arquitectura</span></div>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TRACK 4 · NETWORKING GUIDE (referencia)
+    ═══════════════════════════════════════ -->
+    <div class="acc-item color-green" id="track-guide">
+      <button class="acc-trigger" onclick="toggle('track-guide')">
+        <div class="acc-icon">📖</div>
+        <div class="acc-meta">
+          <div class="acc-title">Guías de Referencia</div>
+          <div class="acc-subtitle">cheatsheets · resúmenes · referencia rápida</div>
+        </div>
+        <div class="acc-right">
+          <span class="acc-count">1 módulo</span>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </button>
+      <div class="acc-body">
+        <div class="acc-inner">
+          <div class="roadmap">
+
+            <div class="step lv-ref">
+              <div class="step-num"><span class="step-s">REF</span><span class="step-n">1</span></div>
+              <a class="step-card" href="TryHackMe/1.redes/5.networking-guide.html">
+                <div class="step-top"><span class="lbl lbl-ref">REFERENCIA</span></div>
+                <div class="step-name">Networking Guide</div>
+                <div class="step-desc">Guía completa de redes — úsala como cheatsheet después de completar los módulos de Networking.</div>
+                <div class="step-tags"><span class="tag">Referencia</span><span class="tag">Resumen</span><span class="tag">Cheatsheet</span></div>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /accordion -->
+
+  <!-- Stats -->
+  <div class="footer">
+    <div class="fstat"><div class="fnum">08</div><div class="flbl">Notas</div></div>
+    <div class="fstat"><div class="fnum">04</div><div class="flbl">Tracks</div></div>
+    <div class="fstat"><div class="fnum">02</div><div class="flbl">Categorías</div></div>
+    <div class="fstat"><div class="fnum">∞</div><div class="flbl">En progreso</div></div>
+  </div>
+
+</div>
+
+<script>
+  function toggle(id) {
+    const item = document.getElementById(id);
+    const isOpen = item.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.acc-item').forEach(el => el.classList.remove('open'));
+    // Open clicked if it was closed
+    if (!isOpen) item.classList.add('open');
+  }
+</script>
 </body>
 </html>
