@@ -57,10 +57,8 @@
     }
 
     /* ── HEADER ── */
-    header {
-      margin-bottom: 52px;
-      animation: fadeDown .55s ease both;
-    }
+    header { margin-bottom: 52px; animation: fadeDown .55s ease both; }
+
     @keyframes fadeDown {
       from { opacity:0; transform:translateY(-14px); }
       to   { opacity:1; transform:translateY(0); }
@@ -96,38 +94,30 @@
       transition: border-color .25s ease;
       animation: fadeUp .45s ease both;
     }
-    .acc-item:nth-child(1){ animation-delay:.05s; }
-    .acc-item:nth-child(2){ animation-delay:.12s; }
-    .acc-item:nth-child(3){ animation-delay:.19s; }
-    .acc-item:nth-child(4){ animation-delay:.26s; }
 
     @keyframes fadeUp {
       from { opacity:0; transform:translateY(18px); }
       to   { opacity:1; transform:translateY(0); }
     }
 
-    .acc-item.open { border-color: var(--border2); }
     .acc-item.open.color-cyan   { border-color: rgba(6,214,245,.3); }
     .acc-item.open.color-purple { border-color: rgba(167,139,250,.3); }
     .acc-item.open.color-pink   { border-color: rgba(244,114,182,.3); }
     .acc-item.open.color-green  { border-color: rgba(16,245,160,.3); }
+    .acc-item.open.color-yellow { border-color: rgba(255,209,102,.3); }
 
-    /* Trigger row */
     .acc-trigger {
-      width:100%;
-      background: var(--surface);
+      width:100%; background: var(--surface);
       border:none; cursor:pointer;
       padding: 18px 22px;
       display:flex; align-items:center; gap:14px;
-      transition: background .2s ease;
-      text-align:left;
+      transition: background .2s ease; text-align:left;
     }
     .acc-trigger:hover { background: var(--s2); }
     .acc-item.open .acc-trigger { background: var(--s2); }
 
     .acc-icon {
-      width:38px; height:38px;
-      border-radius:10px;
+      width:38px; height:38px; border-radius:10px;
       display:flex; align-items:center; justify-content:center;
       font-size:17px; flex-shrink:0;
     }
@@ -135,6 +125,7 @@
     .color-purple .acc-icon { background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.2); }
     .color-pink   .acc-icon { background:rgba(244,114,182,.1); border:1px solid rgba(244,114,182,.2); }
     .color-green  .acc-icon { background:rgba(16,245,160,.1);  border:1px solid rgba(16,245,160,.2); }
+    .color-yellow .acc-icon { background:rgba(255,209,102,.1); border:1px solid rgba(255,209,102,.2); }
 
     .acc-meta { flex:1; min-width:0; }
 
@@ -147,17 +138,15 @@
     .color-purple .acc-title { color:var(--purple); }
     .color-pink   .acc-title { color:var(--pink); }
     .color-green  .acc-title { color:var(--green); }
+    .color-yellow .acc-title { color:var(--yellow); }
 
     .acc-subtitle {
       font-family:'JetBrains Mono', monospace;
       font-size:9.5px; letter-spacing:2px;
-      color:var(--muted); text-transform:uppercase;
-      margin-top:2px;
+      color:var(--muted); text-transform:uppercase; margin-top:2px;
     }
 
-    .acc-right {
-      display:flex; align-items:center; gap:12px; flex-shrink:0;
-    }
+    .acc-right { display:flex; align-items:center; gap:12px; flex-shrink:0; }
 
     .acc-count {
       font-family:'JetBrains Mono', monospace;
@@ -165,165 +154,132 @@
     }
 
     .acc-chevron {
-      width:22px; height:22px;
-      border-radius:6px;
+      width:22px; height:22px; border-radius:6px;
       background:var(--border);
       display:flex; align-items:center; justify-content:center;
       transition: transform .3s ease, background .2s ease;
       color:var(--muted2); font-size:11px;
     }
-    .acc-item.open .acc-chevron {
-      transform: rotate(180deg);
-      background: var(--border2);
-    }
+    .acc-item.open .acc-chevron { transform:rotate(180deg); background:var(--border2); }
 
-    /* Body */
-    .acc-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height .4s cubic-bezier(.4,0,.2,1);
-    }
-    .acc-item.open .acc-body {
-      max-height: 1200px;
-    }
+    .acc-body { max-height:0; overflow:hidden; transition:max-height .4s cubic-bezier(.4,0,.2,1); }
+    .acc-item.open .acc-body { max-height:9999px; }
 
-    .acc-inner {
-      padding: 6px 22px 20px;
-      border-top: 1px solid var(--border);
-    }
+    .acc-inner { padding:6px 22px 20px; border-top:1px solid var(--border); }
 
-    /* ── ROADMAP inside accordion ── */
+    /* ── SUBFOLDER separator ── */
+    .subfolder-label {
+      font-family:'JetBrains Mono', monospace;
+      font-size:9px; letter-spacing:3px; text-transform:uppercase;
+      color:var(--muted); margin:18px 0 10px 4px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .subfolder-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* ── ROADMAP ── */
     .roadmap {
-      position:relative;
-      display:flex; flex-direction:column;
-      padding-top:16px;
+      position:relative; display:flex; flex-direction:column; padding-top:16px;
     }
-
     .roadmap::before {
-      content:'';
-      position:absolute;
-      left:23px; top:32px; bottom:16px;
-      width:1px;
+      content:''; position:absolute;
+      left:23px; top:32px; bottom:16px; width:1px;
       background:linear-gradient(to bottom, var(--border2) 80%, transparent);
     }
 
     .step {
-      display:flex; gap:16px;
-      align-items:flex-start;
-      position:relative; z-index:1;
-      margin-bottom:10px;
+      display:flex; gap:16px; align-items:flex-start;
+      position:relative; z-index:1; margin-bottom:10px;
     }
 
     .step-num {
-      width:46px; height:46px;
-      border-radius:10px;
+      width:46px; height:46px; border-radius:10px;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
       font-family:'JetBrains Mono', monospace;
-      flex-shrink:0;
-      border:1px solid var(--border2);
+      flex-shrink:0; border:1px solid var(--border2);
       transition:transform .2s ease;
     }
     .step:hover .step-num { transform:scale(1.07); }
 
-    .step-n {
-      font-family:'Syne', sans-serif;
-      font-weight:800; font-size:1.05rem; line-height:1;
-    }
+    .lv-0 .step-num { background:rgba(16,245,160,.1);  border-color:rgba(16,245,160,.3);  color:var(--green); }
+    .lv-1 .step-num { background:rgba(6,214,245,.1);   border-color:rgba(6,214,245,.3);   color:var(--cyan); }
+    .lv-2 .step-num { background:rgba(255,209,102,.1); border-color:rgba(255,209,102,.3); color:var(--yellow); }
+    .lv-3 .step-num { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.3); color:var(--purple); }
+    .lv-4 .step-num { background:rgba(244,114,182,.1); border-color:rgba(244,114,182,.3); color:var(--pink); }
+
+    .step-n { font-family:'Syne', sans-serif; font-weight:800; font-size:1.05rem; line-height:1; }
     .step-s { font-size:8px; opacity:.45; letter-spacing:1px; }
 
-    .lv-start .step-num  { background:rgba(16,245,160,.1);  border-color:rgba(16,245,160,.3);  color:var(--green); }
-    .lv-mid   .step-num  { background:rgba(6,214,245,.1);   border-color:rgba(6,214,245,.3);   color:var(--cyan); }
-    .lv-adv   .step-num  { background:rgba(255,209,102,.1); border-color:rgba(255,209,102,.3); color:var(--yellow); }
-    .lv-pro   .step-num  { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.3); color:var(--purple); }
-    .lv-ref   .step-num  { background:rgba(244,114,182,.1); border-color:rgba(244,114,182,.3); color:var(--pink); }
-
     .step-card {
-      flex:1;
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:13px 16px;
-      text-decoration:none;
-      color:inherit;
-      display:block;
-      transition: all .2s ease;
-      position:relative;
+      flex:1; background:var(--surface); border:1px solid var(--border);
+      border-radius:12px; padding:13px 16px;
+      text-decoration:none; color:inherit; display:block;
+      transition: all .2s ease; position:relative;
     }
     .step-card::after {
-      content:'→';
-      position:absolute; right:13px; top:50%;
+      content:'→'; position:absolute; right:13px; top:50%;
       transform:translateY(-50%) translateX(5px);
-      opacity:0; transition:all .2s ease;
-      font-size:13px; color:var(--muted2);
+      opacity:0; transition:all .2s ease; font-size:13px; color:var(--muted2);
     }
     .step-card:hover { background:var(--s2); transform:translateX(4px); }
     .step-card:hover::after { opacity:1; transform:translateY(-50%) translateX(0); }
 
-    .lv-start .step-card:hover { border-color:rgba(16,245,160,.3);  box-shadow:-3px 0 0 var(--green); }
-    .lv-mid   .step-card:hover { border-color:rgba(6,214,245,.3);   box-shadow:-3px 0 0 var(--cyan); }
-    .lv-adv   .step-card:hover { border-color:rgba(255,209,102,.3); box-shadow:-3px 0 0 var(--yellow); }
-    .lv-pro   .step-card:hover { border-color:rgba(167,139,250,.3); box-shadow:-3px 0 0 var(--purple); }
-    .lv-ref   .step-card:hover { border-color:rgba(244,114,182,.3); box-shadow:-3px 0 0 var(--pink); }
+    .lv-0 .step-card:hover { border-color:rgba(16,245,160,.3);  box-shadow:-3px 0 0 var(--green); }
+    .lv-1 .step-card:hover { border-color:rgba(6,214,245,.3);   box-shadow:-3px 0 0 var(--cyan); }
+    .lv-2 .step-card:hover { border-color:rgba(255,209,102,.3); box-shadow:-3px 0 0 var(--yellow); }
+    .lv-3 .step-card:hover { border-color:rgba(167,139,250,.3); box-shadow:-3px 0 0 var(--purple); }
+    .lv-4 .step-card:hover { border-color:rgba(244,114,182,.3); box-shadow:-3px 0 0 var(--pink); }
 
     .step-top { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
 
     .lbl {
-      font-family:'JetBrains Mono', monospace;
-      font-size:9px; font-weight:700;
-      letter-spacing:2px; text-transform:uppercase;
-      padding:2px 7px; border-radius:4px;
+      font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700;
+      letter-spacing:2px; text-transform:uppercase; padding:2px 7px; border-radius:4px;
     }
-    .lbl-start { background:rgba(16,245,160,.1);  color:var(--green); }
-    .lbl-mid   { background:rgba(6,214,245,.1);   color:var(--cyan); }
-    .lbl-adv   { background:rgba(255,209,102,.1); color:var(--yellow); }
-    .lbl-pro   { background:rgba(167,139,250,.1); color:var(--purple); }
-    .lbl-ref   { background:rgba(244,114,182,.1); color:var(--pink); }
+    .lbl-0 { background:rgba(16,245,160,.1);  color:var(--green); }
+    .lbl-1 { background:rgba(6,214,245,.1);   color:var(--cyan); }
+    .lbl-2 { background:rgba(255,209,102,.1); color:var(--yellow); }
+    .lbl-3 { background:rgba(167,139,250,.1); color:var(--purple); }
+    .lbl-4 { background:rgba(244,114,182,.1); color:var(--pink); }
 
-    .step-name {
-      font-family:'Syne', sans-serif;
-      font-size:.92rem; font-weight:700; color:var(--text);
-    }
-    .step-desc {
-      font-size:12px; color:var(--muted2); line-height:1.55; margin-top:3px;
-    }
-    .step-tags {
-      display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;
-    }
+    .step-name { font-family:'Syne', sans-serif; font-size:.92rem; font-weight:700; color:var(--text); }
+    .step-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
     .tag {
-      font-family:'JetBrains Mono', monospace;
-      font-size:9px; padding:2px 6px;
-      border-radius:4px;
-      background:var(--s2); border:1px solid var(--border2); color:var(--muted2);
+      font-family:'JetBrains Mono', monospace; font-size:9px; padding:2px 6px;
+      border-radius:4px; background:var(--s2); border:1px solid var(--border2); color:var(--muted2);
     }
+
+    /* ── LOADING / ERROR ── */
+    .state-msg {
+      text-align:center; padding:60px 20px;
+      font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted2);
+    }
+    .spinner {
+      width:22px; height:22px; margin:0 auto 16px;
+      border:2px solid var(--border2); border-top-color:var(--cyan);
+      border-radius:50%; animation:spin .7s linear infinite;
+    }
+    @keyframes spin { to{ transform:rotate(360deg); } }
+    .state-msg.err { color:#f87171; }
 
     /* ── FOOTER ── */
     .footer {
-      display:flex;
-      border:1px solid var(--border);
-      border-radius:14px;
-      overflow:hidden;
-      margin-top:40px;
+      display:flex; border:1px solid var(--border);
+      border-radius:14px; overflow:hidden; margin-top:40px;
     }
     .fstat {
       flex:1; padding:18px 0;
-      border-right:1px solid var(--border);
-      text-align:center;
+      border-right:1px solid var(--border); text-align:center;
     }
     .fstat:last-child { border-right:none; }
-    .fnum {
-      font-family:'Syne', sans-serif;
-      font-size:1.7rem; font-weight:800; line-height:1;
-    }
+    .fnum { font-family:'Syne', sans-serif; font-size:1.7rem; font-weight:800; line-height:1; }
     .fstat:nth-child(1) .fnum { color:var(--cyan); }
     .fstat:nth-child(2) .fnum { color:var(--purple); }
     .fstat:nth-child(3) .fnum { color:var(--green); }
     .fstat:nth-child(4) .fnum { color:var(--pink); }
     .flbl {
-      font-family:'JetBrains Mono', monospace;
-      font-size:8.5px; letter-spacing:2px;
-      text-transform:uppercase; color:var(--muted);
-      margin-top:5px;
+      font-family:'JetBrains Mono', monospace; font-size:8.5px;
+      letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-top:5px;
     }
 
     @media(max-width:580px){
@@ -343,215 +299,280 @@
     <p class="header-sub">Abre cada categoría y sigue el orden numerado — de fundamentos a avanzado.</p>
   </header>
 
-  <div class="accordion">
-
-    <!-- ══════════════════════════════════════
-         TRACK 1 · NETWORKING
-    ═══════════════════════════════════════ -->
-    <div class="acc-item color-cyan" id="track-networking">
-      <button class="acc-trigger" onclick="toggle('track-networking')">
-        <div class="acc-icon">🌐</div>
-        <div class="acc-meta">
-          <div class="acc-title">TryHackMe — Networking</div>
-          <div class="acc-subtitle">redes · protocolos · fundamentos</div>
-        </div>
-        <div class="acc-right">
-          <span class="acc-count">4 módulos</span>
-          <div class="acc-chevron">▼</div>
-        </div>
-      </button>
-      <div class="acc-body">
-        <div class="acc-inner">
-          <div class="roadmap">
-
-            <div class="step lv-start">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">1</span></div>
-              <a class="step-card" href="TryHackMe/1.redes/1.resumen-redes.html">
-                <div class="step-top"><span class="lbl lbl-start">EMPIEZA AQUÍ</span></div>
-                <div class="step-name">Resumen de Redes</div>
-                <div class="step-desc">Visión general — OSI, TCP/IP, conceptos base. Ideal si no tienes experiencia previa.</div>
-                <div class="step-tags"><span class="tag">OSI</span><span class="tag">TCP/IP</span><span class="tag">Intro</span></div>
-              </a>
-            </div>
-
-            <div class="step lv-start">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">2</span></div>
-              <a class="step-card" href="TryHackMe/1.redes/2.networking-essentials.html">
-                <div class="step-top"><span class="lbl lbl-start">FUNDAMENTOS</span></div>
-                <div class="step-name">Networking Essentials</div>
-                <div class="step-desc">Direccionamiento IP, subnetting y routing. Cimiento para todo lo que viene.</div>
-                <div class="step-tags"><span class="tag">IP</span><span class="tag">Subnetting</span><span class="tag">Routing</span></div>
-              </a>
-            </div>
-
-            <div class="step lv-mid">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">3</span></div>
-              <a class="step-card" href="TryHackMe/1.redes/3.networking-core-protocols.html">
-                <div class="step-top"><span class="lbl lbl-mid">INTERMEDIO</span></div>
-                <div class="step-name">Networking Core Protocols</div>
-                <div class="step-desc">DNS, HTTP, FTP, SMTP, POP3, IMAP — los protocolos de Capa 7 que mueven Internet.</div>
-                <div class="step-tags"><span class="tag">DNS</span><span class="tag">HTTP/S</span><span class="tag">FTP</span><span class="tag">SMTP</span><span class="tag">IMAP</span></div>
-              </a>
-            </div>
-
-            <div class="step lv-adv">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">4</span></div>
-              <a class="step-card" href="TryHackMe/1.redes/4.networking-secure-protocols.html">
-                <div class="step-top"><span class="lbl lbl-adv">AVANZADO</span></div>
-                <div class="step-name">Networking Secure Protocols</div>
-                <div class="step-desc">TLS, SSH, SFTP, DNSSEC — las versiones cifradas. Requiere el paso 3.</div>
-                <div class="step-tags"><span class="tag">TLS</span><span class="tag">SSH</span><span class="tag">SFTP</span><span class="tag">DNSSEC</span></div>
-              </a>
-            </div>
-
-          </div>
-        </div>
-      </div>
+  <div id="accordion-wrap">
+    <div class="state-msg">
+      <div class="spinner"></div>
+      Leyendo repositorio...
     </div>
+  </div>
 
-    <!-- ══════════════════════════════════════
-         TRACK 2 · CRIPTOGRAFÍA
-    ═══════════════════════════════════════ -->
-    <div class="acc-item color-pink" id="track-cripto">
-      <button class="acc-trigger" onclick="toggle('track-cripto')">
-        <div class="acc-icon">🔐</div>
-        <div class="acc-meta">
-          <div class="acc-title">TryHackMe — Criptografía</div>
-          <div class="acc-subtitle">cifrado · claves · PKI</div>
-        </div>
-        <div class="acc-right">
-          <span class="acc-count">1 módulo</span>
-          <div class="acc-chevron">▼</div>
-        </div>
-      </button>
-      <div class="acc-body">
-        <div class="acc-inner">
-          <div class="roadmap">
-
-            <div class="step lv-adv">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">1</span></div>
-              <a class="step-card" href="TryHackMe/2.criptografia/Guia_Criptografia_Clave_Publica.html">
-                <div class="step-top"><span class="lbl lbl-adv">AVANZADO</span></div>
-                <div class="step-name">Guía Criptografía Clave Pública</div>
-                <div class="step-desc">RSA, PKI, certificados y firmas digitales. Recomendado después de Secure Protocols.</div>
-                <div class="step-tags"><span class="tag">RSA</span><span class="tag">PKI</span><span class="tag">Certificados</span><span class="tag">Firmas</span></div>
-              </a>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════
-         TRACK 3 · IA ENGINEER
-    ═══════════════════════════════════════ -->
-    <div class="acc-item color-purple" id="track-ia">
-      <button class="acc-trigger" onclick="toggle('track-ia')">
-        <div class="acc-icon">🧠</div>
-        <div class="acc-meta">
-          <div class="acc-title">IA Engineer — LLMs &amp; Frameworks</div>
-          <div class="acc-subtitle">llm · langchain · ai apps</div>
-        </div>
-        <div class="acc-right">
-          <span class="acc-count">3 módulos</span>
-          <div class="acc-chevron">▼</div>
-        </div>
-      </button>
-      <div class="acc-body">
-        <div class="acc-inner">
-          <div class="roadmap">
-
-            <div class="step lv-start">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">1</span></div>
-              <a class="step-card" href="Iaengineer/0-masterclass-llm-v2.html">
-                <div class="step-top"><span class="lbl lbl-start">EMPIEZA AQUÍ</span></div>
-                <div class="step-name">Masterclass LLM v2</div>
-                <div class="step-desc">Cómo funcionan los LLMs — tokens, embeddings, fine-tuning. Base obligatoria.</div>
-                <div class="step-tags"><span class="tag">Transformers</span><span class="tag">Tokens</span><span class="tag">Embeddings</span></div>
-              </a>
-            </div>
-
-            <div class="step lv-mid">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">2</span></div>
-              <a class="step-card" href="Iaengineer/1-langchain-streamlit-guide.html">
-                <div class="step-top"><span class="lbl lbl-mid">INTERMEDIO</span></div>
-                <div class="step-name">LangChain + Streamlit</div>
-                <div class="step-desc">Construye apps con LLMs — chains, agentes, memory y UI. Requiere paso 1.</div>
-                <div class="step-tags"><span class="tag">LangChain</span><span class="tag">Streamlit</span><span class="tag">Agents</span></div>
-              </a>
-            </div>
-
-            <div class="step lv-ref">
-              <div class="step-num"><span class="step-s">PASO</span><span class="step-n">3</span></div>
-              <a class="step-card" href="Iaengineer/3-guide.html">
-                <div class="step-top"><span class="lbl lbl-ref">REFERENCIA</span></div>
-                <div class="step-name">AI Engineer Guide</div>
-                <div class="step-desc">Arquitecturas, patrones y buenas prácticas. Úsalo como consulta una vez avanzado.</div>
-                <div class="step-tags"><span class="tag">RAG</span><span class="tag">MLOps</span><span class="tag">Arquitectura</span></div>
-              </a>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════
-         TRACK 4 · NETWORKING GUIDE (referencia)
-    ═══════════════════════════════════════ -->
-    <div class="acc-item color-green" id="track-guide">
-      <button class="acc-trigger" onclick="toggle('track-guide')">
-        <div class="acc-icon">📖</div>
-        <div class="acc-meta">
-          <div class="acc-title">Guías de Referencia</div>
-          <div class="acc-subtitle">cheatsheets · resúmenes · referencia rápida</div>
-        </div>
-        <div class="acc-right">
-          <span class="acc-count">1 módulo</span>
-          <div class="acc-chevron">▼</div>
-        </div>
-      </button>
-      <div class="acc-body">
-        <div class="acc-inner">
-          <div class="roadmap">
-
-            <div class="step lv-ref">
-              <div class="step-num"><span class="step-s">REF</span><span class="step-n">1</span></div>
-              <a class="step-card" href="TryHackMe/1.redes/5.networking-guide.html">
-                <div class="step-top"><span class="lbl lbl-ref">REFERENCIA</span></div>
-                <div class="step-name">Networking Guide</div>
-                <div class="step-desc">Guía completa de redes — úsala como cheatsheet después de completar los módulos de Networking.</div>
-                <div class="step-tags"><span class="tag">Referencia</span><span class="tag">Resumen</span><span class="tag">Cheatsheet</span></div>
-              </a>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /accordion -->
-
-  <!-- Stats -->
   <div class="footer">
-    <div class="fstat"><div class="fnum">08</div><div class="flbl">Notas</div></div>
-    <div class="fstat"><div class="fnum">04</div><div class="flbl">Tracks</div></div>
-    <div class="fstat"><div class="fnum">02</div><div class="flbl">Categorías</div></div>
+    <div class="fstat"><div class="fnum" id="s-notas">—</div><div class="flbl">Notas</div></div>
+    <div class="fstat"><div class="fnum" id="s-tracks">—</div><div class="flbl">Tracks</div></div>
+    <div class="fstat"><div class="fnum" id="s-carpetas">—</div><div class="flbl">Carpetas</div></div>
     <div class="fstat"><div class="fnum">∞</div><div class="flbl">En progreso</div></div>
   </div>
 
 </div>
-
 <script>
-  function toggle(id) {
-    const item = document.getElementById(id);
-    const isOpen = item.classList.contains('open');
-    // Close all
-    document.querySelectorAll('.acc-item').forEach(el => el.classList.remove('open'));
-    // Open clicked if it was closed
-    if (!isOpen) item.classList.add('open');
+/* ══════════════════════════════════════════════════════════════
+   AUTO-DESCUBRIMIENTO
+   Lee window.location → sabe usuario y repo sin tocar el código.
+
+   GitHub Pages:  fjuribe.github.io/apuntes-digitales/
+     hostname  →  fjuribe.github.io   → user = "fjuribe"
+     pathname  →  /apuntes-digitales/ → repo = "apuntes-digitales"
+
+   Si el repo ES el sitio raíz (fjuribe.github.io sin subpath):
+     pathname  →  /                   → repo = "fjuribe.github.io"
+
+   Desarrollo local: fallback al valor de LOCAL_FALLBACK.
+══════════════════════════════════════════════════════════════ */
+const LOCAL_FALLBACK = 'fjuribe/apuntes-digitales'; // solo para localhost
+
+function detectRepo() {
+  const host = window.location.hostname;
+  const path = window.location.pathname;
+
+  if (host.endsWith('.github.io')) {
+    const user    = host.replace('.github.io', '');
+    const segment = path.split('/').filter(Boolean)[0];
+    const repo    = segment || `${user}.github.io`;
+    return { user, repo, id: `${user}/${repo}` };
   }
+
+  // localhost / desarrollo
+  const [user, repo] = LOCAL_FALLBACK.split('/');
+  return { user, repo, id: LOCAL_FALLBACK };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ICONOS POR NOMBRE DE CARPETA
+   Añade los nombres que uses en tu repo (minúsculas, sin números).
+══════════════════════════════════════════════════════════════ */
+const ICONS = {
+  tryhackme:    { icon:'🛡️',  sub:'hacking · ctf · retos' },
+  redes:        { icon:'🌐',  sub:'redes · protocolos · fundamentos' },
+  networking:   { icon:'🌐',  sub:'redes · protocolos' },
+  criptografia: { icon:'🔐',  sub:'cifrado · claves · PKI' },
+  crypto:       { icon:'🔐',  sub:'cifrado · hashes' },
+  iaengineer:   { icon:'🧠',  sub:'llm · langchain · ai apps' },
+  ia:           { icon:'🧠',  sub:'inteligencia artificial' },
+  langchain:    { icon:'⛓️', sub:'langchain · rag · llm' },
+  rag:          { icon:'🔍',  sub:'retrieval augmented generation' },
+  web:          { icon:'💻',  sub:'html · css · javascript' },
+  python:       { icon:'🐍',  sub:'python · scripts' },
+  linux:        { icon:'🐧',  sub:'linux · terminal · comandos' },
+  docker:       { icon:'🐳',  sub:'containers · devops' },
+  git:          { icon:'📦',  sub:'control de versiones' },
+  sql:          { icon:'🗄️', sub:'bases de datos · queries' },
+  seguridad:    { icon:'🔒',  sub:'cybersecurity · pentesting' },
+  guias:        { icon:'📖',  sub:'cheatsheets · referencia' },
+  _default:     { icon:'📁',  sub:'módulos · apuntes' },
+};
+
+const COLORS  = ['cyan','purple','pink','green','yellow'];
+const LABELS  = ['EMPIEZA AQUÍ','FUNDAMENTOS','INTERMEDIO','AVANZADO','REFERENCIA'];
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN — se ejecuta solo, sin intervención del usuario
+══════════════════════════════════════════════════════════════ */
+(async () => {
+  const { user, repo, id } = detectRepo();
+  const baseURL = repo === `${user}.github.io`
+    ? `https://${user}.github.io`
+    : `https://${user}.github.io/${repo}`;
+
+  let tree;
+  try {
+    tree = await fetchTree(id);
+  } catch {
+    err(`No se pudo leer <strong>${id}</strong>. Verifica que el repositorio sea público.`);
+    return;
+  }
+
+  const structure = parse(tree);
+
+  if (!structure.size) {
+    err('No se encontraron archivos <code>.html</code> en subcarpetas del repositorio.');
+    return;
+  }
+
+  render(structure, baseURL);
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   GITHUB TREE API
+══════════════════════════════════════════════════════════════ */
+async function fetchTree(id) {
+  for (const branch of ['main', 'master']) {
+    const r = await fetch(
+      `https://api.github.com/repos/${id}/git/trees/${branch}?recursive=1`,
+      { headers: { Accept: 'application/vnd.github.v3+json' } }
+    );
+    if (r.ok) return (await r.json()).tree || [];
+  }
+  throw new Error('no branch');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PARSE — árbol plano → Map<track, Map<subfolder, files[]>>
+══════════════════════════════════════════════════════════════ */
+function parse(tree) {
+  const files = tree.filter(n =>
+    n.type === 'blob' &&
+    n.path.endsWith('.html') &&
+    n.path !== 'index.html' &&
+    !n.path.startsWith('.')
+  );
+
+  const map = new Map();
+
+  for (const node of files) {
+    const parts  = node.path.split('/');
+    if (parts.length < 2) continue;
+
+    const track  = parts[0];
+    const fname  = parts.at(-1);
+    const folder = parts.length === 2 ? '__root__' : parts.slice(1, -1).join('/');
+
+    if (!map.has(track))               map.set(track, new Map());
+    if (!map.get(track).has(folder))   map.get(track).set(folder, []);
+    map.get(track).get(folder).push({ path: node.path, name: fname });
+  }
+
+  // Orden natural dentro de cada carpeta
+  for (const [, folders] of map)
+    for (const [, arr] of folders)
+      arr.sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric:true, sensitivity:'base' }));
+
+  return map;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════════════════════════ */
+function render(structure, baseURL) {
+  const wrap = document.getElementById('accordion-wrap');
+  const acc  = document.createElement('div');
+  acc.className = 'accordion';
+
+  let totalNotas = 0, totalCarpetas = 0, trackIdx = 0;
+
+  for (const [trackName, folders] of structure) {
+    const color   = COLORS[trackIdx % COLORS.length];
+    const meta    = getMeta(trackName);
+    const trackId = 'tr-' + trackName.replace(/[^a-z0-9]/gi,'-');
+
+    let countFiles = 0;
+    for (const [, f] of folders) countFiles += f.length;
+    totalNotas += countFiles;
+
+    const subKeys = [...folders.keys()].filter(k => k !== '__root__');
+    totalCarpetas += subKeys.length || 1;
+
+    // Construir interior
+    let inner = '';
+    const root = folders.get('__root__') || [];
+    if (root.length) inner += roadmap(root, baseURL);
+
+    for (const [key, files] of folders) {
+      if (key === '__root__') continue;
+      const subMeta = getMeta(key.split('/').pop());
+      inner += `<div class="subfolder-label">${subMeta.icon} ${humanize(key.split('/').pop())}</div>`;
+      inner += roadmap(files, baseURL);
+    }
+
+    const item = document.createElement('div');
+    item.className = `acc-item color-${color}`;
+    item.id        = trackId;
+    item.style.animationDelay = `${trackIdx * 0.07}s`;
+    item.innerHTML = `
+      <button class="acc-trigger" onclick="tog('${trackId}')">
+        <div class="acc-icon">${meta.icon}</div>
+        <div class="acc-meta">
+          <div class="acc-title">${humanize(trackName)}</div>
+          <div class="acc-subtitle">${meta.sub}</div>
+        </div>
+        <div class="acc-right">
+          <span class="acc-count">${countFiles} ${countFiles===1?'nota':'notas'}</span>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </button>
+      <div class="acc-body">
+        <div class="acc-inner">${inner}</div>
+      </div>`;
+
+    acc.appendChild(item);
+    trackIdx++;
+  }
+
+  wrap.innerHTML = '';
+  wrap.appendChild(acc);
+
+  document.getElementById('s-notas').textContent    = pad(totalNotas);
+  document.getElementById('s-tracks').textContent   = pad(trackIdx);
+  document.getElementById('s-carpetas').textContent = pad(totalCarpetas);
+}
+
+function roadmap(files, baseURL) {
+  return `<div class="roadmap">${files.map((f, i) => {
+    const lv    = Math.min(i, 4);
+    const label = LABELS[Math.min(i, LABELS.length-1)];
+    return `
+      <div class="step lv-${lv}">
+        <div class="step-num"><span class="step-s">PASO</span><span class="step-n">${i+1}</span></div>
+        <a class="step-card" href="${baseURL}/${f.path}" target="_blank" rel="noopener">
+          <div class="step-top"><span class="lbl lbl-${lv}">${label}</span></div>
+          <div class="step-name">${humanizeFile(f.name)}</div>
+          <div class="step-tags">${tags(f.name)}</div>
+        </a>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════════ */
+function getMeta(name) {
+  const k = name.toLowerCase().replace(/[\d._\- ]/g,'');
+  if (ICONS[k]) return ICONS[k];
+  for (const [key, val] of Object.entries(ICONS)) {
+    if (key === '_default') continue;
+    if (k.includes(key) || key.includes(k)) return val;
+  }
+  return ICONS._default;
+}
+
+function humanize(raw) {
+  return raw.replace(/^\d+[._-]/,'').replace(/[-_]/g,' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function humanizeFile(raw) {
+  return raw.replace(/\.html$/,'').replace(/^\d+[._-]/,'')
+    .replace(/[-_]/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function tags(name) {
+  return name.replace(/\.html$/,'').replace(/^\d+[._-]/,'')
+    .split(/[-_.]/).filter(w => w.length > 2).slice(0,4)
+    .map(w => `<span class="tag">${w}</span>`).join('');
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function err(msg) {
+  document.getElementById('accordion-wrap').innerHTML =
+    `<div class="state-msg err">⚠ ${msg}</div>`;
+}
+
+function tog(id) {
+  const el = document.getElementById(id);
+  const open = el.classList.contains('open');
+  document.querySelectorAll('.acc-item').forEach(e => e.classList.remove('open'));
+  if (!open) el.classList.add('open');
+}
 </script>
 </body>
 </html>
