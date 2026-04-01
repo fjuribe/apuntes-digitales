@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clasificador de Texto — LangChain</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui,sans-serif);background:var(--color-background-tertiary,#f5f4f0);color:var(--color-text-primary,#1a1a1a);min-height:100vh}
+
+.topbar{background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+.logo{width:34px;height:34px;background:#185FA5;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo svg{width:18px;height:18px}
+.tb-title{font-size:15px;font-weight:500}
+.tb-sub{font-size:12px;color:var(--color-text-secondary);margin-left:auto}
+.tb-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;background:#E6F1FB;color:#0C447C}
+
+.nav{display:flex;gap:0;overflow-x:auto;padding:0 16px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nb{font-size:12px;padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.nb:hover{color:var(--color-text-primary)}
+.nb.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:500}
+
+.prog{height:3px;background:var(--color-background-secondary)}
+.prog-fill{height:100%;background:#185FA5;transition:width .4s ease}
+
+.sec{display:none;padding:20px;max-width:900px;margin:0 auto}
+.sec.active{display:block}
+
+h1{font-size:20px;font-weight:500;margin-bottom:8px}
+h2{font-size:16px;font-weight:500;margin:22px 0 10px}
+h3{font-size:14px;font-weight:500;margin:14px 0 6px}
+p{font-size:13.5px;line-height:1.75;color:var(--color-text-secondary);margin-bottom:10px}
+strong{font-weight:500;color:var(--color-text-primary)}
+
+.hero{background:#E6F1FB;border-radius:14px;padding:24px;margin-bottom:20px;border:0.5px solid #85B7EB}
+.hero h1{color:#042C53;font-size:22px}
+.hero p{color:#185FA5;margin:0}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.bb{background:#E6F1FB;color:#0C447C}
+.bp{background:#EEEDFE;color:#3C3489}
+.bt{background:#E1F5EE;color:#085041}
+.ba{background:#FAEEDA;color:#633806}
+.bc{background:#FAECE7;color:#4A1B0C}
+.bg{background:#EAF3DE;color:#27500A}
+.bred{background:#FCEBEB;color:#501313}
+.bgray{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+
+.card{background:var(--color-background-primary,#fff);border-radius:12px;border:0.5px solid var(--color-border-tertiary);padding:16px 20px;margin-bottom:14px}
+
+pre{background:#2C2C2A;color:#C0DD97;border-radius:10px;padding:16px;font-size:12px;line-height:1.8;overflow-x:auto;margin:10px 0;font-family:var(--font-mono,monospace);border:0.5px solid #444}
+code{font-family:var(--font-mono,monospace);background:var(--color-background-secondary);padding:1px 5px;border-radius:4px;font-size:12px;color:#185FA5}
+
+.lblock{border-left:3px solid #185FA5;padding:8px 14px;margin:8px 0;background:#E6F1FB;border-radius:0 8px 8px 0}
+.lblock code{background:transparent;color:#042C53;font-size:12px}
+.lblock p{font-size:13px;color:#185FA5;margin:4px 0 0}
+.lb-purple{border-color:#534AB7;background:#EEEDFE}
+.lb-purple p{color:#3C3489}
+.lb-purple code{color:#26215C}
+.lb-teal{border-color:#0F6E56;background:#E1F5EE}
+.lb-teal p{color:#085041}
+.lb-teal code{color:#04342C}
+.lb-amber{border-color:#854F0B;background:#FAEEDA}
+.lb-amber p{color:#633806}
+.lb-amber code{color:#412402}
+.lb-coral{border-color:#993C1D;background:#FAECE7}
+.lb-coral p{color:#4A1B0C}
+.lb-green{border-color:#3B6D11;background:#EAF3DE}
+.lb-green p{color:#27500A}
+
+.step-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.snum{min-width:28px;height:28px;border-radius:50%;background:#185FA5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px}
+
+.folder{font-family:var(--font-mono,monospace);font-size:12.5px;line-height:2;padding:16px;background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary)}
+.folder .dir{color:#185FA5;font-weight:500}
+.folder .file{color:var(--color-text-secondary)}
+.folder .cmt{color:#888780}
+
+.err-card{border-left:3px solid #E24B4A;background:#FCEBEB;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:12px}
+.err-t{font-size:13px;font-weight:500;color:#501313;margin-bottom:4px}
+.err-c{font-size:12px;color:#791F1F;margin-bottom:4px}
+.err-f{font-size:12px;color:#501313}
+
+.ex-card{border-left:3px solid #0F6E56;background:#E1F5EE;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px}
+.ex-n{font-size:11px;font-weight:500;color:#085041;margin-bottom:3px}
+.ex-t{font-size:13px;font-weight:500;color:#04342C;margin-bottom:4px}
+.ex-d{font-size:12px;color:#085041}
+
+.qa-item{margin-bottom:12px}
+.qa-q{font-size:13px;font-weight:500;color:var(--color-text-primary);cursor:pointer;padding:10px 14px;background:var(--color-background-primary);border-radius:8px;border:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center;gap:8px;user-select:none}
+.qa-q:hover{background:var(--color-background-secondary)}
+.qa-arr{font-size:16px;transition:transform .2s;color:var(--color-text-secondary);flex-shrink:0}
+.qa-a{font-size:13px;color:var(--color-text-secondary);padding:10px 14px;background:#E6F1FB;border-radius:0 0 8px 8px;display:none;line-height:1.65;border:0.5px solid #85B7EB;border-top:none}
+.qa-a.open{display:block}
+
+.tip{background:#E1F5EE;border-radius:10px;padding:12px 16px;border:0.5px solid #5DCAA5;margin:10px 0;font-size:13px;color:#085041}
+.warn{background:#FAEEDA;border-radius:10px;padding:12px 16px;border:0.5px solid #FAC775;margin:10px 0;font-size:13px;color:#633806}
+.info{background:#E6F1FB;border-radius:10px;padding:12px 16px;border:0.5px solid #85B7EB;margin:10px 0;font-size:13px;color:#185FA5}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.cg-bad{background:#FCEBEB;border-radius:10px;padding:12px;border:0.5px solid #F09595}
+.cg-good{background:#E1F5EE;border-radius:10px;padding:12px;border:0.5px solid #5DCAA5}
+.cg-lbl{font-size:11px;font-weight:500;margin-bottom:6px}
+.cg-bad .cg-lbl{color:#791F1F}
+.cg-good .cg-lbl{color:#085041}
+.cg-txt{font-size:12px;font-family:var(--font-mono,monospace);line-height:1.6}
+.cg-bad .cg-txt{color:#501313}
+.cg-good .cg-txt{color:#04342C}
+
+/* Schema visual */
+.schema-box{background:var(--color-background-primary);border-radius:12px;border:0.5px solid var(--color-border-tertiary);overflow:hidden;margin:14px 0}
+.schema-header{background:#185FA5;padding:10px 16px;font-size:13px;font-weight:500;color:#E6F1FB;display:flex;align-items:center;gap:8px}
+.schema-body{padding:14px 16px;font-family:var(--font-mono,monospace);font-size:12.5px;line-height:1.8}
+.sf{color:#185FA5;font-weight:500}
+.sk{color:#534AB7}
+.sv{color:#0F6E56}
+.sc{color:#888780}
+.ss{color:#993C1D}
+
+/* Classifier demo */
+.clf-demo{background:var(--color-background-primary);border-radius:12px;border:0.5px solid var(--color-border-tertiary);overflow:hidden;margin:14px 0}
+.clf-header{padding:12px 16px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.clf-body{padding:16px}
+.clf-samples{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.clf-sample{padding:10px 14px;background:var(--color-background-secondary);border-radius:8px;font-size:13px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);transition:all .15s;line-height:1.5}
+.clf-sample:hover{border-color:#185FA5;color:var(--color-text-primary)}
+.clf-sample.active{border-color:#185FA5;background:#E6F1FB;color:#042C53}
+.clf-result{background:#2C2C2A;border-radius:10px;padding:16px;font-family:var(--font-mono,monospace);font-size:12px;line-height:1.8;display:none;border:0.5px solid #444}
+.clf-result.show{display:block}
+.cr-key{color:#AFA9EC}
+.cr-str{color:#C0DD97}
+.cr-num{color:#FAC775}
+.cr-bool-t{color:#5DCAA5}
+.cr-bool-f{color:#F09595}
+.cr-punc{color:#888780}
+
+/* Architecture */
+.arch-flow{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.arch-node{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:all .15s}
+.arch-node:hover{border-color:#185FA5}
+.arch-node.hl{border-color:#185FA5;background:#E6F1FB}
+.arch-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.arch-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.arch-sub{font-size:12px;color:var(--color-text-secondary)}
+.arch-arrow{text-align:center;font-size:20px;color:var(--color-text-secondary);padding:0 14px}
+.arch-detail{background:var(--color-background-secondary);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--color-text-secondary);display:none;border:0.5px solid var(--color-border-tertiary);margin-top:-4px;margin-bottom:4px;border-radius:0 0 10px 10px}
+.arch-detail.on{display:block}
+
+/* parser layers */
+.parser-layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}
+.pl-card{border-radius:10px;padding:14px;border:0.5px solid var(--color-border-tertiary)}
+.pl-title{font-size:13px;font-weight:500;margin-bottom:6px}
+.pl-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.pl-when{font-size:11px;font-weight:500;margin-top:8px;padding:3px 8px;border-radius:20px;display:inline-block}
+
+/* scale */
+.scale-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.sl-lv{min-width:52px;padding:4px 0;border-radius:20px;font-size:11px;font-weight:500;text-align:center;flex-shrink:0;margin-top:3px}
+.sl-body h3{font-size:13px;margin:0 0 4px;font-weight:500}
+.sl-body p{font-size:12px;margin:0}
+
+/* sum stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);padding:12px;text-align:center}
+.stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:500;color:#185FA5}
+
+.nextbtn{display:inline-block;margin-top:16px;padding:8px 20px;background:#185FA5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .15s}
+.nextbtn:hover{background:#0C447C}
+
+@media(max-width:520px){.compare-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 18 18" fill="none"><rect x="1" y="4" width="16" height="2.5" rx="1.25" fill="#E6F1FB"/><rect x="1" y="7.75" width="11" height="2.5" rx="1.25" fill="#85B7EB"/><rect x="1" y="11.5" width="14" height="2.5" rx="1.25" fill="#378ADD"/></svg>
+  </div>
+  <div>
+    <div class="tb-title">Clasificador de Texto con LangChain</div>
+  </div>
+  <span class="tb-badge">básico-intermedio</span>
+  <span class="tb-sub" id="prog-txt">1 / 9</span>
+</div>
+
+<nav class="nav">
+  <button class="nb active" onclick="go(0)">Objetivo</button>
+  <button class="nb" onclick="go(1)">Teoría</button>
+  <button class="nb" onclick="go(2)">Arquitectura</button>
+  <button class="nb" onclick="go(3)">Output Parser</button>
+  <button class="nb" onclick="go(4)">Instalación</button>
+  <button class="nb" onclick="go(5)">Código</button>
+  <button class="nb" onclick="go(6)">Demo</button>
+  <button class="nb" onclick="go(7)">Consistencia</button>
+  <button class="nb" onclick="go(8)">Practica</button>
+</nav>
+<div class="prog"><div class="prog-fill" id="pbar" style="width:11%"></div></div>
+
+<!-- 0 OBJETIVO -->
+<section class="sec active" id="s0">
+  <div class="hero">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span style="font-size:28px">🏷️</span>
+      <h1>Clasificador de texto con salida estructurada</h1>
+    </div>
+    <p>Recibe cualquier texto y devuelve un JSON validado con categoría, confianza, urgencia y explicación — siempre con el mismo formato.</p>
+    <div class="badges">
+      <span class="badge bb">Python 3.10+</span>
+      <span class="badge bp">LangChain</span>
+      <span class="badge bt">Pydantic</span>
+      <span class="badge ba">JsonOutputParser</span>
+      <span class="badge bc">Claude API</span>
+    </div>
+  </div>
+
+  <h2>Objetivo del proyecto</h2>
+  <p>Construir un clasificador que reciba un texto libre y entregue una salida <strong>siempre estructurada y válida</strong> — no un string que puede cambiar de forma cada vez, sino un objeto Python con campos tipados que puedes usar directamente en tu código.</p>
+
+  <h2>Casos de uso reales</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0">
+    <div class="card" style="padding:14px">
+      <div style="font-size:20px;margin-bottom:8px">🏦</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px">Banca / Fintech</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Clasificar mensajes de clientes como reclamos, consultas o solicitudes para enrutarlos al equipo correcto.</div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div style="font-size:20px;margin-bottom:8px">📧</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px">Soporte técnico</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Priorizar tickets automáticamente según urgencia detectada en el texto del usuario.</div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div style="font-size:20px;margin-bottom:8px">🛒</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px">E-commerce</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Categorizar reseñas de productos para análisis de sentimiento y detección de problemas recurrentes.</div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div style="font-size:20px;margin-bottom:8px">🏥</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px">Salud</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Clasificar mensajes de pacientes para detectar urgencias y derivar automáticamente.</div>
+    </div>
+  </div>
+
+  <h2>Qué aprenderás en LangChain</h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;margin-top:2px">✓</span><span>Prompts estructurados para clasificación</span></div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;margin-top:2px">✓</span><span><code>JsonOutputParser</code> de LangChain</span></div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;margin-top:2px">✓</span><span>Validación con Pydantic</span></div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;margin-top:2px">✓</span><span>Inyectar formato en el prompt automáticamente</span></div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;margin-top:2px">✓</span><span>Manejo de errores de parsing</span></div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;margin-top:2px">✓</span><span>Retry automático con <code>OutputFixingParser</code></span></div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-lbl">Archivos</div><div class="stat-val">5</div></div>
+    <div class="stat"><div class="stat-lbl">Líneas código</div><div class="stat-val">~90</div></div>
+    <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">Categorías</div></div>
+    <div class="stat"><div class="stat-lbl">Dificultad</div><div class="stat-val" style="color:#854F0B;font-size:14px">Media</div></div>
+  </div>
+
+  <button class="nextbtn" onclick="go(1)">Siguiente: Teoría →</button>
+</section>
+
+<!-- 1 TEORIA -->
+<section class="sec" id="s1">
+  <h1>Teoría — Prompts, Parsers y Validación</h1>
+
+  <h2>Prompts estructurados para clasificación</h2>
+  <p>Un prompt estructurado para clasificación tiene tres responsabilidades distintas: definir el rol del modelo, especificar exactamente qué categorías existen (y qué significa cada una), e indicar el formato exacto de la salida esperada.</p>
+
+  <div class="compare-grid">
+    <div class="cg-bad">
+      <div class="cg-lbl">Prompt sin estructura</div>
+      <div class="cg-txt">"Clasifica este texto:\n{texto}"<br><br>// Salida posible:<br>"Esto es una queja del usuario"<br>// o: "RECLAMO"<br>// o: "Es un reclamo urgente"<br>// Inconsistente cada vez</div>
+    </div>
+    <div class="cg-good">
+      <div class="cg-lbl">Prompt estructurado</div>
+      <div class="cg-txt">"Clasifica en: consulta|reclamo|urgente|spam|otro.<br>Responde SOLO con JSON válido:<br>{'categoria':'...','confianza':0.9,...}"<br><br>// Salida: siempre el mismo schema</div>
+    </div>
+  </div>
+
+  <h2>Output Parsers — qué son y para qué sirven</h2>
+  <p>Un <code>OutputParser</code> convierte el texto que devuelve el LLM en un tipo de dato Python útil. Sin parser, todo es un string. Con parser, obtienes dicts, objetos Pydantic, listas, etc.</p>
+
+  <div class="parser-layers">
+    <div class="pl-card" style="background:#E6F1FB;border-color:#85B7EB">
+      <div class="pl-title" style="color:#042C53">StrOutputParser</div>
+      <div class="pl-desc">Solo extrae el texto plano. No transforma nada. Para cuando la respuesta libre es suficiente.</div>
+      <span class="pl-when" style="background:#E6F1FB;color:#0C447C">chat básico</span>
+    </div>
+    <div class="pl-card" style="background:#EEEDFE;border-color:#AFA9EC">
+      <div class="pl-title" style="color:#26215C">JsonOutputParser</div>
+      <div class="pl-desc">Convierte la respuesta del LLM en un dict Python. Puede validar contra un schema Pydantic.</div>
+      <span class="pl-when" style="background:#EEEDFE;color:#3C3489">este proyecto</span>
+    </div>
+    <div class="pl-card" style="background:#E1F5EE;border-color:#5DCAA5">
+      <div class="pl-title" style="color:#04342C">PydanticOutputParser</div>
+      <div class="pl-desc">Convierte y valida contra un modelo Pydantic. Lanza error si el LLM devuelve campos inválidos.</div>
+      <span class="pl-when" style="background:#E1F5EE;color:#085041">producción</span>
+    </div>
+    <div class="pl-card" style="background:#FAEEDA;border-color:#FAC775">
+      <div class="pl-title" style="color:#412402">OutputFixingParser</div>
+      <div class="pl-desc">Envuelve otro parser. Si falla, llama al LLM de nuevo pidiéndole que corrija el JSON malformado.</div>
+      <span class="pl-when" style="background:#FAEEDA;color:#633806">máxima robustez</span>
+    </div>
+  </div>
+
+  <h2>Validación de salidas con Pydantic</h2>
+  <p>Pydantic es una librería Python que define esquemas de datos con tipos y reglas de validación. Cuando lo combinas con LangChain, el LLM debe producir una salida que pase esa validación — o el parser lanza un error.</p>
+
+  <div class="schema-box">
+    <div class="schema-header">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="3" stroke="#E6F1FB" stroke-width="1.5"/><path d="M4 7h6M4 4.5h4M4 9.5h5" stroke="#E6F1FB" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Schema Pydantic — ClasificacionTexto
+    </div>
+    <div class="schema-body">
+      <span class="sf">class</span> <span class="sk">ClasificacionTexto</span>(<span class="sv">BaseModel</span>):<br>
+      &nbsp;&nbsp;<span class="sc"># Campo 1: categoría con valores permitidos</span><br>
+      &nbsp;&nbsp;<span class="sf">categoria</span>: <span class="sv">Literal</span>[<span class="ss">"consulta"</span>, <span class="ss">"reclamo"</span>, <span class="ss">"urgente"</span>, <span class="ss">"spam"</span>, <span class="ss">"otro"</span>]<br>
+      &nbsp;&nbsp;<span class="sc"># Campo 2: confianza entre 0.0 y 1.0</span><br>
+      &nbsp;&nbsp;<span class="sf">confianza</span>: <span class="sv">float</span>  <span class="sc"># validado: 0.0 ≤ valor ≤ 1.0</span><br>
+      &nbsp;&nbsp;<span class="sc"># Campo 3: si debe atenderse pronto</span><br>
+      &nbsp;&nbsp;<span class="sf">es_urgente</span>: <span class="sv">bool</span><br>
+      &nbsp;&nbsp;<span class="sc"># Campo 4: razón de la clasificación</span><br>
+      &nbsp;&nbsp;<span class="sf">razon</span>: <span class="sv">str</span>  <span class="sc"># max 150 chars, explicación breve</span><br>
+      &nbsp;&nbsp;<span class="sc"># Campo 5: palabras clave detectadas</span><br>
+      &nbsp;&nbsp;<span class="sf">palabras_clave</span>: <span class="sv">list</span>[<span class="sv">str</span>]
+    </div>
+  </div>
+
+  <div class="tip">Al definir <code>Literal["consulta","reclamo",...]</code>, Pydantic rechazará automáticamente cualquier valor que no esté en esa lista. El LLM no puede inventarse una categoría nueva.</div>
+
+  <h2>Cómo LangChain inyecta el formato en el prompt</h2>
+  <p>El <code>JsonOutputParser</code> con un modelo Pydantic tiene un método <code>.get_format_instructions()</code> que genera automáticamente las instrucciones de formato para incluir en el prompt:</p>
+  <pre><span style="color:#B4B2A9"># LangChain genera esto automáticamente:</span>
+<span style="color:#C0DD97">"Return a JSON object with these fields:
+  categoria: string (one of: consulta, reclamo, urgente, spam, otro)
+  confianza: float
+  es_urgente: boolean
+  razon: string
+  palabras_clave: array of strings"</span></pre>
+  <p>Esta instrucción se inyecta en el prompt como variable <code>{format_instructions}</code> — no la escribes a mano.</p>
+
+  <button class="nextbtn" onclick="go(2)">Siguiente: Arquitectura →</button>
+</section>
+
+<!-- 2 ARQUITECTURA -->
+<section class="sec" id="s2">
+  <h1>Arquitectura del proyecto</h1>
+  <p>Haz clic en cada bloque para ver qué responsabilidad tiene en la arquitectura.</p>
+
+  <div class="arch-flow">
+    <div class="arch-node" onclick="showArch('input')">
+      <div class="arch-icon" style="background:#E6F1FB">📥</div>
+      <div><div class="arch-title">Texto de entrada</div><div class="arch-sub">String libre del usuario</div></div>
+    </div>
+    <div class="arch-detail" id="arch-input">El texto puede venir de cualquier fuente: consola, API REST, Streamlit, base de datos. El clasificador no asume nada sobre su origen — solo recibe un string.</div>
+    <div class="arch-arrow">↓</div>
+
+    <div class="arch-node" onclick="showArch('parser')">
+      <div class="arch-icon" style="background:#EEEDFE">🧩</div>
+      <div><div class="arch-title">JsonOutputParser + Pydantic</div><div class="arch-sub">Define el schema y genera las instrucciones de formato</div></div>
+    </div>
+    <div class="arch-detail" id="arch-parser">El parser tiene dos trabajos antes de la chain: (1) generar las instrucciones de formato para el prompt, y (2) validar y parsear la respuesta del LLM al final. Es el único componente que aparece dos veces en el flujo.</div>
+    <div class="arch-arrow">↓</div>
+
+    <div class="arch-node" onclick="showArch('prompt')">
+      <div class="arch-icon" style="background:#E1F5EE">📋</div>
+      <div><div class="arch-title">ChatPromptTemplate</div><div class="arch-sub">Combina instrucciones + formato + texto</div></div>
+    </div>
+    <div class="arch-detail" id="arch-prompt">El prompt tiene tres variables: <code>{texto}</code> (el input del usuario), <code>{categorias}</code> (la lista de categorías válidas con sus definiciones), y <code>{format_instructions}</code> (generado automáticamente por el parser). Separar estos tres elementos hace el prompt flexible y mantenible.</div>
+    <div class="arch-arrow">↓</div>
+
+    <div class="arch-node" onclick="showArch('model')">
+      <div class="arch-icon" style="background:#FAEEDA">🤖</div>
+      <div><div class="arch-title">ChatAnthropic</div><div class="arch-sub">Genera el JSON según las instrucciones</div></div>
+    </div>
+    <div class="arch-detail" id="arch-model">El modelo recibe el prompt completo con las instrucciones de formato y debe responder con JSON válido. Usamos <code>temperature=0</code> para clasificación — queremos consistencia, no creatividad.</div>
+    <div class="arch-arrow">↓</div>
+
+    <div class="arch-node" onclick="showArch('validate')">
+      <div class="arch-icon" style="background:#FCEBEB">✅</div>
+      <div><div class="arch-title">Validación Pydantic</div><div class="arch-sub">Parsea JSON → objeto Python tipado</div></div>
+    </div>
+    <div class="arch-detail" id="arch-validate">El parser intenta convertir el string JSON en un objeto <code>ClasificacionTexto</code>. Si el LLM devolvió una categoría inválida, un float fuera de rango o campos faltantes, Pydantic lanza un <code>ValidationError</code>. Podemos capturarlo y reintentar.</div>
+    <div class="arch-arrow">↓</div>
+
+    <div class="arch-node" onclick="showArch('output')">
+      <div class="arch-icon" style="background:#EAF3DE">📤</div>
+      <div><div class="arch-title">Objeto Python tipado</div><div class="arch-sub">ClasificacionTexto con todos los campos validados</div></div>
+    </div>
+    <div class="arch-detail" id="arch-output">El resultado final es un dict (o instancia Pydantic) con <code>categoria</code>, <code>confianza</code>, <code>es_urgente</code>, <code>razon</code> y <code>palabras_clave</code>. Puedes usarlo directamente: <code>if resultado["es_urgente"]: escalar_ticket()</code></div>
+  </div>
+
+  <h2>La chain completa en una línea</h2>
+  <pre>chain = prompt | model | parser
+<span style="color:#B4B2A9"># prompt formatea el texto + instrucciones
+# model genera el JSON
+# parser valida y convierte a dict Python</span></pre>
+
+  <button class="nextbtn" onclick="go(3)">Siguiente: Output Parser →</button>
+</section>
+
+<!-- 3 OUTPUT PARSER -->
+<section class="sec" id="s3">
+  <h1>Output Parser en profundidad</h1>
+
+  <h2>Cómo funciona JsonOutputParser</h2>
+  <p>El <code>JsonOutputParser</code> de LangChain hace tres cosas en secuencia cuando recibe la respuesta del LLM:</p>
+
+  <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="min-width:24px;height:24px;background:#185FA5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;margin-top:2px">1</div>
+      <div><strong>Extrae el JSON del string</strong> — busca el bloque JSON aunque el LLM haya agregado texto antes o después (<code>```json ... ```</code> o texto libre alrededor)</div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="min-width:24px;height:24px;background:#185FA5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;margin-top:2px">2</div>
+      <div><strong>Parsea el JSON a dict Python</strong> con <code>json.loads()</code></div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="min-width:24px;height:24px;background:#185FA5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;margin-top:2px">3</div>
+      <div><strong>Valida contra el schema Pydantic</strong> (si se provee uno) — verifica tipos, valores permitidos y campos requeridos</div>
+    </div>
+  </div>
+
+  <h2>Por qué temperatura = 0 para clasificación</h2>
+  <div class="compare-grid">
+    <div class="cg-bad">
+      <div class="cg-lbl">temperature = 0.7 (creativo)</div>
+      <div class="cg-txt">Clasificación 1: "reclamo"<br>Clasificación 2: "queja"  ← inválido<br>Clasificación 3: "reclamo_urgente" ← inválido<br><br>El modelo "inventa" variantes.</div>
+    </div>
+    <div class="cg-good">
+      <div class="cg-lbl">temperature = 0 (determinista)</div>
+      <div class="cg-txt">Clasificación 1: "reclamo"<br>Clasificación 2: "reclamo"<br>Clasificación 3: "reclamo"<br><br>Mismo texto = mismo resultado siempre.</div>
+    </div>
+  </div>
+
+  <h2>Estrategia de retry con OutputFixingParser</h2>
+  <p>Si el LLM produce JSON inválido (raro pero posible), <code>OutputFixingParser</code> lo reintenta automáticamente enviando el error al LLM para que se autocorrija:</p>
+  <pre><span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain.output_parsers</span> <span style="color:#AFA9EC">import</span> OutputFixingParser
+
+<span style="color:#B4B2A9"># Envuelve tu parser principal</span>
+robust_parser = OutputFixingParser.from_llm(
+    parser=parser,
+    llm=model
+)
+<span style="color:#B4B2A9"># Si el JSON falla, llama al LLM de nuevo con el error
+# y le pide que lo corrija — transparente para tu código</span></pre>
+
+  <h2>Qué pasa cuando falla la validación</h2>
+  <div class="err-card">
+    <div class="err-t">OutputParserException: categoria='RECLAMO' no es válido</div>
+    <div class="err-c">El LLM devolvió "RECLAMO" (mayúsculas) en lugar de "reclamo" (minúsculas como define el Literal).</div>
+    <div class="err-f">Solución: normaliza en el prompt ("usa minúsculas") + <code>OutputFixingParser</code> como red de seguridad.</div>
+  </div>
+  <div class="err-card">
+    <div class="err-t">ValidationError: confianza debe ser float entre 0 y 1</div>
+    <div class="err-c">El LLM devolvió <code>confianza: "alta"</code> en lugar de un número.</div>
+    <div class="err-f">Solución: en el prompt especifica explícitamente "confianza: número decimal entre 0.0 y 1.0".</div>
+  </div>
+
+  <button class="nextbtn" onclick="go(4)">Siguiente: Instalación →</button>
+</section>
+
+<!-- 4 INSTALACION -->
+<section class="sec" id="s4">
+  <h1>Instalación y estructura</h1>
+
+  <div class="step-row">
+    <div class="snum">1</div>
+    <div>
+      <h3>Crear y activar entorno virtual</h3>
+      <pre>mkdir langchain-clasificador && cd langchain-clasificador
+python -m venv venv
+source venv/bin/activate   # Linux/macOS
+venv\Scripts\activate      # Windows</pre>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="snum">2</div>
+    <div>
+      <h3>Instalar dependencias</h3>
+      <pre>pip install langchain langchain-anthropic pydantic python-dotenv</pre>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">
+        <div style="font-size:12.5px"><code>langchain</code> — framework principal + parsers</div>
+        <div style="font-size:12.5px"><code>langchain-anthropic</code> — adaptador Claude</div>
+        <div style="font-size:12.5px"><code>pydantic</code> — validación de esquemas de datos</div>
+        <div style="font-size:12.5px"><code>python-dotenv</code> — gestión de API keys</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="snum">3</div>
+    <div>
+      <h3>Crear <code>.env</code></h3>
+      <pre>ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx</pre>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="snum">4</div>
+    <div>
+      <h3>Estructura de archivos</h3>
+      <div class="folder">
+        <div><span class="dir">langchain-clasificador/</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># API key</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">.gitignore</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># excluye .env y venv/</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">requirements.txt</span></div>
+        <div>&nbsp;&nbsp;├── <span class="dir">models/</span></div>
+        <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">clasificacion.py</span> &nbsp;<span class="cmt"># schema Pydantic</span></div>
+        <div>&nbsp;&nbsp;├── <span class="dir">prompts/</span></div>
+        <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">clasificador.py</span> &nbsp;&nbsp;<span class="cmt"># ChatPromptTemplate</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">clasificador.py</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># chain principal</span></div>
+        <div>&nbsp;&nbsp;└── <span class="file">main.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># entrypoint / demo</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">Separar el schema (<code>models/</code>), el prompt (<code>prompts/</code>) y la chain (<code>clasificador.py</code>) en archivos distintos hace que cada pieza sea independiente y testeable por separado.</div>
+
+  <button class="nextbtn" onclick="go(5)">Siguiente: Código →</button>
+</section>
+
+<!-- 5 CODIGO -->
+<section class="sec" id="s5">
+  <h1>Código completo y explicado</h1>
+
+  <h2>1. <code>models/clasificacion.py</code> — el schema</h2>
+  <pre><span style="color:#B4B2A9"># models/clasificacion.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">pydantic</span> <span style="color:#AFA9EC">import</span> BaseModel, Field
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">typing</span> <span style="color:#AFA9EC">import</span> Literal
+
+<span style="color:#AFA9EC">class</span> <span style="color:#5DCAA5">ClasificacionTexto</span>(BaseModel):
+    categoria: Literal[<span style="color:#C0DD97">"consulta"</span>, <span style="color:#C0DD97">"reclamo"</span>, <span style="color:#C0DD97">"urgente"</span>, <span style="color:#C0DD97">"spam"</span>, <span style="color:#C0DD97">"otro"</span>] = Field(
+        description=<span style="color:#C0DD97">"Categoría principal del texto"</span>
+    )
+    confianza: float = Field(
+        ge=<span style="color:#FAC775">0.0</span>, le=<span style="color:#FAC775">1.0</span>,
+        description=<span style="color:#C0DD97">"Nivel de confianza de la clasificación (0.0 a 1.0)"</span>
+    )
+    es_urgente: bool = Field(
+        description=<span style="color:#C0DD97">"True si requiere atención inmediata"</span>
+    )
+    razon: str = Field(
+        max_length=<span style="color:#FAC775">200</span>,
+        description=<span style="color:#C0DD97">"Breve explicación de la clasificación"</span>
+    )
+    palabras_clave: list[str] = Field(
+        description=<span style="color:#C0DD97">"Lista de palabras o frases que determinaron la clasificación"</span>
+    )</pre>
+
+  <div class="lblock lb-purple"><code>Literal["consulta","reclamo",...]</code><p>Restringe el campo a exactamente esos valores. Cualquier otro string fallará la validación de Pydantic.</p></div>
+  <div class="lblock lb-teal"><code>Field(ge=0.0, le=1.0)</code><p><code>ge</code> = greater or equal, <code>le</code> = less or equal. Pydantic valida que el float esté dentro del rango.</p></div>
+  <div class="lblock lb-amber"><code>Field(description="...")</code><p>La descripción se usa por <code>JsonOutputParser</code> para generar las instrucciones de formato que se inyectan en el prompt.</p></div>
+
+  <h2>2. <code>prompts/clasificador.py</code></h2>
+  <pre><span style="color:#B4B2A9"># prompts/clasificador.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.prompts</span> <span style="color:#AFA9EC">import</span> ChatPromptTemplate
+
+CATEGORIAS = <span style="color:#C0DD97">"""
+- consulta: pregunta o solicitud de información
+- reclamo: queja, insatisfacción o reporte de problema
+- urgente: requiere atención inmediata (emergencia, amenaza, peligro)
+- spam: publicidad no solicitada, mensaje irrelevante o automatizado
+- otro: no encaja en ninguna categoría anterior
+"""</span>
+
+prompt_clasificador = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"""Eres un clasificador experto de textos.
+Tu tarea es analizar el texto proporcionado y clasificarlo con precisión.
+
+Categorías disponibles:
+{categorias}
+
+REGLAS:
+- Usa SOLO las categorías listadas, en minúsculas
+- confianza: decimal entre 0.0 y 1.0
+- es_urgente: true solo si hay riesgo real o urgencia crítica
+- razon: máximo 150 caracteres, sé conciso
+- palabras_clave: entre 2 y 5 términos del texto
+
+{format_instructions}"""</span>),
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"Clasifica este texto:\n\n{texto}"</span>),
+])</pre>
+
+  <div class="lblock"><code>{categorias}</code><p>Variable separada para las definiciones de categorías — así puedes cambiarlas sin editar el prompt base.</p></div>
+  <div class="lblock lb-teal"><code>{format_instructions}</code><p>Esta variable es especial: la genera automáticamente el <code>JsonOutputParser</code> a partir del schema Pydantic. No la escribes tú.</p></div>
+
+  <h2>3. <code>clasificador.py</code> — la chain</h2>
+  <pre><span style="color:#B4B2A9"># clasificador.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">dotenv</span> <span style="color:#AFA9EC">import</span> load_dotenv
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_anthropic</span> <span style="color:#AFA9EC">import</span> ChatAnthropic
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.output_parsers</span> <span style="color:#AFA9EC">import</span> JsonOutputParser
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">models.clasificacion</span> <span style="color:#AFA9EC">import</span> ClasificacionTexto
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">prompts.clasificador</span> <span style="color:#AFA9EC">import</span> prompt_clasificador, CATEGORIAS
+
+load_dotenv()
+
+<span style="color:#B4B2A9"># ── 1. Modelo con temperatura 0 ────────────────────────</span>
+model = ChatAnthropic(
+    model=<span style="color:#C0DD97">"claude-3-5-haiku-20241022"</span>,
+    temperature=<span style="color:#FAC775">0</span>,  <span style="color:#B4B2A9"># determinista para clasificación</span>
+)
+
+<span style="color:#B4B2A9"># ── 2. Parser con el schema Pydantic ───────────────────</span>
+parser = JsonOutputParser(pydantic_object=ClasificacionTexto)
+
+<span style="color:#B4B2A9"># ── 3. Construir la chain ───────────────────────────────</span>
+chain = prompt_clasificador | model | parser
+
+<span style="color:#B4B2A9"># ── 4. Función principal ───────────────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">clasificar</span>(texto: str) -> dict:
+    <span style="color:#AFA9EC">try</span>:
+        resultado = chain.invoke({
+            <span style="color:#C0DD97">"texto"</span>: texto,
+            <span style="color:#C0DD97">"categorias"</span>: CATEGORIAS,
+            <span style="color:#C0DD97">"format_instructions"</span>: parser.get_format_instructions(),
+        })
+        <span style="color:#AFA9EC">return</span> resultado
+    <span style="color:#AFA9EC">except</span> Exception <span style="color:#AFA9EC">as</span> e:
+        <span style="color:#AFA9EC">return</span> {
+            <span style="color:#C0DD97">"categoria"</span>: <span style="color:#C0DD97">"otro"</span>,
+            <span style="color:#C0DD97">"confianza"</span>: <span style="color:#FAC775">0.0</span>,
+            <span style="color:#C0DD97">"es_urgente"</span>: <span style="color:#FAC775">False</span>,
+            <span style="color:#C0DD97">"razon"</span>: <span style="color:#C0DD97">f"Error de clasificación: {str(e)[:100]}"</span>,
+            <span style="color:#C0DD97">"palabras_clave"</span>: [],
+        }</pre>
+
+  <div class="lblock lb-coral"><code>temperature=0</code><p>Para clasificación queremos determinismo. El mismo texto debe dar siempre la misma categoría.</p></div>
+  <div class="lblock"><code>JsonOutputParser(pydantic_object=ClasificacionTexto)</code><p>Le pasamos el schema al parser. Así sabe qué validar y puede generar las instrucciones de formato automáticamente.</p></div>
+  <div class="lblock lb-green"><code>parser.get_format_instructions()</code><p>Este método genera el texto de instrucciones que le dice al LLM exactamente qué JSON debe producir. Se inyecta en el prompt como variable.</p></div>
+  <div class="lblock lb-amber"><code>except Exception → fallback dict</code><p>Si algo falla (JSON malformado, error de red, validación), retornamos un dict válido con valores por defecto. Tu código nunca recibe <code>None</code>.</p></div>
+
+  <h2>4. <code>main.py</code> — demo</h2>
+  <pre><span style="color:#B4B2A9"># main.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">clasificador</span> <span style="color:#AFA9EC">import</span> clasificar
+<span style="color:#AFA9EC">import</span> json
+
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">mostrar_resultado</span>(texto: str, resultado: dict):
+    cat = resultado[<span style="color:#C0DD97">"categoria"</span>].upper()
+    pct = int(resultado[<span style="color:#C0DD97">"confianza"</span>] * <span style="color:#FAC775">100</span>)
+    urg = <span style="color:#C0DD97">"🔴 URGENTE"</span> <span style="color:#AFA9EC">if</span> resultado[<span style="color:#C0DD97">"es_urgente"</span>] <span style="color:#AFA9EC">else</span> <span style="color:#C0DD97">"🟢 Normal"</span>
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"\n{'─'*50}"</span>)
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"Texto:      {texto[:60]}..."</span>)
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"Categoría:  {cat} ({pct}% confianza)"</span>)
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"Urgencia:   {urg}"</span>)
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"Razón:      {resultado['razon']}"</span>)
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"Palabras:   {', '.join(resultado['palabras_clave'])}"</span>)
+
+<span style="color:#AFA9EC">if</span> __name__ == <span style="color:#C0DD97">"__main__"</span>:
+    textos = [
+        <span style="color:#C0DD97">"¿Cuál es el horario de atención los fines de semana?"</span>,
+        <span style="color:#C0DD97">"Llevo 3 días sin internet y nadie me soluciona el problema."</span>,
+        <span style="color:#C0DD97">"GANA $5000 DIARIOS DESDE CASA, HAZ CLIC AQUÍ"</span>,
+        <span style="color:#C0DD97">"Me acaban de robar y necesito ayuda inmediata."</span>,
+    ]
+    <span style="color:#AFA9EC">for</span> t <span style="color:#AFA9EC">in</span> textos:
+        mostrar_resultado(t, clasificar(t))</pre>
+
+  <button class="nextbtn" onclick="go(6)">Siguiente: Demo →</button>
+</section>
+
+<!-- 6 DEMO -->
+<section class="sec" id="s6">
+  <h1>Demo — salidas del clasificador</h1>
+  <p>Selecciona un texto para ver cómo se vería la salida del clasificador con su JSON estructurado.</p>
+
+  <div class="clf-demo">
+    <div class="clf-header">Textos de prueba — haz clic para ver la clasificación</div>
+    <div class="clf-body">
+      <div class="clf-samples" id="samples"></div>
+      <div class="clf-result" id="clf-result"></div>
+    </div>
+  </div>
+
+  <h2>Cómo se ve el JSON en consola</h2>
+  <pre><span style="color:#B4B2A9">$ python main.py</span>
+
+<span style="color:#888780">──────────────────────────────────────────────────</span>
+<span style="color:#B4B2A9">Texto:      Llevo 3 días sin internet y nadie me s...</span>
+<span style="color:#FAC775">Categoría:  RECLAMO (92% confianza)</span>
+<span style="color:#C0DD97">Urgencia:   🟢 Normal</span>
+<span style="color:#B4B2A9">Razón:      El cliente reporta un problema de serv...</span>
+<span style="color:#5DCAA5">Palabras:   sin internet, 3 días, nadie soluciona</span>
+<span style="color:#888780">──────────────────────────────────────────────────</span>
+<span style="color:#B4B2A9">Texto:      Me acaban de robar y necesito ayuda...</span>
+<span style="color:#F09595">Categoría:  URGENTE (98% confianza)</span>
+<span style="color:#F09595">Urgencia:   🔴 URGENTE</span>
+<span style="color:#B4B2A9">Razón:      Situación de emergencia activa que req...</span>
+<span style="color:#5DCAA5">Palabras:   robar, ayuda inmediata, emergencia</span></pre>
+
+  <h2>Usar el resultado en tu código</h2>
+  <pre>resultado = clasificar("Necesito ayuda urgente")
+
+<span style="color:#B4B2A9"># Acceso directo a campos tipados</span>
+<span style="color:#AFA9EC">if</span> resultado[<span style="color:#C0DD97">"es_urgente"</span>]:
+    escalar_a_soporte_prioritario(resultado)
+
+<span style="color:#AFA9EC">if</span> resultado[<span style="color:#C0DD97">"categoria"</span>] == <span style="color:#C0DD97">"spam"</span>:
+    mover_a_carpeta_spam()
+
+<span style="color:#AFA9EC">if</span> resultado[<span style="color:#C0DD97">"confianza"</span>] < <span style="color:#FAC775">0.6</span>:
+    enviar_a_revision_manual()  <span style="color:#B4B2A9"># baja confianza = revisar</span></pre>
+
+  <div class="tip">El campo <code>confianza</code> es especialmente útil en producción: puedes definir umbrales (ej. &lt;0.6 = revisión manual) para no depender ciegamente del LLM.</div>
+
+  <button class="nextbtn" onclick="go(7)">Siguiente: Consistencia →</button>
+</section>
+
+<!-- 7 CONSISTENCIA -->
+<section class="sec" id="s7">
+  <h1>Cómo asegurar salida consistente</h1>
+  <p>La consistencia se logra en capas. Cada capa agrega una garantía adicional.</p>
+
+  <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0">
+    <div class="card" style="padding:14px;border-left:3px solid #185FA5">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="badge bb">Capa 1</span>
+        <span style="font-size:13px;font-weight:500">Prompt restrictivo</span>
+      </div>
+      <p style="margin:0;font-size:13px">Instrucciones claras: "usa SOLO estas categorías", "confianza entre 0.0 y 1.0", "responde ÚNICAMENTE con JSON". Reduce errores del LLM antes de que ocurran.</p>
+    </div>
+    <div class="card" style="padding:14px;border-left:3px solid #534AB7">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="badge bp">Capa 2</span>
+        <span style="font-size:13px;font-weight:500">temperature = 0</span>
+      </div>
+      <p style="margin:0;font-size:13px">Elimina la aleatoriedad. El mismo texto siempre produce la misma clasificación. Crítico para tener reproducibilidad.</p>
+    </div>
+    <div class="card" style="padding:14px;border-left:3px solid #0F6E56">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="badge bt">Capa 3</span>
+        <span style="font-size:13px;font-weight:500">format_instructions automáticas</span>
+      </div>
+      <p style="margin:0;font-size:13px"><code>parser.get_format_instructions()</code> genera instrucciones de formato precisas derivadas directamente del schema Pydantic — sin riesgo de que el prompt y el schema queden desincronizados.</p>
+    </div>
+    <div class="card" style="padding:14px;border-left:3px solid #854F0B">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="badge ba">Capa 4</span>
+        <span style="font-size:13px;font-weight:500">Validación Pydantic</span>
+      </div>
+      <p style="margin:0;font-size:13px">Si el LLM devuelve algo que no cumple el schema (tipo incorrecto, valor fuera de rango, campo faltante), Pydantic lanza un error en lugar de dejar pasar datos inválidos.</p>
+    </div>
+    <div class="card" style="padding:14px;border-left:3px solid #993C1D">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="badge bc">Capa 5</span>
+        <span style="font-size:13px;font-weight:500">Fallback dict</span>
+      </div>
+      <p style="margin:0;font-size:13px">El <code>try/except</code> garantiza que la función nunca retorna <code>None</code> ni lanza una excepción no manejada. Siempre retorna un dict con la misma estructura.</p>
+    </div>
+  </div>
+
+  <h2>Mejoras futuras del proyecto</h2>
+
+  <div class="scale-row">
+    <span class="sl-lv bb">Mejora 1</span>
+    <div class="sl-body"><h3>Clasificación multilenguaje</h3><p>Agregar detección de idioma al schema y ajustar el prompt para que clasifique correctamente textos en inglés, portugués u otros.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv bp">Mejora 2</span>
+    <div class="sl-body"><h3>Clasificación jerárquica</h3><p>Agregar subcategorías: <code>reclamo_facturacion</code>, <code>reclamo_servicio</code>, etc. Usar un segundo LLM call solo cuando la categoría principal es "reclamo".</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv bt">Mejora 3</span>
+    <div class="sl-body"><h3>Batch processing</h3><p>Usar <code>chain.batch([{"texto": t} for t in textos])</code> para clasificar lotes de mensajes en paralelo.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv ba">Mejora 4</span>
+    <div class="sl-body"><h3>API REST con FastAPI</h3><p>Exponer el clasificador como endpoint <code>POST /clasificar</code> que recibe <code>{"texto": "..."}</code> y retorna el JSON validado.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv bc">Mejora 5</span>
+    <div class="sl-body"><h3>Few-shot examples</h3><p>Agregar 2-3 ejemplos de clasificación correcta directamente en el prompt para mejorar la precisión en casos ambiguos.</p></div>
+  </div>
+
+  <button class="nextbtn" onclick="go(8)">Siguiente: Practica →</button>
+</section>
+
+<!-- 8 PRACTICA -->
+<section class="sec" id="s8">
+  <h1>Practica y autoevaluación</h1>
+
+  <h2>Resumen de lo aprendido</h2>
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-lbl">Conceptos nuevos</div><div class="stat-val">6</div></div>
+    <div class="stat"><div class="stat-lbl">Parsers vistos</div><div class="stat-val">4</div></div>
+    <div class="stat"><div class="stat-lbl">Capas de consistencia</div><div class="stat-val">5</div></div>
+    <div class="stat"><div class="stat-lbl">Nivel</div><div class="stat-val" style="font-size:14px;color:#854F0B">Medio</div></div>
+  </div>
+  <div class="card" style="font-size:13px;line-height:1.75;color:var(--color-text-secondary)">
+    Aprendiste a usar <strong>JsonOutputParser</strong> con un schema Pydantic para garantizar salidas estructuradas, a inyectar <strong>format_instructions</strong> automáticas en el prompt, a usar <strong>temperature=0</strong> para reproducibilidad y a construir <strong>5 capas de defensa</strong> que aseguran que tu función siempre retorne datos válidos.
+  </div>
+
+  <h2>5 Ejercicios para practicar</h2>
+  <div class="ex-card"><div class="ex-n">Ejercicio 1</div><div class="ex-t">Agrega una categoría "feedback"</div><div class="ex-d">Agrega "feedback" al <code>Literal</code> del schema y actualiza las definiciones en <code>CATEGORIAS</code>. Prueba con textos que sean opiniones o sugerencias.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 2</div><div class="ex-t">Agrega un campo de sentimiento</div><div class="ex-d">Añade <code>sentimiento: Literal["positivo","neutro","negativo"]</code> al schema Pydantic y adapta el prompt para que el LLM también lo detecte.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 3</div><div class="ex-t">Implementa OutputFixingParser</div><div class="ex-d">Envuelve el parser con <code>OutputFixingParser.from_llm(parser=parser, llm=model)</code> y simula un JSON inválido para ver cómo se autocorrige.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 4</div><div class="ex-t">Clasificación por lotes</div><div class="ex-d">En lugar de llamar <code>clasificar()</code> en un loop, usa <code>chain.batch()</code> con una lista de 10 textos y mide el tiempo de respuesta vs. el loop secuencial.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 5</div><div class="ex-t">Exportar resultados a CSV</div><div class="ex-d">Clasifica 10 textos y guarda los resultados en un CSV con columnas: <code>texto, categoria, confianza, es_urgente, razon</code>.</div></div>
+
+  <h2 style="margin-top:20px">3 Mejoras para subir de nivel</h2>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bp" style="flex-shrink:0;margin-top:2px">Nivel 3</span>
+      <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Few-shot prompting</div><div style="font-size:12px;color:var(--color-text-secondary)">Agrega 3 ejemplos de clasificación correcta en el prompt con <code>MessagesPlaceholder</code>. Los few-shot examples mejoran significativamente la precisión en casos ambiguos.</div></div>
+    </div>
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bt" style="flex-shrink:0;margin-top:2px">Nivel 4</span>
+      <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">API REST con FastAPI + logging</div><div style="font-size:12px;color:var(--color-text-secondary)">Expón el clasificador como <code>POST /clasificar</code> y guarda cada clasificación en SQLite con timestamp para análisis posterior.</div></div>
+    </div>
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge ba" style="flex-shrink:0;margin-top:2px">Nivel 5</span>
+      <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Evaluación automática del clasificador</div><div style="font-size:12px;color:var(--color-text-secondary)">Crea un dataset de 50 textos con etiquetas correctas y mide precisión/recall del clasificador. Usa LangSmith para trazar y analizar las llamadas.</div></div>
+    </div>
+  </div>
+
+  <h2>Autoevaluación</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Por qué se usa <code>temperature=0</code> para clasificación y no 0.7?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Con temperature=0 el modelo siempre elige el token más probable, haciendo la salida determinista. El mismo texto siempre produce la misma categoría. Con temperature alta, el modelo podría clasificar el mismo texto diferente en dos invocaciones distintas — inaceptable para un clasificador de producción.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Qué ventaja tiene <code>Literal["consulta","reclamo",...]</code> vs un campo <code>str</code> libre?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Con <code>Literal</code>, Pydantic rechaza automáticamente cualquier valor que no esté en la lista. Si el LLM devuelve "RECLAMO", "queja" o "reclamo urgente", la validación falla y puedes manejarlo. Con <code>str</code> libre, cualquier texto pasaría sin error aunque sea incorrecto.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Qué hace exactamente <code>parser.get_format_instructions()</code>?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Genera automáticamente un string de texto con las instrucciones de formato que el LLM debe seguir para producir un JSON válido según el schema Pydantic. Incluye los tipos de datos, valores permitidos y descripciones de cada campo. Se inyecta en el prompt como <code>{format_instructions}</code>.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Por qué el <code>try/except</code> en <code>clasificar()</code> retorna un dict en lugar de relanzar el error?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Porque en producción el código que llama a <code>clasificar()</code> espera siempre un dict con los mismos campos. Si retornáramos None o relanzáramos el error, el código cliente tendría que manejar dos casos. Con el fallback dict, el código cliente es más simple y robusto — siempre recibe la misma estructura.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Cuándo usarías <code>OutputFixingParser</code> en lugar de solo <code>JsonOutputParser</code>?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Cuando la consistencia es crítica y quieres recuperación automática ante errores de formato. OutputFixingParser agrega latencia (hace un segundo llamado al LLM si falla) y costo, así que no siempre conviene. Para prototipo o baja carga: JsonOutputParser + try/except es suficiente. Para producción de alta confiabilidad: OutputFixingParser vale la pena.</div>
+  </div>
+
+  <div class="card" style="background:#E6F1FB;border-color:#85B7EB;margin-top:20px">
+    <p style="color:#185FA5;font-size:13px;margin:0"><strong style="font-weight:500;color:#042C53">Tutorial completado.</strong> Ahora sabes construir clasificadores con salida estructurada y validada. El siguiente paso natural es agregar few-shot examples y exponer el clasificador como API REST.</p>
+  </div>
+</section>
+
+<script>
+const TOTAL=9;
+function go(i){
+  document.querySelectorAll('.sec').forEach((s,j)=>s.classList.toggle('active',j===i));
+  document.querySelectorAll('.nb').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('pbar').style.width=((i+1)/TOTAL*100)+'%';
+  document.getElementById('prog-txt').textContent=(i+1)+' / '+TOTAL;
+  window.scrollTo(0,0);
+}
+
+function showArch(k){
+  document.querySelectorAll('.arch-detail').forEach(d=>d.classList.remove('on'));
+  document.querySelectorAll('.arch-node').forEach(n=>n.classList.remove('hl'));
+  const detail=document.getElementById('arch-'+k);
+  if(detail){
+    detail.classList.add('on');
+    detail.previousElementSibling.classList.add('hl');
+  }
+}
+
+function tqa(el){
+  const a=el.nextElementSibling;
+  const arr=el.querySelector('.qa-arr');
+  const open=a.classList.toggle('open');
+  arr.style.transform=open?'rotate(90deg)':'';
+}
+
+const SAMPLES=[
+  {
+    txt:"¿Cuál es el horario de atención los fines de semana?",
+    result:{categoria:"consulta",confianza:0.97,es_urgente:false,razon:"El usuario solicita información sobre horarios de servicio, sin indicar ningún problema o urgencia.",palabras_clave:["horario","atención","fines de semana"]}
+  },
+  {
+    txt:"Llevo 3 días sin internet y nadie me soluciona el problema. Esto es inaceptable.",
+    result:{categoria:"reclamo",confianza:0.95,es_urgente:false,razon:"El cliente expresa insatisfacción sostenida con el servicio y falta de respuesta del equipo de soporte.",palabras_clave:["3 días sin internet","nadie soluciona","inaceptable"]}
+  },
+  {
+    txt:"GANA $5000 DIARIOS DESDE CASA — MÉTODO SECRETO — HAZ CLIC AQUÍ AHORA",
+    result:{categoria:"spam",confianza:0.99,es_urgente:false,razon:"Mensaje promocional no solicitado con señales clásicas de spam: mayúsculas, promesas exageradas y llamada a acción agresiva.",palabras_clave:["GANA","método secreto","haz clic","$5000 diarios"]}
+  },
+  {
+    txt:"Me acaban de robar a mano armada frente al banco. Necesito ayuda inmediata.",
+    result:{categoria:"urgente",confianza:0.99,es_urgente:true,razon:"Situación de emergencia activa que involucra violencia física y requiere respuesta inmediata.",palabras_clave:["robar","mano armada","ayuda inmediata","emergencia"]}
+  },
+  {
+    txt:"Quiero saber cómo puedo cambiar mi plan actual a uno con más gigas.",
+    result:{categoria:"consulta",confianza:0.92,es_urgente:false,razon:"El usuario busca información sobre opciones de cambio de plan — consulta de producto sin urgencia.",palabras_clave:["cambiar plan","más gigas","cómo puedo"]}
+  },
+  {
+    txt:"Hola, ¿cómo estás? Aquí todo bien por cierto.",
+    result:{categoria:"otro",confianza:0.88,es_urgente:false,razon:"Mensaje de saludo sin ninguna solicitud, reclamo ni información relevante para clasificar.",palabras_clave:["hola","cómo estás","todo bien"]}
+  }
+];
+
+function renderJSON(r){
+  const c=r.confianza;
+  const urg=r.es_urgente;
+  return `<span class="cr-punc">{</span>
+  <span class="cr-key">"categoria"</span><span class="cr-punc">:</span> <span class="cr-str">"${r.categoria}"</span><span class="cr-punc">,</span>
+  <span class="cr-key">"confianza"</span><span class="cr-punc">:</span> <span class="cr-num">${c.toFixed(2)}</span><span class="cr-punc">,</span>
+  <span class="cr-key">"es_urgente"</span><span class="cr-punc">:</span> <span class="${urg?'cr-bool-t':'cr-bool-f'}">${urg}</span><span class="cr-punc">,</span>
+  <span class="cr-key">"razon"</span><span class="cr-punc">:</span> <span class="cr-str">"${r.razon}"</span><span class="cr-punc">,</span>
+  <span class="cr-key">"palabras_clave"</span><span class="cr-punc">:</span> <span class="cr-punc">[</span>${r.palabras_clave.map(w=>`<span class="cr-str">"${w}"</span>`).join('<span class="cr-punc">, </span>')}<span class="cr-punc">]</span>
+<span class="cr-punc">}</span>`;
+}
+
+const sc=document.getElementById('samples');
+SAMPLES.forEach((s,i)=>{
+  const d=document.createElement('div');
+  d.className='clf-sample';
+  d.textContent=s.txt;
+  d.onclick=()=>{
+    document.querySelectorAll('.clf-sample').forEach(x=>x.classList.remove('active'));
+    d.classList.add('active');
+    const res=document.getElementById('clf-result');
+    res.innerHTML=renderJSON(s.result);
+    res.classList.add('show');
+  };
+  sc.appendChild(d);
+});
+</script>
+</body>
+</html>

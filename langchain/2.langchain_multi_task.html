@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangChain Multi-Task Tutorial</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui,sans-serif);background:var(--color-background-tertiary,#f5f4f0);color:var(--color-text-primary,#1a1a1a);min-height:100vh}
+
+.topbar{background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.logo{width:32px;height:32px;background:#534AB7;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-txt{font-size:14px;font-weight:500;color:#fff}
+.topbar-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.topbar-sub{font-size:12px;color:var(--color-text-secondary);margin-left:auto}
+
+.nav{display:flex;gap:4px;flex-wrap:wrap;padding:12px 16px 0;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.nb{font-size:12px;padding:5px 12px;border-radius:20px 20px 0 0;border:0.5px solid var(--color-border-tertiary);border-bottom:none;background:var(--color-background-secondary,#f0ede8);color:var(--color-text-secondary);cursor:pointer;font-family:inherit;transition:all .15s}
+.nb:hover{background:var(--color-background-primary)}
+.nb.active{background:#534AB7;color:#EEEDFE;border-color:#534AB7;font-weight:500}
+
+.progress{height:3px;background:var(--color-background-secondary);margin-bottom:0}
+.progress-fill{height:100%;background:#534AB7;transition:width .4s ease}
+
+.sec{display:none;padding:20px;max-width:860px;margin:0 auto}
+.sec.active{display:block}
+
+h1{font-size:20px;font-weight:500;margin-bottom:8px}
+h2{font-size:16px;font-weight:500;margin:22px 0 10px;color:var(--color-text-primary)}
+h3{font-size:14px;font-weight:500;margin:14px 0 6px}
+p{font-size:13.5px;line-height:1.75;color:var(--color-text-secondary);margin-bottom:10px}
+ul{padding-left:18px;margin-bottom:10px}
+li{font-size:13.5px;line-height:1.75;color:var(--color-text-secondary);margin-bottom:2px}
+
+.hero{background:#EEEDFE;border-radius:12px;padding:22px;margin-bottom:20px;border:0.5px solid #AFA9EC}
+.hero h1{color:#26215C;font-size:21px}
+.hero p{color:#3C3489;margin:0}
+.hero-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.bp{background:#EEEDFE;color:#3C3489}
+.bt{background:#E1F5EE;color:#085041}
+.ba{background:#FAEEDA;color:#633806}
+.bc{background:#FAECE7;color:#4A1B0C}
+.bb{background:#E6F1FB;color:#0C447C}
+.bg{background:#EAF3DE;color:#27500A}
+.bred{background:#FCEBEB;color:#501313}
+
+.card{background:var(--color-background-primary,#fff);border-radius:12px;border:0.5px solid var(--color-border-tertiary);padding:16px 20px;margin-bottom:14px}
+
+pre{background:#2C2C2A;color:#C0DD97;border-radius:10px;padding:16px;font-size:12.5px;line-height:1.75;overflow-x:auto;margin:10px 0;font-family:var(--font-mono,monospace);border:0.5px solid #444}
+code{font-family:var(--font-mono,monospace);background:var(--color-background-secondary);padding:1px 5px;border-radius:4px;font-size:12px;color:#3C3489}
+
+.step-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.snum{min-width:26px;height:26px;border-radius:50%;background:#534AB7;color:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px}
+
+.flow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.flow-box{background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);padding:12px;text-align:center;cursor:pointer;transition:all .15s}
+.flow-box:hover{border-color:#534AB7;transform:translateY(-2px)}
+.flow-box.hl{border-color:#534AB7;background:#EEEDFE}
+.flow-icon{font-size:20px;margin-bottom:6px}
+.flow-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.flow-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+
+.flow-detail{background:var(--color-background-secondary);border-radius:10px;padding:12px 16px;margin:8px 0;display:none;font-size:13px;color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.flow-detail.on{display:block}
+
+.lblock{border-left:3px solid #534AB7;padding:8px 14px;margin:8px 0;background:#EEEDFE;border-radius:0 8px 8px 0}
+.lblock code{background:transparent;color:#26215C;font-size:12px}
+.lblock p{font-size:13px;color:#3C3489;margin:4px 0 0}
+.lblock.teal{border-color:#0F6E56;background:#E1F5EE}
+.lblock.teal p{color:#085041}
+.lblock.teal code{color:#04342C}
+.lblock.amber{border-color:#854F0B;background:#FAEEDA}
+.lblock.amber p{color:#633806}
+.lblock.amber code{color:#412402}
+.lblock.coral{border-color:#993C1D;background:#FAECE7}
+.lblock.coral p{color:#4A1B0C}
+.lblock.blue{border-color:#185FA5;background:#E6F1FB}
+.lblock.blue p{color:#0C447C}
+.lblock.green{border-color:#3B6D11;background:#EAF3DE}
+.lblock.green p{color:#27500A}
+.lblock.gray{border-color:#5F5E5A;background:var(--color-background-secondary)}
+.lblock.gray p{color:var(--color-text-secondary)}
+
+.err-card{border-left:3px solid #E24B4A;background:#FCEBEB;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:12px}
+.err-t{font-size:13px;font-weight:500;color:#501313;margin-bottom:4px}
+.err-c{font-size:12px;color:#791F1F;margin-bottom:4px}
+.err-f{font-size:12px;color:#501313}
+
+.ex-card{border-left:3px solid #0F6E56;background:#E1F5EE;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px}
+.ex-n{font-size:11px;font-weight:500;color:#085041;margin-bottom:3px}
+.ex-t{font-size:13px;font-weight:500;color:#04342C;margin-bottom:4px}
+.ex-d{font-size:12px;color:#085041}
+
+.bp-card{border-left:3px solid #534AB7;background:#EEEDFE;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px}
+.bp-t{font-size:13px;font-weight:500;color:#26215C;margin-bottom:4px}
+.bp-d{font-size:12px;color:#3C3489}
+
+.qa-item{margin-bottom:12px}
+.qa-q{font-size:13px;font-weight:500;color:var(--color-text-primary);cursor:pointer;padding:10px 14px;background:var(--color-background-primary);border-radius:8px;border:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center;user-select:none;gap:8px}
+.qa-q:hover{background:var(--color-background-secondary)}
+.qa-arr{font-size:16px;transition:transform .2s;color:var(--color-text-secondary);flex-shrink:0}
+.qa-a{font-size:13px;color:var(--color-text-secondary);padding:10px 14px;background:#EEEDFE;border-radius:0 0 8px 8px;display:none;line-height:1.65;border:0.5px solid #AFA9EC;border-top:none}
+.qa-a.open{display:block}
+
+.folder{font-family:var(--font-mono,monospace);font-size:12.5px;line-height:1.9;padding:14px;background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary)}
+.folder .dir{color:#185FA5;font-weight:500}
+.folder .file{color:var(--color-text-secondary)}
+.folder .cmt{color:#888780}
+
+.menu-sim{background:#2C2C2A;border-radius:10px;padding:16px;font-family:var(--font-mono,monospace);font-size:12.5px;line-height:1.9;margin:10px 0;border:0.5px solid #444}
+.ms-title{color:#FAC775;font-weight:500;margin-bottom:4px}
+.ms-opt{color:#5DCAA5}
+.ms-prompt{color:#B4B2A9}
+.ms-in{color:#FAC775}
+.ms-out{color:#C0DD97}
+.ms-sep{color:#444441;margin:4px 0}
+
+.tip-box{background:#E1F5EE;border-radius:10px;padding:12px 16px;border:0.5px solid #5DCAA5;margin:10px 0;font-size:13px;color:#085041}
+.warn-box{background:#FAEEDA;border-radius:10px;padding:12px 16px;border:0.5px solid #FAC775;margin:10px 0;font-size:13px;color:#633806}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.cg-bad{background:#FCEBEB;border-radius:10px;padding:12px;border:0.5px solid #F09595}
+.cg-good{background:#E1F5EE;border-radius:10px;padding:12px;border:0.5px solid #5DCAA5}
+.cg-label{font-size:11px;font-weight:500;margin-bottom:6px}
+.cg-bad .cg-label{color:#791F1F}
+.cg-good .cg-label{color:#085041}
+.cg-txt{font-size:12px;font-family:var(--font-mono,monospace);line-height:1.6}
+.cg-bad .cg-txt{color:#501313}
+.cg-good .cg-txt{color:#04342C}
+
+.scale-level{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.sl-badge{min-width:60px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;text-align:center;flex-shrink:0;margin-top:2px}
+.sl-content h3{margin:0 0 4px;font-size:13px}
+.sl-content p{margin:0;font-size:12px}
+
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0}
+.sum-item{background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);padding:12px;text-align:center}
+.sum-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.sum-val{font-size:18px;font-weight:500;color:#534AB7}
+
+.task-demo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:14px 0}
+.td-box{background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);padding:14px;cursor:pointer;transition:all .15s;text-align:left}
+.td-box:hover,.td-box.sel{border-color:#534AB7;background:#EEEDFE}
+.td-icon{font-size:18px;margin-bottom:8px}
+.td-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.td-var{font-size:11px;color:var(--color-text-secondary);margin-top:4px;font-family:var(--font-mono,monospace)}
+
+.demo-area{background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);padding:16px;margin-top:12px;display:none}
+.demo-area.on{display:block}
+.demo-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.demo-prompt-box{background:#2C2C2A;border-radius:8px;padding:12px 14px;font-family:var(--font-mono,monospace);font-size:12px;line-height:1.7;margin-bottom:12px}
+.dp-sys{color:#AFA9EC}
+.dp-var{color:#FAC775}
+.dp-txt{color:#C0DD97}
+
+.nextbtn{display:inline-block;margin-top:16px;padding:8px 20px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .15s}
+.nextbtn:hover{background:#3C3489}
+
+@media(max-width:500px){.compare-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><span class="logo-txt">LC</span></div>
+  <div>
+    <div class="topbar-title">LangChain Multi-Task</div>
+  </div>
+  <span class="topbar-sub" id="prog-txt">1 / 9</span>
+</div>
+
+<nav class="nav">
+  <button class="nb active" onclick="go(0)">Proyecto</button>
+  <button class="nb" onclick="go(1)">Teoría</button>
+  <button class="nb" onclick="go(2)">Flujo</button>
+  <button class="nb" onclick="go(3)">Tareas</button>
+  <button class="nb" onclick="go(4)">Instalación</button>
+  <button class="nb" onclick="go(5)">Código</button>
+  <button class="nb" onclick="go(6)">Buenas prácticas</button>
+  <button class="nb" onclick="go(7)">Escalar</button>
+  <button class="nb" onclick="go(8)">Practica</button>
+</nav>
+<div class="progress"><div class="progress-fill" id="pbar" style="width:11%"></div></div>
+
+<!-- 0 PROYECTO -->
+<section class="sec active" id="s0">
+  <div class="hero">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span style="font-size:26px">🛠️</span>
+      <h1>LangChain Multi-Task con PromptTemplates</h1>
+    </div>
+    <p>Un menú interactivo en consola donde el usuario elige una tarea y LangChain construye el prompt dinámicamente usando variables de entrada.</p>
+    <div class="hero-badges">
+      <span class="badge bp">Python 3.10+</span>
+      <span class="badge bt">LangChain</span>
+      <span class="badge ba">PromptTemplate</span>
+      <span class="badge bc">Claude API</span>
+      <span class="badge bg">4 tareas</span>
+    </div>
+  </div>
+
+  <h2>Descripción del proyecto</h2>
+  <p>El usuario ejecuta el programa, ve un menú con 4 opciones, elige una tarea e ingresa los datos necesarios. LangChain construye el prompt correcto con sus variables y llama al LLM. Cada tarea tiene su propio <code>PromptTemplate</code> dedicado.</p>
+
+  <div class="flow-grid">
+    <div class="flow-box">
+      <div class="flow-icon">📝</div>
+      <div class="flow-title">Resumir texto</div>
+      <div class="flow-sub">Variables: texto, largo</div>
+    </div>
+    <div class="flow-box">
+      <div class="flow-icon">🌐</div>
+      <div class="flow-title">Traducir texto</div>
+      <div class="flow-sub">Variables: texto, idioma</div>
+    </div>
+    <div class="flow-box">
+      <div class="flow-icon">💡</div>
+      <div class="flow-title">Explicar concepto</div>
+      <div class="flow-sub">Variables: concepto, nivel</div>
+    </div>
+    <div class="flow-box">
+      <div class="flow-icon">✉️</div>
+      <div class="flow-title">Redactar correo</div>
+      <div class="flow-sub">Variables: asunto, tono, detalles</div>
+    </div>
+  </div>
+
+  <h2>Qué aprenderás</h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;font-size:15px;margin-top:1px">✓</span>Crear múltiples PromptTemplates</div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;font-size:15px;margin-top:1px">✓</span>Usar variables dinámicas en prompts</div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;font-size:15px;margin-top:1px">✓</span>Separar prompt de lógica del programa</div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;font-size:15px;margin-top:1px">✓</span>Estructurar código con funciones</div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;font-size:15px;margin-top:1px">✓</span>Encadenar con LCEL (<code>|</code>)</div>
+      <div style="font-size:13px;display:flex;gap:8px;align-items:flex-start"><span style="color:#0F6E56;font-size:15px;margin-top:1px">✓</span>Diseñar prompts para distintas tareas</div>
+    </div>
+  </div>
+
+  <div class="sum-grid">
+    <div class="sum-item"><div class="sum-lbl">Archivos</div><div class="sum-val">6</div></div>
+    <div class="sum-item"><div class="sum-lbl">Líneas de código</div><div class="sum-val">~80</div></div>
+    <div class="sum-item"><div class="sum-lbl">Tareas</div><div class="sum-val">4</div></div>
+    <div class="sum-item"><div class="sum-lbl">Dificultad</div><div class="sum-val" style="color:#0F6E56">Baja</div></div>
+  </div>
+
+  <button class="nextbtn" onclick="go(1)">Siguiente: Teoría →</button>
+</section>
+
+<!-- 1 TEORIA -->
+<section class="sec" id="s1">
+  <h1>Teoría — PromptTemplate y variables</h1>
+
+  <h2>¿Qué es un PromptTemplate?</h2>
+  <p>Un <code>PromptTemplate</code> es una plantilla de texto con marcadores de posición (<em>variables</em>) que se rellenan dinámicamente al momento de ejecutar la chain. Separa <strong style="font-weight:500">el qué decirle al LLM</strong> de <strong style="font-weight:500">los datos concretos</strong> del usuario.</p>
+
+  <div class="compare-grid">
+    <div class="cg-bad">
+      <div class="cg-label">Sin PromptTemplate</div>
+      <div class="cg-txt">prompt = "Traduce '" + texto + "' al " + idioma<br><br># Inflexible, propenso a errores,<br># difícil de mantener</div>
+    </div>
+    <div class="cg-good">
+      <div class="cg-label">Con PromptTemplate</div>
+      <div class="cg-txt">template = "Traduce '{texto}' al {idioma}"<br>prompt = PromptTemplate(<br>  input_variables=["texto","idioma"],<br>  template=template<br>)</div>
+    </div>
+  </div>
+
+  <h2>Variables de entrada</h2>
+  <p>Son los marcadores <code>{variable}</code> dentro del template. Al invocar la chain, se pasa un diccionario con sus valores:</p>
+  <pre>chain.invoke({
+    "texto": "Hello world",
+    "idioma": "español"
+})</pre>
+  <div class="tip-box">LangChain valida automáticamente que todas las variables declaradas en <code>input_variables</code> estén presentes al momento de invocar. Si falta alguna, lanza un error claro.</div>
+
+  <h2>Cómo LangChain separa prompt y lógica</h2>
+  <p>Este es uno de los principios de diseño más importantes de LangChain. El prompt vive en su propio archivo o módulo, y la lógica del programa no lo contamina:</p>
+
+  <div class="lblock">
+    <code>prompts/tareas.py</code>
+    <p>Solo define los templates y sus variables. Cero lógica de negocio.</p>
+  </div>
+  <div class="lblock teal">
+    <code>main.py</code>
+    <p>Importa los prompts, construye las chains y maneja el menú. No sabe nada sobre cómo está redactado el prompt.</p>
+  </div>
+
+  <p>Esto te permite cambiar completamente un prompt sin tocar la lógica, y viceversa.</p>
+
+  <h2>ChatPromptTemplate vs PromptTemplate</h2>
+  <div class="card">
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <tr style="border-bottom:0.5px solid var(--color-border-tertiary)">
+        <td style="padding:8px 10px;font-weight:500;width:45%">PromptTemplate</td>
+        <td style="padding:8px 10px;font-weight:500">ChatPromptTemplate</td>
+      </tr>
+      <tr style="border-bottom:0.5px solid var(--color-border-tertiary)">
+        <td style="padding:8px 10px;color:var(--color-text-secondary)">Un solo bloque de texto plano</td>
+        <td style="padding:8px 10px;color:var(--color-text-secondary)">Lista de mensajes (system + human + assistant)</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 10px;color:var(--color-text-secondary)">Para modelos completion clásicos</td>
+        <td style="padding:8px 10px;color:var(--color-text-secondary)">Para modelos de chat (Claude, GPT-4...)</td>
+      </tr>
+    </table>
+  </div>
+  <p>En este proyecto usamos <code>ChatPromptTemplate</code> porque Claude es un chat model.</p>
+
+  <button class="nextbtn" onclick="go(2)">Siguiente: Flujo del programa →</button>
+</section>
+
+<!-- 2 FLUJO -->
+<section class="sec" id="s2">
+  <h1>Diseño del flujo del programa</h1>
+  <p>Haz clic en cada bloque para ver qué ocurre en ese paso.</p>
+
+  <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0">
+    <div class="flow-box" style="text-align:left;display:flex;align-items:center;gap:12px" onclick="showFlow('inicio')">
+      <span style="min-width:28px;height:28px;background:#534AB7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0">1</span>
+      <div><div class="flow-title">Inicio — cargar entorno y modelo</div><div class="flow-sub">load_dotenv() + ChatAnthropic()</div></div>
+    </div>
+    <div style="padding-left:14px;color:var(--color-text-secondary);font-size:18px">↓</div>
+    <div class="flow-box" style="text-align:left;display:flex;align-items:center;gap:12px" onclick="showFlow('menu')">
+      <span style="min-width:28px;height:28px;background:#534AB7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0">2</span>
+      <div><div class="flow-title">Mostrar menú al usuario</div><div class="flow-sub">4 opciones numeradas</div></div>
+    </div>
+    <div style="padding-left:14px;color:var(--color-text-secondary);font-size:18px">↓</div>
+    <div class="flow-box" style="text-align:left;display:flex;align-items:center;gap:12px" onclick="showFlow('inputs')">
+      <span style="min-width:28px;height:28px;background:#534AB7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0">3</span>
+      <div><div class="flow-title">Pedir datos según la tarea elegida</div><div class="flow-sub">Inputs específicos por tarea</div></div>
+    </div>
+    <div style="padding-left:14px;color:var(--color-text-secondary);font-size:18px">↓</div>
+    <div class="flow-box" style="text-align:left;display:flex;align-items:center;gap:12px" onclick="showFlow('chain')">
+      <span style="min-width:28px;height:28px;background:#534AB7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0">4</span>
+      <div><div class="flow-title">Construir y ejecutar la chain</div><div class="flow-sub">prompt | model | parser → invoke()</div></div>
+    </div>
+    <div style="padding-left:14px;color:var(--color-text-secondary);font-size:18px">↓</div>
+    <div class="flow-box" style="text-align:left;display:flex;align-items:center;gap:12px" onclick="showFlow('output')">
+      <span style="min-width:28px;height:28px;background:#534AB7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0">5</span>
+      <div><div class="flow-title">Mostrar resultado + volver al menú</div><div class="flow-sub">Loop while True</div></div>
+    </div>
+  </div>
+
+  <div class="flow-detail" id="flow-inicio">
+    <strong style="font-weight:500">Inicio:</strong> Se carga el <code>.env</code> con la API key y se instancia el modelo. Este objeto es compartido por todas las tareas — no se recrea en cada llamada.
+    <pre style="margin:8px 0 0">load_dotenv()
+model = ChatAnthropic(model="claude-3-5-haiku-20241022", temperature=0.5)</pre>
+  </div>
+  <div class="flow-detail" id="flow-menu">
+    <strong style="font-weight:500">Menú:</strong> Un simple <code>print()</code> con las opciones y un <code>input()</code> para leer la elección. Se valida que sea un número entre 1 y 4.
+  </div>
+  <div class="flow-detail" id="flow-inputs">
+    <strong style="font-weight:500">Inputs:</strong> Cada tarea pide variables diferentes. Por ejemplo, "resumir" pide <code>texto</code> y <code>largo</code>, mientras que "correo" pide <code>asunto</code>, <code>tono</code> y <code>detalles</code>. Cada función de tarea sabe qué pedirle al usuario.
+  </div>
+  <div class="flow-detail" id="flow-chain">
+    <strong style="font-weight:500">Chain:</strong> Se selecciona el PromptTemplate de la tarea elegida, se construye la chain con LCEL y se invoca con el diccionario de variables. La chain retorna el string de respuesta.
+  </div>
+  <div class="flow-detail" id="flow-output">
+    <strong style="font-weight:500">Output:</strong> Se imprime el resultado y se vuelve al menú principal en un loop. El usuario puede hacer otra tarea o escribir "salir" para terminar.
+  </div>
+
+  <button class="nextbtn" onclick="go(3)">Siguiente: Las tareas →</button>
+</section>
+
+<!-- 3 TAREAS (prompt preview) -->
+<section class="sec" id="s3">
+  <h1>Las 4 tareas y sus prompts</h1>
+  <p>Haz clic en cada tarea para ver cómo se ve su <code>ChatPromptTemplate</code> con las variables marcadas.</p>
+
+  <div class="task-demo">
+    <div class="td-box" id="td0" onclick="showTask(0)">
+      <div class="td-icon">📝</div>
+      <div class="td-name">Resumir texto</div>
+      <div class="td-var">{texto} {largo}</div>
+    </div>
+    <div class="td-box" id="td1" onclick="showTask(1)">
+      <div class="td-icon">🌐</div>
+      <div class="td-name">Traducir texto</div>
+      <div class="td-var">{texto} {idioma}</div>
+    </div>
+    <div class="td-box" id="td2" onclick="showTask(2)">
+      <div class="td-icon">💡</div>
+      <div class="td-name">Explicar concepto</div>
+      <div class="td-var">{concepto} {nivel}</div>
+    </div>
+    <div class="td-box" id="td3" onclick="showTask(3)">
+      <div class="td-icon">✉️</div>
+      <div class="td-name">Redactar correo</div>
+      <div class="td-var">{asunto} {tono} {detalles}</div>
+    </div>
+  </div>
+
+  <div class="demo-area" id="demo-area">
+    <div class="demo-label">ChatPromptTemplate — vista del prompt</div>
+    <div class="demo-prompt-box" id="demo-prompt"></div>
+    <div class="demo-label">Variables que se piden al usuario</div>
+    <div id="demo-vars" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+    <div class="demo-label">Ejemplo de invocación</div>
+    <pre id="demo-invoke" style="margin:0"></pre>
+  </div>
+
+  <div class="tip-box" style="margin-top:14px">
+    Cada tarea tiene exactamente las variables que necesita — ni más ni menos. Esto es diseño de prompts eficiente.
+  </div>
+
+  <button class="nextbtn" onclick="go(4)">Siguiente: Instalación →</button>
+</section>
+
+<!-- 4 INSTALACION -->
+<section class="sec" id="s4">
+  <h1>Instalación paso a paso</h1>
+
+  <div class="step-row">
+    <div class="snum">1</div>
+    <div>
+      <h3>Crear la carpeta del proyecto</h3>
+      <pre>mkdir langchain-multitask
+cd langchain-multitask</pre>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">2</div>
+    <div>
+      <h3>Crear y activar entorno virtual</h3>
+      <pre>python -m venv venv
+source venv/bin/activate   # Linux/macOS
+venv\Scripts\activate      # Windows</pre>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">3</div>
+    <div>
+      <h3>Instalar dependencias</h3>
+      <pre>pip install langchain langchain-anthropic python-dotenv</pre>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">4</div>
+    <div>
+      <h3>Crear <code>.env</code></h3>
+      <pre>ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx</pre>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">5</div>
+    <div>
+      <h3>Crear estructura de archivos</h3>
+      <div class="folder">
+        <div><span class="dir">langchain-multitask/</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># API key</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">.gitignore</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># excluye .env y venv/</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">requirements.txt</span> &nbsp;&nbsp;<span class="cmt"># dependencias</span></div>
+        <div>&nbsp;&nbsp;├── <span class="dir">prompts/</span></div>
+        <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="file">__init__.py</span> &nbsp;&nbsp;&nbsp;<span class="cmt"># vacío</span></div>
+        <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">tareas.py</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># todos los PromptTemplates</span></div>
+        <div>&nbsp;&nbsp;└── <span class="file">main.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># lógica del menú y chains</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box">La carpeta <code>prompts/</code> es la clave de este proyecto: concentra toda la ingeniería de prompts en un solo lugar, separada de la lógica.</div>
+
+  <button class="nextbtn" onclick="go(5)">Siguiente: Código →</button>
+</section>
+
+<!-- 5 CODIGO -->
+<section class="sec" id="s5">
+  <h1>Código completo y explicado</h1>
+
+  <h2>Archivo <code>prompts/tareas.py</code></h2>
+  <pre><span style="color:#B4B2A9"># prompts/tareas.py
+# Este archivo es SOLO prompts. Cero lógica de negocio.</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.prompts</span> <span style="color:#AFA9EC">import</span> ChatPromptTemplate
+
+<span style="color:#B4B2A9"># ── Tarea 1: Resumir ─────────────────────────────────────</span>
+<span style="color:#FAC775">prompt_resumir</span> = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"Eres un asistente experto en síntesis de textos."</span>),
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"Resume el siguiente texto en {largo} oraciones:\n\n{texto}"</span>),
+])
+
+<span style="color:#B4B2A9"># ── Tarea 2: Traducir ────────────────────────────────────</span>
+<span style="color:#FAC775">prompt_traducir</span> = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"Eres un traductor profesional y preciso."</span>),
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"Traduce el siguiente texto al {idioma}:\n\n{texto}"</span>),
+])
+
+<span style="color:#B4B2A9"># ── Tarea 3: Explicar concepto ───────────────────────────</span>
+<span style="color:#FAC775">prompt_explicar</span> = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"Eres un profesor experto en explicar conceptos complejos de forma simple."</span>),
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"Explícame qué es '{concepto}' de forma clara para alguien con nivel {nivel}. Usa ejemplos concretos."</span>),
+])
+
+<span style="color:#B4B2A9"># ── Tarea 4: Redactar correo ─────────────────────────────</span>
+<span style="color:#FAC775">prompt_correo</span> = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"Eres un asistente experto en comunicación profesional y redacción de correos."</span>),
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"Redacta un correo con tono {tono} sobre el siguiente asunto: {asunto}\n\nDetalles adicionales: {detalles}"</span>),
+])</pre>
+
+  <div class="lblock"><code>from langchain_core.prompts import ChatPromptTemplate</code><p>Importamos la clase para crear templates de chat (con roles system/human).</p></div>
+  <div class="lblock teal"><code>ChatPromptTemplate.from_messages([...])</code><p>Recibe una lista de tuplas (rol, contenido). El contenido puede tener variables <code>{variable}</code>.</p></div>
+  <div class="lblock amber"><code>"{largo} oraciones ... {texto}"</code><p>Dos variables en el mismo template. Al invocar, debes proveer ambas en el diccionario.</p></div>
+
+  <h2>Archivo <code>main.py</code></h2>
+  <pre><span style="color:#B4B2A9"># main.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">dotenv</span> <span style="color:#AFA9EC">import</span> load_dotenv
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_anthropic</span> <span style="color:#AFA9EC">import</span> ChatAnthropic
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.output_parsers</span> <span style="color:#AFA9EC">import</span> StrOutputParser
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">prompts.tareas</span> <span style="color:#AFA9EC">import</span> (
+    prompt_resumir, prompt_traducir,
+    prompt_explicar, prompt_correo
+)
+
+<span style="color:#B4B2A9"># ── Setup ────────────────────────────────────────────────</span>
+load_dotenv()
+model  = ChatAnthropic(model=<span style="color:#C0DD97">"claude-3-5-haiku-20241022"</span>, temperature=<span style="color:#FAC775">0.5</span>)
+parser = StrOutputParser()
+
+<span style="color:#B4B2A9"># ── Función genérica de ejecución ───────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">ejecutar</span>(prompt_template, variables: dict) -> str:
+    chain = prompt_template | model | parser
+    <span style="color:#AFA9EC">return</span> chain.invoke(variables)
+
+<span style="color:#B4B2A9"># ── Tarea 1 ──────────────────────────────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">tarea_resumir</span>():
+    texto = input(<span style="color:#C0DD97">"Ingresa el texto a resumir:\n> "</span>)
+    largo = input(<span style="color:#C0DD97">"¿En cuántas oraciones? [default: 3]: "</span>) or <span style="color:#C0DD97">"3"</span>
+    <span style="color:#AFA9EC">return</span> ejecutar(prompt_resumir, {<span style="color:#C0DD97">"texto"</span>: texto, <span style="color:#C0DD97">"largo"</span>: largo})
+
+<span style="color:#B4B2A9"># ── Tarea 2 ──────────────────────────────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">tarea_traducir</span>():
+    texto  = input(<span style="color:#C0DD97">"Ingresa el texto a traducir:\n> "</span>)
+    idioma = input(<span style="color:#C0DD97">"¿A qué idioma? [default: inglés]: "</span>) or <span style="color:#C0DD97">"inglés"</span>
+    <span style="color:#AFA9EC">return</span> ejecutar(prompt_traducir, {<span style="color:#C0DD97">"texto"</span>: texto, <span style="color:#C0DD97">"idioma"</span>: idioma})
+
+<span style="color:#B4B2A9"># ── Tarea 3 ──────────────────────────────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">tarea_explicar</span>():
+    concepto = input(<span style="color:#C0DD97">"¿Qué concepto quieres entender?\n> "</span>)
+    nivel    = input(<span style="color:#C0DD97">"Nivel [básico/intermedio/experto, default: básico]: "</span>) or <span style="color:#C0DD97">"básico"</span>
+    <span style="color:#AFA9EC">return</span> ejecutar(prompt_explicar, {<span style="color:#C0DD97">"concepto"</span>: concepto, <span style="color:#C0UD97">"nivel"</span>: nivel})
+
+<span style="color:#B4B2A9"># ── Tarea 4 ──────────────────────────────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">tarea_correo</span>():
+    asunto   = input(<span style="color:#C0DD97">"Asunto del correo:\n> "</span>)
+    tono     = input(<span style="color:#C0DD97">"Tono [formal/informal/amigable, default: formal]: "</span>) or <span style="color:#C0DD97">"formal"</span>
+    detalles = input(<span style="color:#C0DD97">"Detalles adicionales:\n> "</span>)
+    <span style="color:#AFA9EC">return</span> ejecutar(prompt_correo, {<span style="color:#C0DD97">"asunto"</span>: asunto, <span style="color:#C0DD97">"tono"</span>: tono, <span style="color:#C0DD97">"detalles"</span>: detalles})
+
+<span style="color:#B4B2A9"># ── Menú principal ───────────────────────────────────────</span>
+TAREAS = {
+    <span style="color:#C0DD97">"1"</span>: (<span style="color:#C0DD97">"Resumir texto"</span>,     tarea_resumir),
+    <span style="color:#C0DD97">"2"</span>: (<span style="color:#C0DD97">"Traducir texto"</span>,    tarea_traducir),
+    <span style="color:#C0DD97">"3"</span>: (<span style="color:#C0DD97">"Explicar concepto"</span>, tarea_explicar),
+    <span style="color:#C0DD97">"4"</span>: (<span style="color:#C0DD97">"Redactar correo"</span>,   tarea_correo),
+}
+
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">main</span>():
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"🛠️  LangChain Multi-Task\n"</span>)
+    <span style="color:#AFA9EC">while</span> <span style="color:#FAC775">True</span>:
+        <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"\nElige una tarea:"</span>)
+        <span style="color:#AFA9EC">for</span> k, (nombre, _) <span style="color:#AFA9EC">in</span> TAREAS.items():
+            <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"  {k}. {nombre}"</span>)
+        <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"  0. Salir"</span>)
+
+        opcion = input(<span style="color:#C0DD97">"\nOpción: "</span>).strip()
+        <span style="color:#AFA9EC">if</span> opcion == <span style="color:#C0DD97">"0"</span>: <span style="color:#AFA9EC">break</span>
+        <span style="color:#AFA9EC">if</span> opcion <span style="color:#AFA9EC">not in</span> TAREAS:
+            <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"Opción inválida."</span>)
+            <span style="color:#AFA9EC">continue</span>
+
+        _, fn = TAREAS[opcion]
+        <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"\n⏳ Procesando...\n"</span>)
+        resultado = fn()
+        <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"\n{'─'*50}\n{resultado}\n{'─'*50}"</span>)
+
+<span style="color:#AFA9EC">if</span> __name__ == <span style="color:#C0DD97">"__main__"</span>:
+    <span style="color:#5DCAA5">main</span>()</pre>
+
+  <div class="lblock blue"><code>def ejecutar(prompt_template, variables)</code><p>Función genérica que construye la chain y la invoca. Evita repetir <code>prompt | model | parser</code> en cada tarea.</p></div>
+  <div class="lblock green"><code>TAREAS = {"1": ("nombre", funcion), ...}</code><p>Diccionario que mapea opciones del menú a funciones. Permite agregar tareas fácilmente sin modificar el loop principal.</p></div>
+  <div class="lblock coral"><code>_, fn = TAREAS[opcion]</code><p>Desestructura la tupla. El <code>_</code> descarta el nombre (ya fue impreso), <code>fn</code> es la función que se ejecuta.</p></div>
+  <div class="lblock gray"><code>or "3"</code> / <code>or "formal"</code><p>Valores por defecto usando el operador <code>or</code>: si el usuario no escribe nada, se usa el valor predeterminado.</p></div>
+
+  <h2>Simulación del menú</h2>
+  <div class="menu-sim">
+    <div class="ms-title">🛠️  LangChain Multi-Task</div>
+    <div class="ms-sep">──────────────────────────</div>
+    <div class="ms-opt">Elige una tarea:</div>
+    <div class="ms-opt">  1. Resumir texto</div>
+    <div class="ms-opt">  2. Traducir texto</div>
+    <div class="ms-opt">  3. Explicar concepto</div>
+    <div class="ms-opt">  4. Redactar correo</div>
+    <div class="ms-opt">  0. Salir</div>
+    <div class="ms-sep"> </div>
+    <div class="ms-prompt">Opción: <span class="ms-in">3</span></div>
+    <div class="ms-prompt">¿Qué concepto quieres entender? <span class="ms-in">recursión</span></div>
+    <div class="ms-prompt">Nivel [básico/intermedio/experto]: <span class="ms-in">básico</span></div>
+    <div class="ms-sep">──────────────────────────────────────────────────</div>
+    <div class="ms-out">La recursión es cuando una función se llama a sí misma para resolver un problema más pequeño del mismo tipo. Imagina que tienes una pila de libros: para contar cuántos hay, tomas uno, cuentas el resto (que es un problema más pequeño) y sumas 1...</div>
+    <div class="ms-sep">──────────────────────────────────────────────────</div>
+  </div>
+
+  <button class="nextbtn" onclick="go(6)">Siguiente: Buenas prácticas →</button>
+</section>
+
+<!-- 6 BUENAS PRACTICAS -->
+<section class="sec" id="s6">
+  <h1>Buenas prácticas al diseñar prompts</h1>
+
+  <h2>1. Sé específico en el rol del sistema</h2>
+  <div class="compare-grid">
+    <div class="cg-bad"><div class="cg-label">Vago</div><div class="cg-txt">"Eres un asistente útil."</div></div>
+    <div class="cg-good"><div class="cg-label">Específico</div><div class="cg-txt">"Eres un traductor profesional especializado en textos técnicos y legales."</div></div>
+  </div>
+
+  <h2>2. Usa variables para todo lo que cambia</h2>
+  <div class="compare-grid">
+    <div class="cg-bad"><div class="cg-label">Hardcodeado</div><div class="cg-txt">"Resume en 3 oraciones el texto."</div></div>
+    <div class="cg-good"><div class="cg-label">Variable</div><div class="cg-txt">"Resume en {largo} oraciones el texto."</div></div>
+  </div>
+
+  <h2>3. Da formato a la salida esperada</h2>
+  <div class="bp-card">
+    <div class="bp-t">Especifica el formato de respuesta cuando importa</div>
+    <div class="bp-d">Si quieres bullet points, una lista numerada o JSON, dilo explícitamente en el prompt. No asumas que el LLM adivinará tu preferencia.</div>
+  </div>
+  <pre style="margin-top:0">"Explica {concepto}. Usa este formato:
+1. Definición simple (1 oración)
+2. Analogía del mundo real
+3. Ejemplo práctico en código"</pre>
+
+  <h2>4. Separa instrucciones de datos</h2>
+  <div class="bp-card">
+    <div class="bp-t">Instrucciones arriba, datos del usuario abajo</div>
+    <div class="bp-d">Poner los datos del usuario al final reduce la posibilidad de que el modelo confunda instrucciones con contenido a procesar.</div>
+  </div>
+  <pre>"Traduce el siguiente texto al {idioma}.
+Mantén el tono original.
+No añadas explicaciones.
+
+Texto a traducir:
+{texto}"</pre>
+
+  <h2>5. Errores comunes en diseño de prompts</h2>
+
+  <div class="err-card">
+    <div class="err-t">Prompt ambiguo</div>
+    <div class="err-c">Causa: instrucciones vagas que el LLM interpreta de formas distintas.</div>
+    <div class="err-f">Solución: "Responde solo con el texto traducido, sin explicaciones adicionales."</div>
+  </div>
+  <div class="err-card">
+    <div class="err-t">Demasiadas instrucciones mezcladas</div>
+    <div class="err-c">Causa: prompt con 10 reglas distintas en un párrafo.</div>
+    <div class="err-f">Solución: usa listas numeradas o viñetas dentro del template para separar instrucciones.</div>
+  </div>
+  <div class="err-card">
+    <div class="err-t">Variables sin contexto suficiente</div>
+    <div class="err-c">Causa: <code>{texto}</code> sin ninguna instrucción sobre qué hacer con él.</div>
+    <div class="err-f">Solución: siempre acompaña las variables con la instrucción explícita de qué hacer.</div>
+  </div>
+
+  <div class="warn-box">Un buen prompt no es el más largo — es el más claro. La claridad supera la verbosidad.</div>
+
+  <button class="nextbtn" onclick="go(7)">Siguiente: Cómo escalar →</button>
+</section>
+
+<!-- 7 ESCALAR -->
+<section class="sec" id="s7">
+  <h1>Cómo escalar este proyecto</h1>
+  <p>Este proyecto básico tiene una arquitectura que escala naturalmente. Aquí el camino de crecimiento:</p>
+
+  <div class="scale-level">
+    <span class="sl-badge bp">Nivel 2</span>
+    <div class="sl-content">
+      <h3>Agregar más tareas sin tocar el menú</h3>
+      <p>Solo agrega un nuevo prompt en <code>tareas.py</code>, una nueva función en <code>main.py</code> y una entrada en el diccionario <code>TAREAS</code>. El loop del menú se adapta solo.</p>
+    </div>
+  </div>
+  <div class="scale-level">
+    <span class="sl-badge bt">Nivel 3</span>
+    <div class="sl-content">
+      <h3>Agregar memoria de conversación</h3>
+      <p>Usar <code>MessagesPlaceholder</code> y mantener un historial de mensajes en lista para que el LLM tenga contexto de la sesión completa.</p>
+    </div>
+  </div>
+  <div class="scale-level">
+    <span class="sl-badge ba">Nivel 4</span>
+    <div class="sl-content">
+      <h3>Interfaz web con Streamlit</h3>
+      <p>Reemplazar el menú de consola por una UI con selectbox y text_area de Streamlit. La lógica de prompts no cambia en absoluto.</p>
+    </div>
+  </div>
+  <div class="scale-level">
+    <span class="sl-badge bc">Nivel 5</span>
+    <div class="sl-content">
+      <h3>API REST con FastAPI</h3>
+      <p>Exponer cada tarea como un endpoint <code>POST /resumir</code>, <code>POST /traducir</code>, etc. El cuerpo del request provee las variables del prompt.</p>
+    </div>
+  </div>
+  <div class="scale-level">
+    <span class="sl-badge bb">Nivel 6</span>
+    <div class="sl-content">
+      <h3>RAG — respuestas basadas en documentos</h3>
+      <p>Agregar una tarea "Consultar documento" que carga un PDF, lo indexa con FAISS y responde preguntas sobre su contenido usando <code>RetrievalQA</code>.</p>
+    </div>
+  </div>
+
+  <h2>Arquitectura objetivo (Nivel 4)</h2>
+  <div class="folder">
+    <div><span class="dir">langchain-multitask/</span></div>
+    <div>&nbsp;&nbsp;├── <span class="dir">prompts/</span></div>
+    <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">tareas.py</span></div>
+    <div>&nbsp;&nbsp;├── <span class="dir">chains/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># chains reutilizables</span></div>
+    <div>&nbsp;&nbsp;├── <span class="dir">routers/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># routing de tareas</span></div>
+    <div>&nbsp;&nbsp;├── <span class="file">app.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># Streamlit UI</span></div>
+    <div>&nbsp;&nbsp;├── <span class="file">api.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># FastAPI endpoints</span></div>
+    <div>&nbsp;&nbsp;└── <span class="file">main.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># CLI original</span></div>
+  </div>
+
+  <button class="nextbtn" onclick="go(8)">Siguiente: Practica →</button>
+</section>
+
+<!-- 8 PRACTICA -->
+<section class="sec" id="s8">
+  <h1>Practica, mejoras y autoevaluación</h1>
+
+  <h2>Resumen de lo aprendido</h2>
+  <div class="sum-grid">
+    <div class="sum-item"><div class="sum-lbl">Conceptos</div><div class="sum-val">6</div></div>
+    <div class="sum-item"><div class="sum-lbl">Prompts diseñados</div><div class="sum-val">4</div></div>
+    <div class="sum-item"><div class="sum-lbl">Patrones de código</div><div class="sum-val">3</div></div>
+    <div class="sum-item"><div class="sum-lbl">Buenas prácticas</div><div class="sum-val">5</div></div>
+  </div>
+  <div class="card" style="font-size:13px;line-height:1.75;color:var(--color-text-secondary)">
+    Aprendiste a crear <strong style="font-weight:500;color:var(--color-text-primary)">múltiples PromptTemplates</strong> para distintas tareas, a usar <strong style="font-weight:500;color:var(--color-text-primary)">variables dinámicas</strong> para que los prompts sean reutilizables, y a <strong style="font-weight:500;color:var(--color-text-primary)">separar prompts de lógica</strong>. El patrón de diccionario <code>TAREAS</code> te enseña a escalar sin duplicar código.
+  </div>
+
+  <h2>5 Ejercicios para practicar</h2>
+  <div class="ex-card"><div class="ex-n">Ejercicio 1</div><div class="ex-t">Agrega una quinta tarea: "Corregir ortografía"</div><div class="ex-d">Crea el PromptTemplate en tareas.py con variables <code>{texto}</code> y <code>{idioma}</code>, y agrégala al menú.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 2</div><div class="ex-t">Agrega una variable de "estilo" al prompt de correo</div><div class="ex-d">Añade <code>{estilo}</code> (ejecutivo, cercano, técnico) y pídela al usuario antes de generar el correo.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 3</div><div class="ex-t">Guarda las respuestas en un archivo</div><div class="ex-d">Después de cada respuesta, ofrece al usuario guardarla en <code>resultado.txt</code> con la fecha y hora.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 4</div><div class="ex-t">Agrega validación de inputs</div><div class="ex-d">Si el usuario no escribe nada en el campo de texto principal, muestra un error y pide el input de nuevo en lugar de enviar un prompt vacío.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 5</div><div class="ex-t">Cambia el modelo a OpenAI</div><div class="ex-d">Instala <code>langchain-openai</code>, reemplaza <code>ChatAnthropic</code> por <code>ChatOpenAI</code> y comprueba que todo el resto del código funciona igual gracias a la interfaz común de LangChain.</div></div>
+
+  <h2 style="margin-top:20px">3 Mejoras para subir de nivel</h2>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bp" style="flex-shrink:0;margin-top:2px">Nivel 2</span>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px">Streaming de respuestas</div><div style="font-size:12px;color:var(--color-text-secondary)">Reemplaza <code>invoke()</code> por <code>stream()</code> para que las respuestas aparezcan token por token, mejorando la experiencia.</div></div>
+    </div>
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bt" style="flex-shrink:0;margin-top:2px">Nivel 3</span>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px">Interfaz Streamlit</div><div style="font-size:12px;color:var(--color-text-secondary)">Convierte el menú de consola en una UI web con <code>st.selectbox()</code> para elegir la tarea y <code>st.text_area()</code> para el input.</div></div>
+    </div>
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge ba" style="flex-shrink:0;margin-top:2px">Nivel 4</span>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px">Router automático con LLM</div><div style="font-size:12px;color:var(--color-text-secondary)">En vez de pedir al usuario que elija la tarea, deja que el propio LLM detecte qué tarea corresponde a partir del texto ingresado (clasificación de intención).</div></div>
+    </div>
+  </div>
+
+  <h2>Autoevaluación</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Qué ventaja tiene separar los prompts en su propio archivo?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Permite cambiar el wording de un prompt sin tocar la lógica del programa, y viceversa. Mejora la mantenibilidad, la legibilidad y facilita probar distintas versiones de un prompt.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Por qué usamos una función <code>ejecutar()</code> genérica en lugar de repetir la chain en cada tarea?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Para aplicar el principio DRY (Don't Repeat Yourself). La lógica de construir la chain es siempre <code>prompt | model | parser</code> — centralizarla evita bugs, facilita cambios y hace el código más limpio.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Qué pasaría si invocas la chain sin una de las variables declaradas en el PromptTemplate?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">LangChain lanzaría un <code>KeyError</code> o un error de validación indicando qué variable falta. Esto es un comportamiento intencional — te fuerza a proveer todos los datos que el prompt necesita.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Por qué el patrón de diccionario <code>TAREAS</code> es mejor que un <code>if/elif</code> largo?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Con el diccionario, agregar una tarea nueva es una sola línea. Con <code>if/elif</code>, habría que editar el bloque de control cada vez. El diccionario también permite iterar las opciones para imprimir el menú automáticamente.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Cómo cambiarías el modelo de Claude a GPT-4 sin modificar los prompts?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Solo cambia la línea <code>model = ChatAnthropic(...)</code> por <code>model = ChatOpenAI(model="gpt-4o", ...)</code> en <code>main.py</code>. Los prompts, las chains y las tareas quedan exactamente igual, porque todos los ChatModels comparten la misma interfaz en LangChain.</div>
+  </div>
+
+  <div class="card" style="background:#E1F5EE;border-color:#5DCAA5;margin-top:20px">
+    <p style="color:#085041;font-size:13px;margin:0"><strong style="font-weight:500;color:#04342C">Tutorial completado.</strong> Ahora tienes las bases para construir herramientas multi-tarea con LangChain. El siguiente paso natural es agregar streaming y luego una interfaz Streamlit.</p>
+  </div>
+</section>
+
+<script>
+const TOTAL = 9;
+function go(i){
+  document.querySelectorAll('.sec').forEach((s,j)=>s.classList.toggle('active',j===i));
+  document.querySelectorAll('.nb').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('pbar').style.width=((i+1)/TOTAL*100)+'%';
+  document.getElementById('prog-txt').textContent=(i+1)+' / '+TOTAL;
+  window.scrollTo(0,0);
+}
+
+function showFlow(k){
+  document.querySelectorAll('.flow-detail').forEach(d=>d.classList.remove('on'));
+  const el=document.getElementById('flow-'+k);
+  if(el) el.classList.add('on');
+}
+
+const TASKS=[
+  {
+    name:'Resumir texto',
+    prompt:`<span class="dp-sys">system: "Eres un asistente experto en síntesis de textos."</span>\n<span class="dp-txt">human:  "Resume el siguiente texto en </span><span class="dp-var">{largo}</span><span class="dp-txt"> oraciones:\n\n</span><span class="dp-var">{texto}</span><span class="dp-txt">"</span>`,
+    vars:['texto','largo'],
+    invoke:`chain.invoke({\n    "texto": "La inteligencia artificial es...",\n    "largo": "2"\n})`
+  },
+  {
+    name:'Traducir texto',
+    prompt:`<span class="dp-sys">system: "Eres un traductor profesional y preciso."</span>\n<span class="dp-txt">human:  "Traduce el siguiente texto al </span><span class="dp-var">{idioma}</span><span class="dp-txt">:\n\n</span><span class="dp-var">{texto}</span><span class="dp-txt">"</span>`,
+    vars:['texto','idioma'],
+    invoke:`chain.invoke({\n    "texto": "Hello, how are you?",\n    "idioma": "español"\n})`
+  },
+  {
+    name:'Explicar concepto',
+    prompt:`<span class="dp-sys">system: "Eres un profesor experto en explicar conceptos."</span>\n<span class="dp-txt">human:  "Explícame qué es '</span><span class="dp-var">{concepto}</span><span class="dp-txt">'\n        para alguien de nivel </span><span class="dp-var">{nivel}</span><span class="dp-txt">.\n        Usa ejemplos concretos."</span>`,
+    vars:['concepto','nivel'],
+    invoke:`chain.invoke({\n    "concepto": "recursión",\n    "nivel": "básico"\n})`
+  },
+  {
+    name:'Redactar correo',
+    prompt:`<span class="dp-sys">system: "Eres experto en comunicación profesional."</span>\n<span class="dp-txt">human:  "Redacta un correo con tono </span><span class="dp-var">{tono}</span><span class="dp-txt">\n        sobre: </span><span class="dp-var">{asunto}</span><span class="dp-txt">\n        Detalles: </span><span class="dp-var">{detalles}</span><span class="dp-txt">"</span>`,
+    vars:['asunto','tono','detalles'],
+    invoke:`chain.invoke({\n    "asunto": "reunión de proyecto",\n    "tono": "formal",\n    "detalles": "posponer al viernes"\n})`
+  }
+];
+
+const badgeColors=['bp','bt','ba','bc'];
+function showTask(i){
+  document.querySelectorAll('.td-box').forEach((b,j)=>b.classList.toggle('sel',j===i));
+  const t=TASKS[i];
+  const area=document.getElementById('demo-area');
+  area.classList.add('on');
+  document.getElementById('demo-prompt').innerHTML=t.prompt;
+  const varsEl=document.getElementById('demo-vars');
+  varsEl.innerHTML=t.vars.map((v,k)=>`<span class="badge ${badgeColors[k]}">{${v}}</span>`).join('');
+  document.getElementById('demo-invoke').textContent=t.invoke;
+}
+
+function tqa(el){
+  const a=el.nextElementSibling;
+  const arr=el.querySelector('.qa-arr');
+  const open=a.classList.toggle('open');
+  arr.style.transform=open?'rotate(90deg)':'';
+}
+</script>
+</body>
+</html>
