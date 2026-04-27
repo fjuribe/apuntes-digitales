@@ -3,1242 +3,427 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Retrievers en LangChain</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f0f13;color:#e2e2ea;line-height:1.7;overflow-x:hidden}
+code{font-family:monospace;background:#0d0d16;padding:.1rem .35rem;border-radius:4px;font-size:.8rem;color:#34d399}
 
-:root {
-  --bg: #f5f0e8;
-  --paper: #faf7f2;
-  --ink: #1a1410;
-  --ink2: #4a3f35;
-  --ink3: #8a7a6a;
-  --red: #c8401a;
-  --orange: #e8781a;
-  --green: #2a6e4a;
-  --blue: #1a4a8a;
-  --purple: #5a2a8a;
-  --teal: #1a6a6a;
-  --border: #d4c8b8;
-  --shadow: rgba(26,20,16,0.12);
-}
+/* HERO */
+.hero{text-align:center;padding:4rem 1.5rem 3rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 60%,rgba(217,119,6,.1),transparent 55%),radial-gradient(ellipse at 70% 40%,rgba(37,99,235,.07),transparent 55%);pointer-events:none}
+.hero-tag{font-family:monospace;font-size:.68rem;letter-spacing:3px;text-transform:uppercase;color:#d97706;margin-bottom:.9rem;position:relative}
+.hero h1{font-size:clamp(2.4rem,7vw,4.5rem);font-weight:800;line-height:1.05;margin-bottom:.9rem;position:relative}
+.hero h1 .mono{font-family:monospace;color:#d97706}
+.hero-sub{color:#9090a8;font-size:1rem;max-width:540px;margin:0 auto 1.5rem;position:relative}
+.tag-pill{display:inline-block;padding:.3rem 1rem;border:1px solid #2a2a3a;border-radius:100px;font-family:monospace;font-size:.72rem;color:#d97706;position:relative}
 
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Instrument Sans', sans-serif;
-  min-height: 100vh;
-  padding: 0;
-  overflow-x: hidden;
-}
+/* DIVIDER */
+.divider{max-width:860px;margin:0 auto;padding:0 1.5rem}
+.divider hr{border:none;border-top:1px solid #1e1e28;margin:0}
 
-/* GRAIN TEXTURE */
-body::before {
-  content:'';
-  position:fixed; inset:0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events:none; z-index:1000; opacity:0.6;
-}
+/* SECTIONS */
+.section{max-width:880px;margin:0 auto;padding:3rem 1.5rem 1.5rem}
+.section-wide{max-width:1080px;margin:0 auto;padding:2rem 1.5rem}
 
-/* HEADER */
-header {
-  background: var(--ink);
-  color: var(--bg);
-  padding: 60px 48px 48px;
-  position: relative;
-  overflow: hidden;
-}
+h2{font-size:1.6rem;font-weight:700;margin-bottom:.5rem}
+h2 .accent{color:#d97706}
+.sub{color:#9090a8;font-size:.9rem;margin-bottom:1.4rem;max-width:680px}
 
-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px; left: 0; right: 0;
-  height: 24px;
-  background: var(--bg);
-  clip-path: ellipse(55% 100% at 50% 100%);
-}
+/* CONCEPT GRID */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.9rem;margin-bottom:1rem}
+.concept-card{background:#1a1a24;border:1px solid #252530;border-radius:13px;padding:1.1rem;transition:border-color .2s}
+.concept-card:hover{border-color:rgba(217,119,6,.35)}
+.c-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.6rem}
+.concept-card h3{font-size:.88rem;font-weight:600;margin-bottom:.25rem}
+.concept-card p{font-size:.78rem;color:#9090a8}
 
-.header-label {
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 16px;
-}
+/* PIPELINE */
+.pipeline-box{background:#1a1a24;border:1px solid #252530;border-radius:14px;padding:1.4rem;overflow-x:auto}
+.pipeline{display:flex;align-items:center;min-width:520px}
+.ps{flex:1;text-align:center;padding:.4rem .2rem}
+.ps-icon{width:42px;height:42px;border-radius:11px;background:#252530;display:flex;align-items:center;justify-content:center;margin:0 auto .35rem;font-size:1rem}
+.ps.hi .ps-icon{background:rgba(217,119,6,.2);border:1.5px solid #d97706}
+.ps-label{font-family:monospace;font-size:.65rem;font-weight:700}
+.ps-sub{font-size:.6rem;color:#9090a8;margin-top:1px}
+.pipe-arrow{color:#9090a8;font-size:.9rem;flex-shrink:0;padding:0 2px}
+.pipeline-note{text-align:center;color:#9090a8;font-size:.75rem;margin-top:.9rem}
 
-header h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(36px, 6vw, 72px);
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -2px;
-  margin-bottom: 24px;
-}
-
-header h1 em {
-  color: var(--orange);
-  font-style: normal;
-}
-
-header p {
-  font-size: 16px;
-  color: #b8a898;
-  max-width: 540px;
-  line-height: 1.7;
-}
-
-.header-deco {
-  position: absolute;
-  right: 48px; top: 40px;
-  font-family: 'Syne', sans-serif;
-  font-size: 140px;
-  font-weight: 800;
-  color: rgba(255,255,255,0.04);
-  letter-spacing: -8px;
-  user-select: none;
-  line-height: 1;
-}
-
-/* NAV PILLS */
-.nav-wrap {
-  padding: 32px 48px 0;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.nav-pill {
-  font-family: 'Syne', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 8px 18px;
-  border-radius: 100px;
-  border: 1.5px solid var(--border);
-  background: var(--paper);
-  color: var(--ink2);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nav-pill:hover { border-color: var(--ink); color: var(--ink); }
-.nav-pill.active {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
-}
-
-/* MAIN CONTENT */
-.container { padding: 48px; max-width: 1100px; }
-
-/* WHAT IS A RETRIEVER */
-.what-is {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 48px;
-}
-
-@media(max-width:700px) { .what-is { grid-template-columns:1fr; } }
-
-.what-card {
-  background: var(--paper);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  position: relative;
-  overflow: hidden;
-}
-
-.what-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-}
-
-.what-card.c1::before { background: var(--red); }
-.what-card.c2::before { background: var(--blue); }
-
-.what-card h3 {
-  font-family: 'Syne', sans-serif;
-  font-size: 15px; font-weight: 700;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.what-card.c1 h3 { color: var(--red); }
-.what-card.c2 h3 { color: var(--blue); }
-
-.what-card p { font-size: 14px; color: var(--ink2); line-height: 1.7; }
-
-/* FLOW DIAGRAM */
-.flow-section {
-  background: var(--ink);
-  border-radius: 20px;
-  padding: 32px;
-  margin-bottom: 48px;
-  color: var(--bg);
-}
-
-.flow-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 24px;
-}
-
-.flow-diagram {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.flow-node {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  padding: 14px 18px;
-  text-align: center;
-  font-size: 13px;
-  flex: 1;
-  min-width: 120px;
-}
-
-.flow-node .fn-icon { font-size: 22px; margin-bottom: 6px; }
-.flow-node .fn-label { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
-.flow-node .fn-text { color: #fff; font-weight: 500; margin-top: 2px; font-size: 13px; }
-.flow-node.highlight { background: rgba(232,120,26,0.2); border-color: var(--orange); }
-.flow-node.highlight .fn-label { color: var(--orange); }
-
-.flow-arrow {
-  color: rgba(255,255,255,0.25);
-  font-size: 20px;
-  flex-shrink: 0;
-}
+/* CATEGORY HEADER */
+.cat-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:.8rem;border-bottom:2px solid}
+.cat-header .cat-icon{font-size:1.6rem}
+.cat-header h3{font-size:1.2rem;font-weight:700}
+.cat-header p{font-size:.83rem;color:#9090a8;margin-top:.1rem}
+.cat-basico .cat-header{border-color:#0d9488}
+.cat-con-ia .cat-header{border-color:#7c3aed}
+.cat-hibrido .cat-header{border-color:#2563eb}
+.cat-avanzado .cat-header{border-color:#d97706}
 
 /* RETRIEVER CARDS */
-.section-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--ink3);
-  margin-bottom: 24px;
-  padding-bottom: 12px;
-  border-bottom: 1.5px solid var(--border);
-}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:2.5rem}
+.rcard{background:#1a1a24;border:1px solid #252530;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,border-color .2s}
+.rcard:hover{transform:translateY(-3px);border-color:rgba(217,119,6,.35)}
+.rcard-head{padding:1rem 1.2rem .75rem;border-bottom:1px solid #252530;display:flex;align-items:flex-start;gap:.75rem}
+.rcard-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
+.rcard-title{font-weight:700;font-size:.95rem;margin-bottom:.35rem}
+.badges{display:flex;gap:.35rem;flex-wrap:wrap}
+.badge{font-family:monospace;font-size:.58rem;padding:.15rem .5rem;border-radius:100px;text-transform:uppercase;font-weight:700}
+.b-basico{background:rgba(13,148,136,.15);color:#2dd4bf}
+.b-con-ia{background:rgba(124,58,237,.15);color:#a78bfa}
+.b-hibrido{background:rgba(37,99,235,.15);color:#60a5fa}
+.b-avanzado{background:rgba(217,119,6,.15);color:#fbbf24}
+.rcard-body{padding:.9rem 1.2rem;flex:1}
+.rcard-desc{font-size:.84rem;color:#9090a8;margin-bottom:.8rem;line-height:1.65}
+.when-label{color:#d97706;font-size:.67rem;font-family:monospace;text-transform:uppercase;font-weight:700;display:block;margin-bottom:.2rem}
+.when-text{font-size:.79rem;color:#9090a8;margin-bottom:.8rem}
+.code-block{background:#0d0d16;border:1px solid #252530;border-radius:8px;padding:.75rem .9rem;font-family:monospace;font-size:.69rem;line-height:1.85;overflow-x:auto;color:#34d399;white-space:pre}
+.rcard-foot{padding:.6rem 1.2rem;border-top:1px solid #252530;display:flex;align-items:center;gap:.5rem}
+.complexity-label{font-size:.65rem;color:#9090a8;font-family:monospace;text-transform:uppercase}
+.dots{display:flex;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%;background:#252530}
+.dot.on{background:#d97706}
 
-.retrievers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 48px;
-}
+/* INSIGHT BOX */
+.insight{background:rgba(217,119,6,.07);border-left:3px solid #d97706;border-radius:0 8px 8px 0;padding:.8rem 1rem;margin:1.5rem 0;font-size:.87rem}
+.insight strong{color:#d97706;display:block;font-size:.7rem;font-family:monospace;text-transform:uppercase;margin-bottom:.3rem}
 
-.ret-card {
-  background: var(--paper);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-}
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid #252530}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead th{background:#1a1a24;padding:.7rem .9rem;text-align:left;font-family:monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;color:#9090a8;border-bottom:1px solid #252530}
+tbody td{padding:.65rem .9rem;border-bottom:1px solid #1e1e28}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.td-name{font-weight:600;color:#e2e2ea;white-space:nowrap}
+.td-yes{color:#2dd4bf}
+.td-no{color:#3a3a4a}
+.td-partial{color:#d97706}
+.td-low{color:#2dd4bf}
+.td-mid{color:#d97706}
+.td-hi{color:#f87171}
 
-.ret-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px var(--shadow);
-}
-
-.ret-card.open { border-color: var(--ink); }
-
-.ret-header {
-  padding: 24px;
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.ret-icon {
-  width: 48px; height: 48px;
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.ret-meta { flex: 1; }
-
-.ret-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.ret-name {
-  font-family: 'Syne', sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 6px;
-}
-
-.ret-tagline {
-  font-size: 12px;
-  color: var(--ink3);
-  line-height: 1.5;
-}
-
-.ret-toggle {
-  margin-left: auto;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
-  color: var(--ink3);
-  transition: all 0.2s;
-  flex-shrink: 0;
-  align-self: center;
-}
-
-.ret-card.open .ret-toggle {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
-  transform: rotate(45deg);
-}
-
-.ret-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ret-card.open .ret-body { max-height: 800px; }
-
-.ret-body-inner {
-  padding: 0 24px 24px;
-  border-top: 1.5px solid var(--border);
-  padding-top: 20px;
-}
-
-.ret-problem {
-  font-size: 13px;
-  color: var(--ink2);
-  line-height: 1.7;
-  margin-bottom: 16px;
-}
-
-.ret-when {
-  margin-bottom: 16px;
-}
-
-.ret-when-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.ret-when-items {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.ret-when-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--ink2);
-}
-
-.ret-when-item::before {
-  content: '→';
-  flex-shrink: 0;
-  font-weight: 600;
-  margin-top: 1px;
-}
-
-/* CODE */
-.code-block {
-  background: var(--ink);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 16px;
-}
-
-.code-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.code-dots-wrap { display:flex; gap:5px; }
-.cdot { width:9px; height:9px; border-radius:50%; }
-.cdot-r { background:#ff5f56; }
-.cdot-y { background:#ffbd2e; }
-.cdot-g { background:#27c93f; }
-
-.code-lang-label {
-  font-family: 'Syne', sans-serif;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-}
-
-.copy-code-btn {
-  font-size: 10px;
-  color: rgba(255,255,255,0.4);
-  background: none; border: none;
-  cursor: pointer; padding: 2px 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 4px;
-  font-family: 'Instrument Sans', sans-serif;
-  transition: all 0.2s;
-}
-.copy-code-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
-
-pre {
-  padding: 16px;
-  font-size: 12px;
-  line-height: 1.7;
-  overflow-x: auto;
-  font-family: 'Courier New', monospace;
-  color: #d4c8b8;
-}
-
-.kw { color: #e8781a; }
-.fn { color: #82aaff; }
-.str { color: #c3e88d; }
-.cm { color: #546e7a; font-style:italic; }
-.cls { color: #ffcb6b; }
-.num { color: #f78c6c; }
-
-/* COLOR ACCENTS PER CARD */
-.r1 .ret-icon { background: #fff0eb; }
-.r1 .ret-num { color: var(--red); }
-.r1 .ret-name { color: var(--red); }
-.r1 .ret-when-title { color: var(--red); }
-.r1 .ret-when-item::before { color: var(--red); }
-
-.r2 .ret-icon { background: #eef3ff; }
-.r2 .ret-num { color: var(--blue); }
-.r2 .ret-name { color: var(--blue); }
-.r2 .ret-when-title { color: var(--blue); }
-.r2 .ret-when-item::before { color: var(--blue); }
-
-.r3 .ret-icon { background: #eafaf2; }
-.r3 .ret-num { color: var(--green); }
-.r3 .ret-name { color: var(--green); }
-.r3 .ret-when-title { color: var(--green); }
-.r3 .ret-when-item::before { color: var(--green); }
-
-.r4 .ret-icon { background: #f3eeff; }
-.r4 .ret-num { color: var(--purple); }
-.r4 .ret-name { color: var(--purple); }
-.r4 .ret-when-title { color: var(--purple); }
-.r4 .ret-when-item::before { color: var(--purple); }
-
-.r5 .ret-icon { background: #eefafa; }
-.r5 .ret-num { color: var(--teal); }
-.r5 .ret-name { color: var(--teal); }
-.r5 .ret-when-title { color: var(--teal); }
-.r5 .ret-when-item::before { color: var(--teal); }
-
-.r6 .ret-icon { background: #fff8eb; }
-.r6 .ret-num { color: var(--orange); }
-.r6 .ret-name { color: var(--orange); }
-.r6 .ret-when-title { color: var(--orange); }
-.r6 .ret-when-item::before { color: var(--orange); }
-
-/* COMPARISON TABLE */
-.comparison {
-  background: var(--paper);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  margin-bottom: 48px;
-}
-
-.comparison-header {
-  background: var(--ink);
-  color: var(--bg);
-  padding: 20px 28px;
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-table { width:100%; border-collapse:collapse; }
-th {
-  padding: 14px 20px;
-  text-align: left;
-  font-family: 'Syne', sans-serif;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--ink3);
-  border-bottom: 1.5px solid var(--border);
-  background: var(--paper);
-}
-td {
-  padding: 14px 20px;
-  font-size: 13px;
-  color: var(--ink2);
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--bg); }
-
-.badge {
-  display: inline-block;
-  font-size: 10px;
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 3px 10px;
-  border-radius: 100px;
-  text-transform: uppercase;
-}
-.b-red { background:#fff0eb; color:var(--red); }
-.b-blue { background:#eef3ff; color:var(--blue); }
-.b-green { background:#eafaf2; color:var(--green); }
-.b-purple { background:#f3eeff; color:var(--purple); }
-.b-teal { background:#eefafa; color:var(--teal); }
-.b-orange { background:#fff8eb; color:var(--orange); }
-
-/* QUIZ SECTION */
-.quiz-section {
-  background: var(--ink);
-  border-radius: 20px;
-  padding: 36px;
-  margin-bottom: 48px;
-  color: var(--bg);
-}
-
-.quiz-header {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 28px;
-}
-
-.quiz-icon {
-  width: 40px; height: 40px;
-  background: rgba(232,120,26,0.2);
-  border-radius: 10px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:20px;
-}
-
-.quiz-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px; font-weight: 700;
-}
-
-.quiz-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); }
-
-.quiz-q {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: rgba(255,255,255,0.04);
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.quiz-q-text {
-  font-size: 15px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-
-.quiz-q-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 8px;
-}
-
-.quiz-opts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.quiz-opt {
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  color: rgba(255,255,255,0.75);
-  transition: all 0.2s;
-  display: flex; align-items: center; gap: 10px;
-}
-
-.quiz-opt:hover:not(.disabled) {
-  border-color: rgba(255,255,255,0.3);
-  color: #fff;
-}
-
-.quiz-opt.correct { border-color: #27c93f; background: rgba(39,201,63,0.12); color: #7ef89a; }
-.quiz-opt.wrong { border-color: #ff5f56; background: rgba(255,95,86,0.1); color: #ff9d97; }
-.quiz-opt.disabled { cursor: default; }
-
-.opt-letter {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2);
-  display:flex; align-items:center; justify-content:center;
-  font-size:10px; font-family:'Syne',sans-serif; font-weight:700;
-  flex-shrink:0;
-}
-
-.quiz-feedback {
-  margin-top: 12px; padding: 12px 16px;
-  border-radius: 8px; font-size: 13px;
-  display: none;
-  line-height: 1.6;
-}
-.quiz-feedback.show { display:block; animation: fadein 0.3s ease; }
-.qf-ok { background:rgba(39,201,63,0.1); border:1px solid rgba(39,201,63,0.3); color:#7ef89a; }
-.qf-no { background:rgba(255,95,86,0.1); border:1px solid rgba(255,95,86,0.3); color:#ff9d97; }
-
-/* TIPS ROW */
-.tips-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 48px;
-}
-
-.tip-card {
-  background: var(--paper);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  padding: 22px;
-  position: relative;
-}
-
-.tip-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 42px;
-  font-weight: 800;
-  color: var(--border);
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.tip-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 14px; font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 6px;
-}
-
-.tip-desc { font-size: 13px; color: var(--ink2); line-height: 1.6; }
+/* CHEATSHEET */
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem;margin-top:1rem}
+.cheat-card{background:#1a1a24;border:1px solid #252530;border-radius:12px;padding:1.1rem;transition:all .2s}
+.cheat-card:hover{border-color:#0d9488;transform:translateY(-2px)}
+.cheat-emoji{font-size:1.4rem;margin-bottom:.45rem}
+.cheat-title{font-weight:700;font-size:.88rem;margin-bottom:.3rem}
+.cheat-desc{font-size:.78rem;color:#9090a8;line-height:1.65}
 
 /* FOOTER */
-footer {
-  background: var(--ink);
-  color: rgba(255,255,255,0.35);
-  text-align: center;
-  padding: 24px;
-  font-size: 12px;
-  letter-spacing: 1px;
-  font-family: 'Syne', sans-serif;
-}
-
-footer strong { color: var(--orange); }
-
-@keyframes fadein {
-  from { opacity:0; transform:translateY(6px); }
-  to { opacity:1; transform:translateY(0); }
-}
-
-.anim-in {
-  animation: fadein 0.5s ease both;
-}
-
-/* IC */
-.ic {
-  background: #e8e0d4;
-  color: var(--red);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-}
+footer{text-align:center;padding:2rem 1.5rem;color:#9090a8;font-size:.8rem;border-top:1px solid #1e1e28;margin-top:2rem}
+footer span{color:#d97706}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="header-deco">RTR</div>
-  <div class="header-label">LangChain · RAG · Python</div>
-  <h1>Retrievers<br>en <em>LangChain</em></h1>
-  <p>El corazón de cualquier sistema RAG. Aprende qué son, cómo funcionan y cuándo usar cada uno con ejemplos prácticos.</p>
-</header>
-
-<!-- NAV -->
-<div class="nav-wrap">
-  <button class="nav-pill active" onclick="filterCards('all', this)">Todos</button>
-  <button class="nav-pill" onclick="filterCards('basico', this)">Básico</button>
-  <button class="nav-pill" onclick="filterCards('inteligente', this)">Con IA</button>
-  <button class="nav-pill" onclick="filterCards('hibrido', this)">Híbrido</button>
-  <button class="nav-pill" onclick="filterCards('avanzado', this)">Avanzado</button>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">LangChain · RAG · Python</div>
+  <h1>Retrievers en <span class="mono">LangChain</span></h1>
+  <p class="hero-sub">El corazón de cualquier sistema RAG. Aprende qué son, cómo funcionan y cuándo usar cada uno con ejemplos prácticos.</p>
+  <div class="tag-pill">8 retrievers · 4 categorías · 1 patrón universal</div>
 </div>
 
-<div class="container">
-
-  <!-- QUÉ ES -->
-  <div class="what-is" style="margin-top:40px;">
-    <div class="what-card c1">
-      <h3>¿Qué es un Retriever?</h3>
-      <p>Es la interfaz que recibe tu pregunta en lenguaje natural y devuelve los documentos más relevantes. <strong>No almacena</strong> documentos — solo los recupera.</p>
-      <br>
-      <p style="font-size:13px; color:var(--ink3);">
-        Entrada: <span class="ic">string</span> de consulta<br>
-        Salida: <span class="ic">List[Document]</span>
-      </p>
-    </div>
-    <div class="what-card c2">
-      <h3>¿Por qué no usar la BD vectorial directamente?</h3>
-      <p>La BD vectorial solo busca vectores cercanos. El retriever añade <strong>inteligencia</strong>: cuántos documentos traer, cómo reformular la pregunta, combinar fuentes, filtrar por relevancia...</p>
-      <br>
-      <p style="font-size:13px; color:var(--ink3);">Son compatibles con <span class="ic">LCEL</span> y se encadenan con cualquier chain.</p>
-    </div>
+<!-- QUÉ ES -->
+<div class="section">
+  <h2>¿Qué es un <span class="accent">Retriever</span>?</h2>
+  <p class="sub">Un retriever recupera <strong style="color:#e2e2ea">documentos relevantes</strong> dado un query del usuario. Es la pieza que diferencia un LLM genérico de uno que "sabe" sobre tus datos. En LangChain todos implementan <code>.get_relevant_documents(query)</code>, lo que los hace intercambiables en cualquier cadena LCEL.</p>
+  <div class="concept-grid">
+    <div class="concept-card"><div class="c-icon" style="background:rgba(13,148,136,.15)">🔍</div><h3>Entrada</h3><p>Un string con la pregunta del usuario. Nada más.</p></div>
+    <div class="concept-card"><div class="c-icon" style="background:rgba(37,99,235,.15)">📄</div><h3>Salida</h3><p>Lista de <code>Document</code> con texto recuperado y metadatos.</p></div>
+    <div class="concept-card"><div class="c-icon" style="background:rgba(124,58,237,.15)">🔗</div><h3>En LCEL</h3><p>Se conecta con <code>|</code> como cualquier componente de la cadena.</p></div>
+    <div class="concept-card"><div class="c-icon" style="background:rgba(217,119,6,.15)">🔄</div><h3>Intercambiable</h3><p>Cambiar de retriever = cambiar una línea. Tu cadena no se entera.</p></div>
   </div>
+</div>
 
-  <!-- FLOW -->
-  <div class="flow-section">
-    <div class="flow-title">▸ Flujo básico de un Retriever en RAG</div>
-    <div class="flow-diagram">
-      <div class="flow-node">
-        <div class="fn-icon">❓</div>
-        <div class="fn-label">Entrada</div>
-        <div class="fn-text">Tu pregunta</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node highlight">
-        <div class="fn-icon">🔍</div>
-        <div class="fn-label">Retriever</div>
-        <div class="fn-text">Busca & recupera</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">
-        <div class="fn-icon">📄</div>
-        <div class="fn-label">Resultado</div>
-        <div class="fn-text">Docs relevantes</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">
-        <div class="fn-icon">📝</div>
-        <div class="fn-label">Prompt</div>
-        <div class="fn-text">Contexto + pregunta</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">
-        <div class="fn-icon">🤖</div>
-        <div class="fn-label">LLM</div>
-        <div class="fn-text">Genera respuesta</div>
-      </div>
+<!-- PIPELINE -->
+<div class="section">
+  <h2>El Retriever <span class="accent">en el Pipeline RAG</span></h2>
+  <div class="pipeline-box">
+    <div class="pipeline">
+      <div class="ps"><div class="ps-icon">👤</div><div class="ps-label" style="color:#60a5fa">Usuario</div><div class="ps-sub">Escribe pregunta</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="ps hi"><div class="ps-icon">🔍</div><div class="ps-label" style="color:#d97706">Retriever</div><div class="ps-sub">Busca docs</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="ps"><div class="ps-icon">📄</div><div class="ps-label" style="color:#2dd4bf">Contexto</div><div class="ps-sub">Docs relevantes</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="ps"><div class="ps-icon">💬</div><div class="ps-label" style="color:#a78bfa">Prompt</div><div class="ps-sub">Query + contexto</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="ps"><div class="ps-icon">🤖</div><div class="ps-label" style="color:#f472b6">LLM</div><div class="ps-sub">Genera respuesta</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="ps"><div class="ps-icon">✅</div><div class="ps-label" style="color:#60a5fa">Respuesta</div><div class="ps-sub">Basada en datos</div></div>
     </div>
+    <p class="pipeline-note">El retriever convierte la pregunta en <strong style="color:#e2e2ea">contexto relevante</strong> para el LLM</p>
   </div>
+  <div class="insight">
+    <strong>Regla de oro</strong>
+    El stack más simple que funciona es el mejor. Empieza con VectorStore básico y solo sube la complejidad cuando el benchmark muestre que la calidad de las respuestas no es suficiente.
+  </div>
+</div>
 
-  <!-- RETRIEVER CARDS -->
-  <div class="section-title">Los 6 Retrievers más importantes</div>
+<!-- BÁSICOS -->
+<div class="section-wide">
+  <div class="cat-basico">
+    <div class="cat-header">
+      <div class="cat-icon">🟢</div>
+      <div><h3 style="color:#2dd4bf">Básicos — El punto de partida</h3><p>Sin dependencias extra. Funcionan desde el primer día con cualquier vector store.</p></div>
+    </div>
+    <div class="cards-grid">
 
-  <div class="retrievers-grid" id="cardsGrid">
-
-    <!-- 1. MultiQuery -->
-    <div class="ret-card r1" data-tag="inteligente" onclick="toggleCard(this)">
-      <div class="ret-header">
-        <div class="ret-icon">🔀</div>
-        <div class="ret-meta">
-          <div class="ret-num">01 · con IA</div>
-          <div class="ret-name">MultiQuery<br>Retriever</div>
-          <div class="ret-tagline">Genera múltiples versiones de tu pregunta para recuperar más</div>
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(13,148,136,.15)">🗄️</div>
+          <div><div class="rcard-title">VectorStore Retriever</div><div class="badges"><span class="badge b-basico">básico</span></div></div>
         </div>
-        <div class="ret-toggle">+</div>
-      </div>
-      <div class="ret-body">
-        <div class="ret-body-inner">
-          <p class="ret-problem">Usa un LLM para crear 3–4 variaciones de tu consulta original y las lanza todas. Combina los resultados únicos. Soluciona el problema de que una sola búsqueda puede perderse información relevante con diferente terminología.</p>
-          <div class="ret-when">
-            <div class="ret-when-title">Úsalo cuando…</div>
-            <div class="ret-when-items">
-              <div class="ret-when-item">Tu consulta puede interpretarse de múltiples formas</div>
-              <div class="ret-when-item">La terminología del usuario difiere a la de los docs</div>
-              <div class="ret-when-item">Quieres mejorar el recall (no perderte nada)</div>
-            </div>
-          </div>
-          <div class="code-block">
-            <div class="code-topbar">
-              <div class="code-dots-wrap"><div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div></div>
-              <div class="code-lang-label">Python</div>
-              <button class="copy-code-btn" onclick="event.stopPropagation(); copyCode(this)">copiar</button>
-            </div>
-            <pre><span class="kw">from</span> langchain.retrievers.multi_query <span class="kw">import</span> MultiQueryRetriever
-<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
-
-llm = <span class="cls">ChatOpenAI</span>(temperature=<span class="num">0</span>)
-retriever = <span class="cls">MultiQueryRetriever</span>.<span class="fn">from_llm</span>(
-    retriever=vectorstore.<span class="fn">as_retriever</span>(),
-    llm=llm
+        <div class="rcard-body">
+          <p class="rcard-desc">El más fundamental. Convierte tu query en un embedding y busca los N documentos más similares por distancia coseno en un vector store (FAISS, Chroma, Pinecone…).</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">Punto de partida para cualquier RAG. Funciona bien para documentación técnica, FAQs y bases de conocimiento donde la similitud semántica es suficiente.</p>
+          <div class="code-block">retriever = vectorstore.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 4}
 )
-
-<span class="cm"># Una pregunta → 4 versiones → resultados combinados</span>
-docs = retriever.<span class="fn">invoke</span>(<span class="str">"¿cuándo termina el contrato?"</span>)</pre>
-          </div>
+# En una cadena LCEL
+chain = retriever | format_docs | prompt | llm</div>
         </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
       </div>
+
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(37,99,235,.15)">🌈</div>
+          <div><div class="rcard-title">MMR — Max Marginal Relevance</div><div class="badges"><span class="badge b-basico">básico</span></div></div>
+        </div>
+        <div class="rcard-body">
+          <p class="rcard-desc">Variante del VectorStore que balancea relevancia con diversidad. Evita que todos los documentos recuperados digan lo mismo. Controla el balance con <code>lambda_mult</code>.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">Cuando tus datos tienen mucha redundancia (varios docs sobre el mismo tema) y quieres que el LLM reciba perspectivas variadas.</p>
+          <div class="code-block">retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 4,
+        "fetch_k": 20,      # candidatos iniciales
+        "lambda_mult": 0.5  # 0=máx diversidad
+    }
+)</div>
+        </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(217,119,6,.15)">📊</div>
+          <div><div class="rcard-title">BM25 Retriever</div><div class="badges"><span class="badge b-basico">básico</span><span class="badge b-hibrido">híbrido</span></div></div>
+        </div>
+        <div class="rcard-body">
+          <p class="rcard-desc">Búsqueda léxica clásica (TF-IDF mejorado). No usa embeddings — busca documentos que contengan las palabras exactas del query. Rápido y predecible.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">Cuando el usuario busca términos técnicos, nombres propios, códigos o IDs exactos. También ideal como complemento en búsqueda híbrida.</p>
+          <div class="code-block">from langchain_community.retrievers import BM25Retriever
+
+retriever = BM25Retriever.from_documents(
+    docs, k=4
+)
+# pip install rank_bm25</div>
+        </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
     </div>
+  </div>
+</div>
 
-    <!-- 2. Contextual Compression -->
-    <div class="ret-card r2" data-tag="inteligente" onclick="toggleCard(this)">
-      <div class="ret-header">
-        <div class="ret-icon">🗜️</div>
-        <div class="ret-meta">
-          <div class="ret-num">02 · con IA</div>
-          <div class="ret-name">Contextual<br>Compression</div>
-          <div class="ret-tagline">Recupera docs y los recorta a solo la parte relevante</div>
+<!-- HÍBRIDOS -->
+<div class="section-wide">
+  <div class="cat-hibrido">
+    <div class="cat-header">
+      <div class="cat-icon">🔵</div>
+      <div><h3 style="color:#60a5fa">Híbridos — Lo mejor de dos mundos</h3><p>Combinan búsqueda semántica y léxica. El estándar para producción.</p></div>
+    </div>
+    <div class="cards-grid">
+
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(37,99,235,.2)">⚡</div>
+          <div><div class="rcard-title">Ensemble Retriever</div><div class="badges"><span class="badge b-hibrido">híbrido</span></div></div>
         </div>
-        <div class="ret-toggle">+</div>
+        <div class="rcard-body">
+          <p class="rcard-desc">Combina múltiples retrievers usando Reciprocal Rank Fusion (RRF). Une la potencia semántica del VectorStore con la precisión léxica del BM25.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">En producción con datasets heterogéneos. El combo más recomendado: BM25 + VectorStore con pesos 40/60. Mejora la cobertura sin overhead de LLM adicional.</p>
+          <div class="code-block">from langchain.retrievers import EnsembleRetriever
+
+ensemble = EnsembleRetriever(
+    retrievers=[bm25_retriever, vector_retriever],
+    weights=[0.4, 0.6]  # BM25 40%, vector 60%
+)
+# Devuelve docs rankeados por RRF</div>
+        </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div></div>
       </div>
-      <div class="ret-body">
-        <div class="ret-body-inner">
-          <p class="ret-problem">Problema: los chunks recuperados suelen tener mucho texto irrelevante alrededor de la información útil. Este retriever primero recupera, luego usa un LLM para extraer solo el fragmento exactamente pertinente a tu pregunta.</p>
-          <div class="ret-when">
-            <div class="ret-when-title">Úsalo cuando…</div>
-            <div class="ret-when-items">
-              <div class="ret-when-item">Tus documentos son largos y con mucho ruido</div>
-              <div class="ret-when-item">Quieres reducir tokens enviados al LLM (ahorra dinero)</div>
-              <div class="ret-when-item">Necesitas respuestas muy precisas y citables</div>
-            </div>
-          </div>
-          <div class="code-block">
-            <div class="code-topbar">
-              <div class="code-dots-wrap"><div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div></div>
-              <div class="code-lang-label">Python</div>
-              <button class="copy-code-btn" onclick="event.stopPropagation(); copyCode(this)">copiar</button>
-            </div>
-            <pre><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> ContextualCompressionRetriever
-<span class="kw">from</span> langchain.retrievers.document_compressors <span class="kw">import</span> LLMChainExtractor
 
-compressor = <span class="cls">LLMChainExtractor</span>.<span class="fn">from_llm</span>(llm)
+    </div>
+    <div class="insight">
+      <strong>💡 Combo ganador en producción</strong>
+      <code>Ensemble(BM25 + VectorStore)</code> con pesos 40/60 es el setup más recomendado. Cubre búsquedas léxicas (términos exactos) y semánticas (significado) sin añadir llamadas al LLM ni coste extra de tokens.
+    </div>
+  </div>
+</div>
 
-retriever = <span class="cls">ContextualCompressionRetriever</span>(
+<!-- CON IA -->
+<div class="section-wide">
+  <div class="cat-con-ia">
+    <div class="cat-header">
+      <div class="cat-icon">🟣</div>
+      <div><h3 style="color:#a78bfa">Con IA — Usan un LLM internamente</h3><p>Más potentes, pero consumen tokens adicionales por cada query.</p></div>
+    </div>
+    <div class="cards-grid">
+
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(124,58,237,.15)">🧠</div>
+          <div><div class="rcard-title">MultiQuery Retriever</div><div class="badges"><span class="badge b-con-ia">con ia</span></div></div>
+        </div>
+        <div class="rcard-body">
+          <p class="rcard-desc">Usa un LLM para generar múltiples variantes del query original, ejecuta la búsqueda con cada una y une los resultados. Ataca el problema desde ángulos distintos.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">Cuando los usuarios escriben queries ambiguos o vagos. Ideal para chatbots donde el usuario no sabe exactamente cómo preguntar.</p>
+          <div class="code-block">from langchain.retrievers.multi_query import MultiQueryRetriever
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=base_retriever,
+    llm=chat_model
+)
+# Genera 3 queries, hace 3 búsquedas,
+# une y deduplica resultados</div>
+        </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(219,39,119,.15)">✂️</div>
+          <div><div class="rcard-title">Contextual Compression</div><div class="badges"><span class="badge b-con-ia">con ia</span></div></div>
+        </div>
+        <div class="rcard-body">
+          <p class="rcard-desc">Usa un LLM para comprimir y filtrar los documentos recuperados, extrayendo solo los fragmentos relevantes al query. Reduce el ruido antes de llegar al LLM principal.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">Cuando tus chunks son grandes y contienen información mezclada. Mejora la precisión de la respuesta y ahorra tokens de contexto.</p>
+          <div class="code-block">from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+compressor = LLMChainExtractor.from_llm(llm)
+retriever = ContextualCompressionRetriever(
     base_compressor=compressor,
-    base_retriever=vectorstore.<span class="fn">as_retriever</span>()
-)
-
-<span class="cm"># Devuelve solo el fragmento exactamente relevante</span>
-docs = retriever.<span class="fn">invoke</span>(<span class="str">"¿cuál es la multa por impago?"</span>)</pre>
-          </div>
+    base_retriever=base_retriever
+)</div>
         </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div></div></div>
       </div>
-    </div>
 
-    <!-- 3. Ensemble -->
-    <div class="ret-card r3" data-tag="hibrido" onclick="toggleCard(this)">
-      <div class="ret-header">
-        <div class="ret-icon">⚡</div>
-        <div class="ret-meta">
-          <div class="ret-num">03 · híbrido</div>
-          <div class="ret-name">Ensemble<br>Retriever</div>
-          <div class="ret-tagline">Combina búsqueda semántica + búsqueda por palabras clave</div>
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(217,119,6,.15)">🎯</div>
+          <div><div class="rcard-title">Self-Query Retriever</div><div class="badges"><span class="badge b-con-ia">con ia</span><span class="badge b-avanzado">avanzado</span></div></div>
         </div>
-        <div class="ret-toggle">+</div>
-      </div>
-      <div class="ret-body">
-        <div class="ret-body-inner">
-          <p class="ret-problem">Combina dos mundos: <strong>BM25</strong> (busca palabras exactas, ideal para nombres propios o artículos legales específicos) + <strong>vectorial</strong> (busca por significado). Usa Fusión de Ranking Recíproco para combinar los resultados.</p>
-          <div class="ret-when">
-            <div class="ret-when-title">Úsalo cuando…</div>
-            <div class="ret-when-items">
-              <div class="ret-when-item">Tienes queries con términos técnicos exactos Y conceptuales</div>
-              <div class="ret-when-item">Documentos legales, médicos o técnicos (nomenclatura precisa)</div>
-              <div class="ret-when-item">Quieres el mejor resultado posible en producción</div>
-            </div>
-          </div>
-          <div class="code-block">
-            <div class="code-topbar">
-              <div class="code-dots-wrap"><div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div></div>
-              <div class="code-lang-label">Python</div>
-              <button class="copy-code-btn" onclick="event.stopPropagation(); copyCode(this)">copiar</button>
-            </div>
-            <pre><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> EnsembleRetriever
-<span class="kw">from</span> langchain_community.retrievers <span class="kw">import</span> BM25Retriever
+        <div class="rcard-body">
+          <p class="rcard-desc">Un LLM traduce el query en lenguaje natural a filtros de metadatos estructurados. Permite búsquedas como "docs de 2023 sobre seguridad" de forma automática.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">Cuando tus documentos tienen metadatos ricos (fecha, autor, categoría) y los usuarios necesitan filtrar sin saberlo explícitamente.</p>
+          <div class="code-block">from langchain.retrievers.self_query.base import SelfQueryRetriever
 
-bm25 = <span class="cls">BM25Retriever</span>.<span class="fn">from_documents</span>(docs)
-bm25.k = <span class="num">5</span>
-vector = vectorstore.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">5</span>})
-
-<span class="cm"># 30% keyword + 70% semántico</span>
-retriever = <span class="cls">EnsembleRetriever</span>(
-    retrievers=[bm25, vector],
-    weights=[<span class="num">0.3</span>, <span class="num">0.7</span>]
-)</pre>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. ParentDocument -->
-    <div class="ret-card r4" data-tag="avanzado" onclick="toggleCard(this)">
-      <div class="ret-header">
-        <div class="ret-icon">🌲</div>
-        <div class="ret-meta">
-          <div class="ret-num">04 · avanzado</div>
-          <div class="ret-name">ParentDocument<br>Retriever</div>
-          <div class="ret-tagline">Indexa pequeño, recupera grande</div>
-        </div>
-        <div class="ret-toggle">+</div>
-      </div>
-      <div class="ret-body">
-        <div class="ret-body-inner">
-          <p class="ret-problem">Divide los documentos en chunks pequeños (para embeddings precisos) pero cuando encuentra un match, devuelve el documento padre completo (para contexto suficiente). Lo mejor de chunks pequeños y grandes al mismo tiempo.</p>
-          <div class="ret-when">
-            <div class="ret-when-title">Úsalo cuando…</div>
-            <div class="ret-when-items">
-              <div class="ret-when-item">Chunks pequeños pierden contexto pero chunks grandes dan embeddings imprecisos</div>
-              <div class="ret-when-item">El LLM necesita párrafos completos para responder bien</div>
-              <div class="ret-when-item">Documentos con estructura clara (secciones, artículos)</div>
-            </div>
-          </div>
-          <div class="code-block">
-            <div class="code-topbar">
-              <div class="code-dots-wrap"><div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div></div>
-              <div class="code-lang-label">Python</div>
-              <button class="copy-code-btn" onclick="event.stopPropagation(); copyCode(this)">copiar</button>
-            </div>
-            <pre><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> ParentDocumentRetriever
-<span class="kw">from</span> langchain.storage <span class="kw">import</span> InMemoryStore
-
-<span class="cm"># Chunks pequeños → embedding más preciso</span>
-child_splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(chunk_size=<span class="num">400</span>)
-<span class="cm"># Chunks grandes → más contexto al recuperar</span>
-parent_splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(chunk_size=<span class="num">2000</span>)
-
-retriever = <span class="cls">ParentDocumentRetriever</span>(
-    vectorstore=vectorstore,
-    docstore=<span class="cls">InMemoryStore</span>(),
-    child_splitter=child_splitter,
-    parent_splitter=parent_splitter,
-)</pre>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. SelfQuery -->
-    <div class="ret-card r5" data-tag="inteligente" onclick="toggleCard(this)">
-      <div class="ret-header">
-        <div class="ret-icon">🧠</div>
-        <div class="ret-meta">
-          <div class="ret-num">05 · con IA</div>
-          <div class="ret-name">SelfQuery<br>Retriever</div>
-          <div class="ret-tagline">Convierte lenguaje natural en filtros estructurados automáticamente</div>
-        </div>
-        <div class="ret-toggle">+</div>
-      </div>
-      <div class="ret-body">
-        <div class="ret-body-inner">
-          <p class="ret-problem">Usa un LLM para interpretar tu consulta y generar filtros de metadata automáticamente. Si preguntas "películas de ciencia ficción después del 2010", crea el filtro <span class="ic">genre=sci-fi AND year>2010</span> y luego busca semánticamente dentro de esos resultados.</p>
-          <div class="ret-when">
-            <div class="ret-when-title">Úsalo cuando…</div>
-            <div class="ret-when-items">
-              <div class="ret-when-item">Tus documentos tienen metadatos ricos (fecha, autor, categoría)</div>
-              <div class="ret-when-item">Usuarios hacen consultas mixtas (contenido + filtros)</div>
-              <div class="ret-when-item">Necesitas búsqueda estructurada sin que el usuario escriba SQL</div>
-            </div>
-          </div>
-          <div class="code-block">
-            <div class="code-topbar">
-              <div class="code-dots-wrap"><div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div></div>
-              <div class="code-lang-label">Python</div>
-              <button class="copy-code-btn" onclick="event.stopPropagation(); copyCode(this)">copiar</button>
-            </div>
-            <pre><span class="kw">from</span> langchain.retrievers.self_query.base <span class="kw">import</span> SelfQueryRetriever
-<span class="kw">from</span> langchain.chains.query_constructor.base <span class="kw">import</span> AttributeInfo
-
-metadata_fields = [
-    <span class="cls">AttributeInfo</span>(name=<span class="str">"year"</span>, description=<span class="str">"Año"</span>, type=<span class="str">"integer"</span>),
-    <span class="cls">AttributeInfo</span>(name=<span class="str">"genre"</span>, description=<span class="str">"Género"</span>, type=<span class="str">"string"</span>),
-]
-
-retriever = <span class="cls">SelfQueryRetriever</span>.<span class="fn">from_llm</span>(
+retriever = SelfQueryRetriever.from_llm(
     llm=llm,
     vectorstore=vectorstore,
-    document_content_description=<span class="str">"Películas"</span>,
-    metadata_field_info=metadata_fields
+    document_contents="Políticas de empresa",
+    metadata_field_info=metadata_info
 )
-<span class="cm"># Crea filtros automáticamente desde lenguaje natural</span>
-docs = retriever.<span class="fn">invoke</span>(<span class="str">"sci-fi después del 2010"</span>)</pre>
-          </div>
+# "políticas de 2024 de RRHH"
+# → filter: {year:2024, dept:"RRHH"}</div>
         </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div></div></div>
       </div>
+
     </div>
+  </div>
+</div>
 
-    <!-- 6. TimeWeighted -->
-    <div class="ret-card r6" data-tag="basico" onclick="toggleCard(this)">
-      <div class="ret-header">
-        <div class="ret-icon">⏳</div>
-        <div class="ret-meta">
-          <div class="ret-num">06 · básico</div>
-          <div class="ret-name">TimeWeighted<br>Retriever</div>
-          <div class="ret-tagline">Prioriza documentos más recientes, olvida los antiguos</div>
+<!-- AVANZADOS -->
+<div class="section-wide">
+  <div class="cat-avanzado">
+    <div class="cat-header">
+      <div class="cat-icon">🟠</div>
+      <div><h3 style="color:#fbbf24">Avanzados — Para casos de uso específicos</h3><p>Resuelven problemas concretos de arquitectura. Sin overhead de LLM, pero requieren más configuración.</p></div>
+    </div>
+    <div class="cards-grid">
+
+      <div class="rcard">
+        <div class="rcard-head">
+          <div class="rcard-icon" style="background:rgba(220,38,38,.15)">🌳</div>
+          <div><div class="rcard-title">ParentDocument Retriever</div><div class="badges"><span class="badge b-avanzado">avanzado</span></div></div>
         </div>
-        <div class="ret-toggle">+</div>
-      </div>
-      <div class="ret-body">
-        <div class="ret-body-inner">
-          <p class="ret-problem">Combina similitud semántica con recencia. Cada documento tiene un peso que decae con el tiempo según un <span class="ic">decay_rate</span>. Un documento muy relevante pero de hace meses puede quedar por debajo de uno moderadamente relevante de hoy.</p>
-          <div class="ret-when">
-            <div class="ret-when-title">Úsalo cuando…</div>
-            <div class="ret-when-items">
-              <div class="ret-when-item">Tienes datos que cambian con el tiempo (noticias, precios)</div>
-              <div class="ret-when-item">La información más reciente siempre es más válida</div>
-              <div class="ret-when-item">Construyes sistemas de memoria para agentes IA</div>
-            </div>
-          </div>
-          <div class="code-block">
-            <div class="code-topbar">
-              <div class="code-dots-wrap"><div class="cdot cdot-r"></div><div class="cdot cdot-y"></div><div class="cdot cdot-g"></div></div>
-              <div class="code-lang-label">Python</div>
-              <button class="copy-code-btn" onclick="event.stopPropagation(); copyCode(this)">copiar</button>
-            </div>
-            <pre><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> TimeWeightedVectorStoreRetriever
+        <div class="rcard-body">
+          <p class="rcard-desc">Indexa chunks pequeños para mejor búsqueda, pero devuelve el documento padre completo para mejor contexto. Soluciona el trade-off clásico del chunking.</p>
+          <span class="when-label">¿Cuándo usarlo?</span>
+          <p class="when-text">En documentos largos donde fragmentos pequeños son mejores para encontrar, pero el LLM necesita el contexto amplio para responder bien.</p>
+          <div class="code-block">from langchain.retrievers import ParentDocumentRetriever
+from langchain.storage import InMemoryStore
 
-retriever = <span class="cls">TimeWeightedVectorStoreRetriever</span>(
+retriever = ParentDocumentRetriever(
     vectorstore=vectorstore,
-    decay_rate=<span class="num">0.999</span>,  <span class="cm"># Qué tan rápido "olvida"</span>
-    k=<span class="num">5</span>
-)
-
-<span class="cm"># Documentos recientes tienen ventaja automática</span>
-docs = retriever.<span class="fn">invoke</span>(<span class="str">"última actualización de precios"</span>)</pre>
-          </div>
+    docstore=InMemoryStore(),
+    child_splitter=small_splitter,  # 200 chars
+    parent_splitter=large_splitter  # 2000 chars
+)</div>
         </div>
+        <div class="rcard-foot"><span class="complexity-label">Complejidad</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div></div></div>
       </div>
+
     </div>
+    <div class="insight">
+      <strong>💡 El truco del chunking</strong>
+      ParentDocument resuelve el dilema eterno: chunks pequeños (200 chars) para indexar y encontrar bien, chunks grandes (2000 chars) para que el LLM tenga contexto suficiente para responder. No elijas uno — usa ambos a la vez.
+    </div>
+  </div>
+</div>
 
-  </div><!-- /grid -->
-
-  <!-- TABLA COMPARATIVA -->
-  <div class="section-title">Comparativa rápida</div>
-  <div class="comparison">
-    <div class="comparison-header">¿Cuál usar según tu caso?</div>
+<!-- TABLA -->
+<div class="section">
+  <h2>Tabla <span class="accent">Comparativa</span></h2>
+  <p class="sub">¿No sabes cuál elegir? Esta tabla resume las diferencias clave de un vistazo.</p>
+  <div class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th>Retriever</th>
-          <th>Ideal para</th>
-          <th>Costo extra</th>
-          <th>Tipo</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Retriever</th><th>Semántica</th><th>Léxico</th><th>Usa LLM</th><th>Filtros meta</th><th>Coste tokens</th></tr></thead>
       <tbody>
-        <tr>
-          <td><strong>MultiQuery</strong></td>
-          <td>Queries ambiguas o con sinónimos</td>
-          <td>Sí (LLM extra)</td>
-          <td><span class="badge b-red">Con IA</span></td>
-        </tr>
-        <tr>
-          <td><strong>Contextual Compression</strong></td>
-          <td>Docs largos, respuestas precisas</td>
-          <td>Sí (LLM extra)</td>
-          <td><span class="badge b-blue">Con IA</span></td>
-        </tr>
-        <tr>
-          <td><strong>Ensemble (híbrido)</strong></td>
-          <td>Producción, términos exactos + semántica</td>
-          <td>No</td>
-          <td><span class="badge b-green">Híbrido</span></td>
-        </tr>
-        <tr>
-          <td><strong>ParentDocument</strong></td>
-          <td>Necesitas precisión Y contexto amplio</td>
-          <td>No</td>
-          <td><span class="badge b-purple">Avanzado</span></td>
-        </tr>
-        <tr>
-          <td><strong>SelfQuery</strong></td>
-          <td>Docs con metadatos ricos</td>
-          <td>Sí (LLM extra)</td>
-          <td><span class="badge b-teal">Con IA</span></td>
-        </tr>
-        <tr>
-          <td><strong>TimeWeighted</strong></td>
-          <td>Datos temporales, noticias, memoria</td>
-          <td>No</td>
-          <td><span class="badge b-orange">Básico</span></td>
-        </tr>
+        <tr><td class="td-name">VectorStore</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-no">✗</td><td class="td-partial">parcial</td><td class="td-low">Bajo</td></tr>
+        <tr><td class="td-name">MMR</td><td class="td-yes">✓ diversidad</td><td class="td-no">✗</td><td class="td-no">✗</td><td class="td-partial">parcial</td><td class="td-low">Bajo</td></tr>
+        <tr><td class="td-name">BM25</td><td class="td-no">✗</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-no">✗</td><td class="td-low">Ninguno</td></tr>
+        <tr><td class="td-name">Ensemble</td><td class="td-yes">✓</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-partial">parcial</td><td class="td-low">Bajo</td></tr>
+        <tr><td class="td-name">MultiQuery</td><td class="td-yes">✓ × N</td><td class="td-no">✗</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-mid">Medio</td></tr>
+        <tr><td class="td-name">Contextual Compression</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-hi">Medio-alto</td></tr>
+        <tr><td class="td-name">Self-Query</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-yes">✓</td><td class="td-yes">✓ auto</td><td class="td-mid">Medio</td></tr>
+        <tr><td class="td-name">ParentDocument</td><td class="td-yes">✓</td><td class="td-no">✗</td><td class="td-no">✗</td><td class="td-no">✗</td><td class="td-low">Bajo</td></tr>
       </tbody>
     </table>
   </div>
+</div>
 
-  <!-- TIPS -->
-  <div class="section-title">Claves para elegir bien</div>
-  <div class="tips-row">
-    <div class="tip-card">
-      <div class="tip-num">01</div>
-      <div class="tip-title">Entiende tu caso de uso</div>
-      <div class="tip-desc">Cada retriever tiene una fortaleza específica. No hay uno universalmente mejor.</div>
-    </div>
-    <div class="tip-card">
-      <div class="tip-num">02</div>
-      <div class="tip-title">Combina técnicas</div>
-      <div class="tip-desc">Los mejores sistemas combinan varios retrievers. MultiQuery + Ensemble es una combinación ganadora.</div>
-    </div>
-    <div class="tip-card">
-      <div class="tip-num">03</div>
-      <div class="tip-title">Considera el costo</div>
-      <div class="tip-desc">Los que usan LLM internamente (MultiQuery, Compression) hacen llamadas extra a la API. Evalúa el trade-off.</div>
-    </div>
-    <div class="tip-card">
-      <div class="tip-num">04</div>
-      <div class="tip-title">Mide la calidad</div>
-      <div class="tip-desc">La calidad del retriever impacta directamente en la respuesta final. Un buen retrieval = buena respuesta.</div>
-    </div>
+<!-- CHEATSHEET -->
+<div class="section">
+  <h2 style="text-align:center">Cheat Sheet — <span class="accent">Lo que nunca cambia</span></h2>
+  <div class="cheat-grid">
+    <div class="cheat-card"><div class="cheat-emoji">🔌</div><div class="cheat-title">Interfaz universal</div><div class="cheat-desc">Todo retriever implementa <code>.get_relevant_documents(query)</code>. Son intercambiables en cualquier cadena LCEL sin cambiar el resto del código.</div></div>
+    <div class="cheat-card"><div class="cheat-emoji">🔗</div><div class="cheat-title">LCEL pattern</div><div class="cheat-desc"><code>chain = retriever | format_docs | prompt | llm</code>. El retriever siempre va primero. Su output es <code>List[Document]</code>.</div></div>
+    <div class="cheat-card"><div class="cheat-emoji">📐</div><div class="cheat-title">Básico primero</div><div class="cheat-desc">Empieza con VectorStore simple. Solo sube la complejidad si el benchmark muestra que falta calidad de respuesta.</div></div>
+    <div class="cheat-card"><div class="cheat-emoji">⚡</div><div class="cheat-title">Combo ganador en prod</div><div class="cheat-desc">Ensemble(BM25 + VectorStore) con pesos 40/60. Cubre léxico y semántico sin overhead de LLM adicional.</div></div>
+    <div class="cheat-card"><div class="cheat-emoji">💰</div><div class="cheat-title">Coste vs. precisión</div><div class="cheat-desc">MultiQuery y ContextualCompression consumen tokens extra por query. Medir ROI antes de añadirlos a producción.</div></div>
+    <div class="cheat-card"><div class="cheat-emoji">🌳</div><div class="cheat-title">El truco del chunking</div><div class="cheat-desc">ParentDocument: chunks pequeños para indexar bien, chunks grandes para responder bien. No elijas uno, usa ambos.</div></div>
   </div>
-
-  <!-- QUIZ -->
-  <div class="quiz-section">
-    <div class="quiz-header">
-      <div class="quiz-icon">🧩</div>
-      <div>
-        <div class="quiz-title">Pon a prueba lo que aprendiste</div>
-        <div class="quiz-subtitle">3 preguntas rápidas</div>
-      </div>
-    </div>
-
-    <!-- Q1 -->
-    <div class="quiz-q">
-      <div class="quiz-q-num">Pregunta 01</div>
-      <div class="quiz-q-text">Estás construyendo un chatbot de noticias. La información más reciente siempre debe tener prioridad. ¿Qué retriever usas?</div>
-      <div class="quiz-opts">
-        <div class="quiz-opt" onclick="answer(this, false, 'q1')"><div class="opt-letter">A</div> MultiQueryRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, false, 'q1')"><div class="opt-letter">B</div> ParentDocumentRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, true,  'q1')"><div class="opt-letter">C</div> TimeWeightedVectorStoreRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, false, 'q1')"><div class="opt-letter">D</div> SelfQueryRetriever</div>
-      </div>
-      <div class="quiz-feedback" id="qf-q1"></div>
-    </div>
-
-    <!-- Q2 -->
-    <div class="quiz-q">
-      <div class="quiz-q-num">Pregunta 02</div>
-      <div class="quiz-q-text">El usuario pregunta "Artículo 7, cláusula de indemnización". Necesitas encontrar ese artículo EXACTO (texto literal) y también cláusulas semánticamente similares. ¿Cuál es la mejor estrategia?</div>
-      <div class="quiz-opts">
-        <div class="quiz-opt" onclick="answer(this, false, 'q2')"><div class="opt-letter">A</div> Solo búsqueda vectorial con k=10</div>
-        <div class="quiz-opt" onclick="answer(this, true,  'q2')"><div class="opt-letter">B</div> EnsembleRetriever (BM25 + vectorial)</div>
-        <div class="quiz-opt" onclick="answer(this, false, 'q2')"><div class="opt-letter">C</div> TimeWeightedRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, false, 'q2')"><div class="opt-letter">D</div> SelfQueryRetriever</div>
-      </div>
-      <div class="quiz-feedback" id="qf-q2"></div>
-    </div>
-
-    <!-- Q3 -->
-    <div class="quiz-q">
-      <div class="quiz-q-num">Pregunta 03</div>
-      <div class="quiz-q-text">Los chunks recuperados traen mucho texto irrelevante alrededor de la información útil, lo que desperdicia tokens del LLM. ¿Qué retriever soluciona esto?</div>
-      <div class="quiz-opts">
-        <div class="quiz-opt" onclick="answer(this, false, 'q3')"><div class="opt-letter">A</div> MultiQueryRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, false, 'q3')"><div class="opt-letter">B</div> ParentDocumentRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, true,  'q3')"><div class="opt-letter">C</div> ContextualCompressionRetriever</div>
-        <div class="quiz-opt" onclick="answer(this, false, 'q3')"><div class="opt-letter">D</div> EnsembleRetriever</div>
-      </div>
-      <div class="quiz-feedback" id="qf-q3"></div>
-    </div>
-
-  </div><!-- /quiz -->
-
-</div><!-- /container -->
+</div>
 
 <footer>
-  Resumen de <strong>Retrievers en LangChain</strong> · Módulo RAG · Guía Interactiva
+  <span>Básico → Híbrido → Con IA → Avanzado</span> es el orden de adopción recomendado
 </footer>
 
-<script>
-// TOGGLE CARDS
-function toggleCard(card) {
-  const isOpen = card.classList.contains('open');
-  document.querySelectorAll('.ret-card.open').forEach(c => c.classList.remove('open'));
-  if (!isOpen) card.classList.add('open');
-}
-
-// FILTER
-function filterCards(tag, btn) {
-  document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-
-  document.querySelectorAll('.ret-card').forEach(card => {
-    if (tag === 'all' || card.dataset.tag === tag) {
-      card.style.display = '';
-      card.style.animation = 'fadein 0.35s ease both';
-    } else {
-      card.style.display = 'none';
-    }
-  });
-}
-
-// COPY CODE
-function copyCode(btn) {
-  const pre = btn.closest('.code-block').querySelector('pre');
-  navigator.clipboard.writeText(pre.innerText).then(() => {
-    btn.textContent = '✓ listo';
-    setTimeout(() => btn.textContent = 'copiar', 2000);
-  });
-}
-
-// QUIZ
-const feedbacks = {
-  q1: { ok: '✓ Correcto. TimeWeightedVectorStoreRetriever asigna mayor peso a documentos recientes, perfecto para noticias o datos que cambian con el tiempo.', no: '✗ No es el correcto. TimeWeightedVectorStoreRetriever es el diseñado para priorizar documentos según su recencia.' },
-  q2: { ok: '✓ Perfecto. EnsembleRetriever combina BM25 (encuentra "Artículo 7" exacto) con búsqueda vectorial (encuentra cláusulas similares). Lo mejor de ambos mundos.', no: '✗ No es el mejor. EnsembleRetriever (BM25 + vectorial) es ideal aquí: BM25 para texto exacto, vectorial para significado similar.' },
-  q3: { ok: '✓ Exacto. ContextualCompressionRetriever recupera los documentos y luego usa un LLM para extraer solo el fragmento relevante, eliminando el ruido.', no: '✗ Incorrecto. ContextualCompressionRetriever es el que soluciona esto: recupera y luego comprime con un LLM para quedarse solo con lo pertinente.' }
-};
-
-function answer(el, correct, qid) {
-  const container = el.closest('.quiz-q');
-  if (container.querySelector('.correct, .wrong')) return;
-
-  el.classList.add(correct ? 'correct' : 'wrong');
-  container.querySelectorAll('.quiz-opt').forEach(o => o.classList.add('disabled'));
-
-  if (!correct) {
-    container.querySelectorAll('.quiz-opt').forEach(opt => {
-      if (opt.onclick.toString().includes('true')) opt.classList.add('correct');
-    });
-  }
-
-  const fb = document.getElementById('qf-' + qid);
-  fb.textContent = feedbacks[qid][correct ? 'ok' : 'no'];
-  fb.className = 'quiz-feedback show ' + (correct ? 'qf-ok' : 'qf-no');
-}
-</script>
 </body>
 </html>

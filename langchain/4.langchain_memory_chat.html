@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatbot con Memoria — LangChain</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui,sans-serif);background:var(--color-background-tertiary,#f5f4f0);color:var(--color-text-primary,#1a1a1a);min-height:100vh}
+.topbar{background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+.logo{width:34px;height:34px;background:#0F6E56;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-title{font-size:15px;font-weight:500}
+.tb-lv{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;background:#E1F5EE;color:#085041;margin-left:auto}
+.tb-prog{font-size:12px;color:var(--color-text-secondary);margin-left:8px}
+.nav{display:flex;gap:0;overflow-x:auto;padding:0 16px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nb{font-size:12px;padding:10px 13px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.nb:hover{color:var(--color-text-primary)}
+.nb.active{color:#0F6E56;border-bottom-color:#0F6E56;font-weight:500}
+.prog{height:3px;background:var(--color-background-secondary)}
+.pf{height:100%;background:#0F6E56;transition:width .4s ease}
+.sec{display:none;padding:20px;max-width:900px;margin:0 auto}
+.sec.active{display:block}
+h1{font-size:20px;font-weight:500;margin-bottom:8px}
+h2{font-size:16px;font-weight:500;margin:22px 0 10px}
+h3{font-size:14px;font-weight:500;margin:14px 0 6px}
+p{font-size:13.5px;line-height:1.75;color:var(--color-text-secondary);margin-bottom:10px}
+strong{font-weight:500;color:var(--color-text-primary)}
+.hero{background:#E1F5EE;border-radius:14px;padding:24px;margin-bottom:20px;border:0.5px solid #5DCAA5}
+.hero h1{color:#04342C;font-size:22px}
+.hero p{color:#0F6E56;margin:0}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.bt{background:#E1F5EE;color:#085041}.bp{background:#EEEDFE;color:#3C3489}.bb{background:#E6F1FB;color:#0C447C}.ba{background:#FAEEDA;color:#633806}.bc{background:#FAECE7;color:#4A1B0C}.bg{background:#EAF3DE;color:#27500A}.bred{background:#FCEBEB;color:#501313}.bgr{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.card{background:var(--color-background-primary,#fff);border-radius:12px;border:0.5px solid var(--color-border-tertiary);padding:16px 20px;margin-bottom:14px}
+pre{background:#2C2C2A;color:#C0DD97;border-radius:10px;padding:16px;font-size:12px;line-height:1.8;overflow-x:auto;margin:10px 0;font-family:var(--font-mono,monospace);border:0.5px solid #444}
+code{font-family:var(--font-mono,monospace);background:var(--color-background-secondary);padding:1px 5px;border-radius:4px;font-size:12px;color:#0F6E56}
+.lb{border-left:3px solid #0F6E56;padding:8px 14px;margin:8px 0;background:#E1F5EE;border-radius:0 8px 8px 0}
+.lb code{background:transparent;color:#04342C;font-size:12px}
+.lb p{font-size:13px;color:#085041;margin:4px 0 0}
+.lb-p{border-color:#534AB7;background:#EEEDFE}.lb-p p,.lb-p code{color:#26215C}
+.lb-b{border-color:#185FA5;background:#E6F1FB}.lb-b p,.lb-b code{color:#042C53}
+.lb-a{border-color:#854F0B;background:#FAEEDA}.lb-a p,.lb-a code{color:#412402}
+.lb-c{border-color:#993C1D;background:#FAECE7}.lb-c p,.lb-c code{color:#4A1B0C}
+.lb-g{border-color:#3B6D11;background:#EAF3DE}.lb-g p,.lb-g code{color:#173404}
+.lb-gr{border-color:#5F5E5A;background:var(--color-background-secondary)}.lb-gr p,.lb-gr code{color:var(--color-text-secondary)}
+.step-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.snum{min-width:28px;height:28px;border-radius:50%;background:#0F6E56;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;margin-top:2px}
+.folder{font-family:var(--font-mono,monospace);font-size:12.5px;line-height:2;padding:16px;background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary)}
+.folder .dir{color:#0F6E56;font-weight:500}.folder .file{color:var(--color-text-secondary)}.folder .cmt{color:#888780}
+.err-card{border-left:3px solid #E24B4A;background:#FCEBEB;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:12px}
+.err-t{font-size:13px;font-weight:500;color:#501313;margin-bottom:4px}.err-c{font-size:12px;color:#791F1F;margin-bottom:4px}.err-f{font-size:12px;color:#501313}
+.ex-card{border-left:3px solid #0F6E56;background:#E1F5EE;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px}
+.ex-n{font-size:11px;font-weight:500;color:#085041;margin-bottom:3px}.ex-t{font-size:13px;font-weight:500;color:#04342C;margin-bottom:4px}.ex-d{font-size:12px;color:#085041}
+.qa-item{margin-bottom:12px}
+.qa-q{font-size:13px;font-weight:500;color:var(--color-text-primary);cursor:pointer;padding:10px 14px;background:var(--color-background-primary);border-radius:8px;border:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center;gap:8px;user-select:none}
+.qa-q:hover{background:var(--color-background-secondary)}
+.qa-arr{font-size:16px;transition:transform .2s;color:var(--color-text-secondary);flex-shrink:0}
+.qa-a{font-size:13px;color:var(--color-text-secondary);padding:10px 14px;background:#E1F5EE;border-radius:0 0 8px 8px;display:none;line-height:1.65;border:0.5px solid #5DCAA5;border-top:none}
+.qa-a.open{display:block}
+.tip{background:#E1F5EE;border-radius:10px;padding:12px 16px;border:0.5px solid #5DCAA5;margin:10px 0;font-size:13px;color:#085041}
+.warn{background:#FAEEDA;border-radius:10px;padding:12px 16px;border:0.5px solid #FAC775;margin:10px 0;font-size:13px;color:#633806}
+.info{background:#E6F1FB;border-radius:10px;padding:12px 16px;border:0.5px solid #85B7EB;margin:10px 0;font-size:13px;color:#185FA5}
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.cg-no{background:#FCEBEB;border-radius:10px;padding:14px;border:0.5px solid #F09595}
+.cg-yes{background:#E1F5EE;border-radius:10px;padding:14px;border:0.5px solid #5DCAA5}
+.cg-lbl{font-size:11px;font-weight:500;margin-bottom:8px}
+.cg-no .cg-lbl{color:#791F1F}.cg-yes .cg-lbl{color:#085041}
+.cg-msg{font-size:12.5px;line-height:1.7}
+.cg-no .cg-msg{color:#501313}.cg-yes .cg-msg{color:#04342C}
+.msg-u{font-weight:500}.msg-a{color:inherit;opacity:0.75;font-style:italic}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);padding:12px;text-align:center}
+.stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:500;color:#0F6E56}
+
+/* chat simulator */
+.chat-wrap{background:var(--color-background-primary);border-radius:12px;border:0.5px solid var(--color-border-tertiary);overflow:hidden;margin:14px 0}
+.chat-hdr{background:var(--color-background-secondary);padding:10px 16px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:10px}
+.chat-avatar{width:30px;height:30px;background:#0F6E56;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:500}
+.chat-hdr-name{font-size:13px;font-weight:500}
+.chat-hdr-mem{font-size:11px;color:var(--color-text-secondary)}
+.chat-msgs{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:400px;overflow-y:auto}
+.msg-row{display:flex;gap:10px;align-items:flex-end}
+.msg-row.user{flex-direction:row-reverse}
+.msg-bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6}
+.msg-row.bot .msg-bubble{background:var(--color-background-secondary);border-radius:4px 14px 14px 14px;color:var(--color-text-primary)}
+.msg-row.user .msg-bubble{background:#0F6E56;color:#fff;border-radius:14px 14px 4px 14px}
+.msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.msg-av.bot{background:#E1F5EE;color:#085041}
+.msg-av.user{background:#FAEEDA;color:#633806}
+.mem-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:#E1F5EE;color:#085041;margin-left:6px;font-weight:500}
+.chat-input-row{padding:12px 16px;border-top:0.5px solid var(--color-border-tertiary);display:flex;gap:8px}
+.chat-input{flex:1;padding:8px 12px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;font-family:inherit}
+.chat-input:focus{outline:none;border-color:#0F6E56}
+.chat-send{padding:8px 16px;background:#0F6E56;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500}
+.chat-send:hover{background:#085041}
+.mem-vis{background:var(--color-background-primary);border-radius:12px;border:0.5px solid var(--color-border-tertiary);overflow:hidden;margin-top:12px}
+.mem-vis-hdr{background:#E1F5EE;padding:8px 14px;font-size:12px;font-weight:500;color:#085041;border-bottom:0.5px solid #5DCAA5}
+.mem-vis-body{padding:12px 14px;font-family:var(--font-mono,monospace);font-size:11.5px;line-height:1.8;max-height:200px;overflow-y:auto}
+.mem-sys{color:#534AB7}.mem-hu{color:#0F6E56;font-weight:500}.mem-ai{color:#185FA5}.mem-empty{color:var(--color-text-secondary);font-style:italic}
+
+/* memory types */
+.mem-types{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.mt-card{border-radius:10px;padding:14px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.mt-title{font-size:13px;font-weight:500;margin-bottom:6px}
+.mt-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-bottom:8px}
+.mt-pro{font-size:11px;color:#085041;background:#E1F5EE;padding:3px 8px;border-radius:20px;display:inline-block}
+.mt-con{font-size:11px;color:#791F1F;background:#FCEBEB;padding:3px 8px;border-radius:20px;display:inline-block;margin-top:4px}
+
+/* window viz */
+.ctx-viz{background:var(--color-background-primary);border-radius:12px;border:0.5px solid var(--color-border-tertiary);overflow:hidden;margin:14px 0}
+.ctx-hdr{padding:10px 16px;background:#E1F5EE;border-bottom:0.5px solid #5DCAA5;font-size:12px;font-weight:500;color:#085041}
+.ctx-body{padding:14px 16px}
+.ctx-token-bar{height:28px;border-radius:6px;display:flex;overflow:hidden;margin-bottom:8px}
+.ctx-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;transition:width .4s ease}
+.ctx-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.ctx-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.ctx-dot{width:10px;height:10px;border-radius:2px}
+.ctx-slider{margin:12px 0}
+.ctx-slider label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;display:block}
+
+/* flow */
+.flow-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;padding:12px 14px;background:var(--color-background-primary);border-radius:10px;border:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:all .15s}
+.flow-step:hover,.flow-step.hl{border-color:#0F6E56;background:#E1F5EE}
+.flow-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.flow-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.flow-sub{font-size:12px;color:var(--color-text-secondary)}
+.flow-detail{background:var(--color-background-secondary);border-radius:0 0 10px 10px;padding:12px 16px;font-size:13px;color:var(--color-text-secondary);display:none;border:0.5px solid var(--color-border-tertiary);border-top:none;margin-top:-2px;margin-bottom:12px}
+.flow-detail.on{display:block}
+.when-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.when-yes{background:#E1F5EE;border-radius:10px;padding:14px;border:0.5px solid #5DCAA5}
+.when-no{background:#FCEBEB;border-radius:10px;padding:14px;border:0.5px solid #F09595}
+.when-title{font-size:13px;font-weight:500;margin-bottom:8px}
+.when-yes .when-title{color:#04342C}.when-no .when-title{color:#501313}
+.when-item{font-size:12.5px;line-height:1.7;display:flex;gap:6px}
+.when-yes .when-item{color:#085041}.when-no .when-item{color:#791F1F}
+.scale-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.sl-lv{min-width:52px;padding:4px 0;border-radius:20px;font-size:11px;font-weight:500;text-align:center;flex-shrink:0;margin-top:3px}
+.sl-body h3{font-size:13px;margin:0 0 4px;font-weight:500}
+.sl-body p{font-size:12px;margin:0;color:var(--color-text-secondary)}
+.nextbtn{display:inline-block;margin-top:16px;padding:8px 20px;background:#0F6E56;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all .15s}
+.nextbtn:hover{background:#085041}
+@media(max-width:520px){.cmp-grid,.when-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#E1F5EE" stroke-width="1.5"/><path d="M6 7h6M6 9.5h4" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="13" r="3" fill="#0F6E56"/><path d="M12 13h2M13 12v2" stroke="#E1F5EE" stroke-width="1.2" stroke-linecap="round"/></svg>
+  </div>
+  <div><div class="tb-title">Chatbot con Memoria Conversacional</div></div>
+  <span class="tb-lv">intermedio</span>
+  <span class="tb-prog" id="prog-txt">1 / 9</span>
+</div>
+
+<nav class="nav">
+  <button class="nb active" onclick="go(0)">Objetivo</button>
+  <button class="nb" onclick="go(1)">Sin vs Con Memoria</button>
+  <button class="nb" onclick="go(2)">Teoría</button>
+  <button class="nb" onclick="go(3)">Tipos de Memoria</button>
+  <button class="nb" onclick="go(4)">Instalación</button>
+  <button class="nb" onclick="go(5)">Código</button>
+  <button class="nb" onclick="go(6)">Demo</button>
+  <button class="nb" onclick="go(7)">Límites y Mejoras</button>
+  <button class="nb" onclick="go(8)">Practica</button>
+</nav>
+<div class="prog"><div class="pf" id="pbar" style="width:11%"></div></div>
+
+<!-- 0 OBJETIVO -->
+<section class="sec active" id="s0">
+  <div class="hero">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span style="font-size:28px">🧠</span>
+      <h1>Chatbot con Memoria Conversacional en LangChain</h1>
+    </div>
+    <p>Un chatbot que recuerda todo lo dicho en la sesión. Cada respuesta tiene en cuenta el contexto completo de la conversación anterior.</p>
+    <div class="badges">
+      <span class="badge bt">Python 3.10+</span>
+      <span class="badge bp">LangChain</span>
+      <span class="badge bb">MessagesPlaceholder</span>
+      <span class="badge ba">InMemoryChatHistory</span>
+      <span class="badge bc">Claude API</span>
+    </div>
+  </div>
+
+  <h2>Objetivo del proyecto</h2>
+  <p>Construir un chatbot que mantiene el <strong>historial de mensajes dentro de la sesión</strong>. Cuando el usuario dice "¿y sobre eso que me dijiste antes?", el modelo sabe exactamente a qué se refiere — porque tiene el contexto completo.</p>
+
+  <h2>Cuándo conviene usar memoria y cuándo no</h2>
+  <div class="when-grid">
+    <div class="when-yes">
+      <div class="when-title">Usar memoria</div>
+      <div class="when-item"><span>✓</span> Chatbots de soporte o asistentes</div>
+      <div class="when-item"><span>✓</span> Apps donde el usuario hace preguntas relacionadas</div>
+      <div class="when-item"><span>✓</span> Tutores o guías interactivas</div>
+      <div class="when-item"><span>✓</span> Cuando el contexto anterior cambia la respuesta</div>
+      <div class="when-item"><span>✓</span> Entrevistas o formularios conversacionales</div>
+    </div>
+    <div class="when-no">
+      <div class="when-title">No usar memoria</div>
+      <div class="when-item"><span>✗</span> Clasificadores o extractores de datos</div>
+      <div class="when-item"><span>✗</span> Cada llamada es independiente por naturaleza</div>
+      <div class="when-item"><span>✗</span> API con alta concurrencia (memoria = costo)</div>
+      <div class="when-item"><span>✗</span> Tareas de un solo turno (resumir, traducir)</div>
+      <div class="when-item"><span>✗</span> Cuando el historial pasado es irrelevante</div>
+    </div>
+  </div>
+
+  <h2>Qué aprenderás</h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="font-size:13px;display:flex;gap:8px"><span style="color:#0F6E56">✓</span>Cómo funciona el historial de mensajes</div>
+      <div style="font-size:13px;display:flex;gap:8px"><span style="color:#0F6E56">✓</span><code>MessagesPlaceholder</code> en prompts</div>
+      <div style="font-size:13px;display:flex;gap:8px"><span style="color:#0F6E56">✓</span>Gestión manual del historial</div>
+      <div style="font-size:13px;display:flex;gap:8px"><span style="color:#0F6E56">✓</span><code>RunnableWithMessageHistory</code></div>
+      <div style="font-size:13px;display:flex;gap:8px"><span style="color:#0F6E56">✓</span>Ventana de contexto y sus límites</div>
+      <div style="font-size:13px;display:flex;gap:8px"><span style="color:#0F6E56">✓</span>Sesiones múltiples con IDs</div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-lbl">Archivos</div><div class="stat-val">5</div></div>
+    <div class="stat"><div class="stat-lbl">Líneas código</div><div class="stat-val">~100</div></div>
+    <div class="stat"><div class="stat-lbl">Nuevos conceptos</div><div class="stat-val">5</div></div>
+    <div class="stat"><div class="stat-lbl">Nivel</div><div class="stat-val" style="color:#854F0B;font-size:14px">Medio</div></div>
+  </div>
+
+  <button class="nextbtn" onclick="go(1)">Siguiente: Sin vs Con Memoria →</button>
+</section>
+
+<!-- 1 SIN VS CON -->
+<section class="sec" id="s1">
+  <h1>Sin memoria vs. con memoria</h1>
+  <p>Esta es la diferencia más importante de entender. Observa lo que pasa en cada turno de la misma conversación:</p>
+
+  <div class="cmp-grid">
+    <div class="cg-no">
+      <div class="cg-lbl">Sin memoria — cada llamada es nueva</div>
+      <div class="cg-msg">
+        <div class="msg-u">Tú: Me llamo Francisco.</div>
+        <div class="msg-a">Bot: ¡Hola Francisco!</div>
+        <br>
+        <div class="msg-u">Tú: ¿Cómo me llamo?</div>
+        <div class="msg-a">Bot: No sé cómo te llamas, no me has dicho.</div>
+        <br>
+        <div class="msg-u">Tú: Soy de Chile.</div>
+        <div class="msg-a">Bot: ¡Interesante!</div>
+        <br>
+        <div class="msg-u">Tú: ¿De dónde soy?</div>
+        <div class="msg-a">Bot: No tengo esa información.</div>
+      </div>
+    </div>
+    <div class="cg-yes">
+      <div class="cg-lbl">Con memoria — historial acumulado</div>
+      <div class="cg-msg">
+        <div class="msg-u">Tú: Me llamo Francisco.</div>
+        <div class="msg-a">Bot: ¡Hola Francisco!</div>
+        <br>
+        <div class="msg-u">Tú: ¿Cómo me llamo?</div>
+        <div class="msg-a">Bot: Te llamas Francisco, me lo dijiste antes.</div>
+        <br>
+        <div class="msg-u">Tú: Soy de Chile.</div>
+        <div class="msg-a">Bot: ¡Qué bueno, Francisco de Chile!</div>
+        <br>
+        <div class="msg-u">Tú: ¿De dónde soy?</div>
+        <div class="msg-a">Bot: Eres de Chile.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>¿Por qué el LLM "olvida" por defecto?</h2>
+  <p>Los LLMs son <strong>stateless</strong> por diseño. Cada llamada a la API es completamente independiente — el modelo no guarda ningún estado entre requests. Todo el contexto que necesita debe enviarse en cada llamada.</p>
+
+  <div class="card" style="background:#E1F5EE;border-color:#5DCAA5">
+    <p style="color:#085041;margin:0;font-size:13px"><strong style="color:#04342C">La solución es simple:</strong> incluir el historial completo de la conversación en cada llamada. LangChain te da las herramientas para gestionar ese historial automáticamente sin que tengas que hacerlo a mano.</p>
+  </div>
+
+  <h2>Lo que LangChain envía al LLM con memoria activa</h2>
+  <pre><span style="color:#B4B2A9"># Lo que ve el LLM en cada llamada (turno 3):</span>
+[
+  SystemMessage(<span style="color:#C0DD97">"Eres un asistente útil..."</span>),
+  HumanMessage(<span style="color:#C0DD97">"Me llamo Francisco."</span>),      <span style="color:#B4B2A9"># turno 1</span>
+  AIMessage(<span style="color:#C0DD97">"¡Hola Francisco!"</span>),            <span style="color:#B4B2A9"># turno 1</span>
+  HumanMessage(<span style="color:#C0DD97">"Soy de Chile."</span>),            <span style="color:#B4B2A9"># turno 2</span>
+  AIMessage(<span style="color:#C0DD97">"¡Qué bueno, Francisco!"</span>),      <span style="color:#B4B2A9"># turno 2</span>
+  HumanMessage(<span style="color:#C0DD97">"¿De dónde soy?"</span>),           <span style="color:#B4B2A9"># turno 3 ← actual</span>
+]</pre>
+  <p>El historial completo viaja en cada request. Eso es la "memoria" — en realidad es contexto acumulado.</p>
+
+  <button class="nextbtn" onclick="go(2)">Siguiente: Teoría →</button>
+</section>
+
+<!-- 2 TEORIA -->
+<section class="sec" id="s2">
+  <h1>Teoría — Memoria, Historial y Contexto</h1>
+
+  <h2>Memoria conversacional</h2>
+  <p>En LangChain, la "memoria conversacional" es el mecanismo que <strong>almacena el historial</strong> de mensajes y lo <strong>inyecta automáticamente</strong> en el prompt antes de cada llamada al LLM. No es magia — es gestión estructurada de listas de mensajes.</p>
+
+  <h2>Historial de mensajes</h2>
+  <p>Un historial es una lista ordenada de objetos mensaje. LangChain define tres tipos de mensaje:</p>
+  <div style="display:flex;flex-direction:column;gap:8px;margin:12px 0">
+    <div class="lb-p lb"><code>SystemMessage</code><p>Instrucciones de comportamiento para el modelo. Generalmente uno por sesión, al inicio.</p></div>
+    <div class="lb-b lb"><code>HumanMessage</code><p>Lo que escribió el usuario. Se agrega al historial en cada turno.</p></div>
+    <div class="lb lb"><code>AIMessage</code><p>La respuesta del modelo. También se guarda en el historial para el próximo turno.</p></div>
+  </div>
+
+  <h2>MessagesPlaceholder — la pieza clave</h2>
+  <p>Es un marcador en el <code>ChatPromptTemplate</code> que dice "aquí van los mensajes del historial". LangChain lo reemplaza con la lista real de mensajes al momento de ejecutar la chain.</p>
+  <pre><span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.prompts</span> <span style="color:#AFA9EC">import</span> ChatPromptTemplate, MessagesPlaceholder
+
+prompt = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"Eres un asistente útil."</span>),
+    MessagesPlaceholder(variable_name=<span style="color:#C0DD97">"historial"</span>),  <span style="color:#B4B2A9"># ← aquí va el historial</span>
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"{mensaje}"</span>),
+])</pre>
+  <div class="tip">El orden importa: <code>system</code> primero, luego el historial (para dar contexto), luego el mensaje actual del usuario al final.</div>
+
+  <h2>Contexto en LLMs — la ventana de contexto</h2>
+  <p>Cada LLM tiene un límite máximo de tokens que puede procesar en una sola llamada (ventana de contexto). El historial consume esos tokens:</p>
+
+  <div class="ctx-viz">
+    <div class="ctx-hdr">Visualización de la ventana de contexto — mueve el slider</div>
+    <div class="ctx-body">
+      <input type="range" id="ctx-turns" min="1" max="20" value="5" style="width:100%;margin-bottom:12px" oninput="updateCtx(this.value)">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:10px">Turno <span id="ctx-turn-n">5</span> de 20 — tokens usados: <span id="ctx-tokens">~2,150</span> / 200,000</div>
+      <div class="ctx-token-bar" id="ctx-bar">
+        <div class="ctx-seg" id="ctx-sys" style="background:#534AB7;color:#EEEDFE;width:1%">sys</div>
+        <div class="ctx-seg" id="ctx-hist" style="background:#0F6E56;color:#E1F5EE;width:4%">hist</div>
+        <div class="ctx-seg" id="ctx-cur" style="background:#185FA5;color:#E6F1FB;width:0.5%">cur</div>
+        <div class="ctx-seg" id="ctx-free" style="background:var(--color-background-secondary);color:var(--color-text-secondary);width:94.5%">libre</div>
+      </div>
+      <div class="ctx-legend">
+        <div class="ctx-leg-item"><div class="ctx-dot" style="background:#534AB7"></div>System prompt</div>
+        <div class="ctx-leg-item"><div class="ctx-dot" style="background:#0F6E56"></div>Historial</div>
+        <div class="ctx-leg-item"><div class="ctx-dot" style="background:#185FA5"></div>Mensaje actual</div>
+        <div class="ctx-leg-item"><div class="ctx-dot" style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary)"></div>Disponible</div>
+      </div>
+    </div>
+  </div>
+  <p>Claude tiene una ventana de 200,000 tokens, así que para conversaciones normales el historial completo es perfectamente manejable. Para conversaciones muy largas (horas, miles de mensajes) hay que implementar estrategias de truncado.</p>
+
+  <button class="nextbtn" onclick="go(3)">Siguiente: Tipos de Memoria →</button>
+</section>
+
+<!-- 3 TIPOS MEMORIA -->
+<section class="sec" id="s3">
+  <h1>Tipos de gestión de memoria en LangChain</h1>
+  <p>LangChain ofrece varias estrategias para gestionar el historial. Entiende cuándo usar cada una:</p>
+
+  <div class="mem-types">
+    <div class="mt-card" style="border-color:#5DCAA5">
+      <div class="mt-title" style="color:#04342C">Historial completo</div>
+      <div class="mt-desc">Guarda y envía todos los mensajes de la sesión. Lo más simple y más fiel — el LLM tiene todo el contexto.</div>
+      <span class="mt-pro">Fácil de implementar</span><br>
+      <span class="mt-con">Crece con la conversación</span>
+    </div>
+    <div class="mt-card" style="border-color:#AFA9EC">
+      <div class="mt-title" style="color:#26215C">Ventana deslizante</div>
+      <div class="mt-desc">Solo guarda los últimos N turnos. Descarta mensajes antiguos cuando supera el límite.</div>
+      <span class="mt-pro">Costo controlado</span><br>
+      <span class="mt-con">Pierde contexto lejano</span>
+    </div>
+    <div class="mt-card" style="border-color:#85B7EB">
+      <div class="mt-title" style="color:#042C53">Resumen de historial</div>
+      <div class="mt-desc">Usa el LLM para resumir la conversación periódicamente y reemplaza el historial por el resumen.</div>
+      <span class="mt-pro">Contexto comprimido</span><br>
+      <span class="mt-con">Doble costo de LLM</span>
+    </div>
+    <div class="mt-card" style="border-color:#FAC775">
+      <div class="mt-title" style="color:#412402">Memoria semántica</div>
+      <div class="mt-desc">Extrae y almacena hechos clave (nombre, preferencias, etc.) en una base vectorial y los recupera cuando son relevantes.</div>
+      <span class="mt-pro">Muy eficiente en tokens</span><br>
+      <span class="mt-con">Complejidad alta</span>
+    </div>
+  </div>
+
+  <div class="info">En este proyecto implementamos <strong>historial completo</strong> (lo más didáctico) con la opción de agregar ventana deslizante como mejora.</div>
+
+  <h2>RunnableWithMessageHistory — el componente moderno</h2>
+  <p>LangChain moderno (v0.2+) usa <code>RunnableWithMessageHistory</code> para envolver cualquier chain y agregarle gestión automática del historial. Le dices cómo obtener el historial y él se encarga de inyectarlo y actualizarlo en cada llamada.</p>
+
+  <pre><span style="color:#B4B2A9"># En vez de gestionar el historial a mano:
+# history.add_user_message(msg)
+# response = chain.invoke({"historial": history.messages, ...})
+# history.add_ai_message(response)
+
+# Con RunnableWithMessageHistory es automático:</span>
+chain_con_memoria = RunnableWithMessageHistory(
+    chain,
+    get_session_history,  <span style="color:#B4B2A9"># función que retorna el historial por session_id</span>
+    input_messages_key=<span style="color:#C0DD97">"mensaje"</span>,
+    history_messages_key=<span style="color:#C0DD97">"historial"</span>,
+)</pre>
+
+  <h2>Sesiones múltiples con session_id</h2>
+  <p>Con <code>RunnableWithMessageHistory</code>, diferentes usuarios (o conversaciones) tienen su propio historial separado, identificado por un <code>session_id</code>:</p>
+  <pre><span style="color:#B4B2A9"># Usuario A y usuario B tienen historiales separados</span>
+chain_con_memoria.invoke(
+    {<span style="color:#C0DD97">"mensaje"</span>: <span style="color:#C0DD97">"Hola"</span>},
+    config={<span style="color:#C0DD97">"configurable"</span>: {<span style="color:#C0DD97">"session_id"</span>: <span style="color:#C0DD97">"user_francisco"</span>}}
+)
+chain_con_memoria.invoke(
+    {<span style="color:#C0DD97">"mensaje"</span>: <span style="color:#C0DD97">"Hola"</span>},
+    config={<span style="color:#C0DD97">"configurable"</span>: {<span style="color:#C0DD97">"session_id"</span>: <span style="color:#C0DD97">"user_pedro"</span>}}
+)</pre>
+
+  <button class="nextbtn" onclick="go(4)">Siguiente: Instalación →</button>
+</section>
+
+<!-- 4 INSTALACION -->
+<section class="sec" id="s4">
+  <h1>Instalación y estructura</h1>
+
+  <div class="step-row">
+    <div class="snum">1</div>
+    <div>
+      <h3>Crear y activar entorno virtual</h3>
+      <pre>mkdir langchain-chatbot-memoria && cd langchain-chatbot-memoria
+python -m venv venv
+source venv/bin/activate   # Linux/macOS
+venv\Scripts\activate      # Windows</pre>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">2</div>
+    <div>
+      <h3>Instalar dependencias</h3>
+      <pre>pip install langchain langchain-anthropic langchain-community python-dotenv</pre>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+        <div style="font-size:12.5px"><code>langchain</code> — framework + RunnableWithMessageHistory</div>
+        <div style="font-size:12.5px"><code>langchain-anthropic</code> — adaptador Claude</div>
+        <div style="font-size:12.5px"><code>langchain-community</code> — ChatMessageHistory en memoria</div>
+        <div style="font-size:12.5px"><code>python-dotenv</code> — gestión de API keys</div>
+      </div>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">3</div>
+    <div>
+      <h3>Crear <code>.env</code></h3>
+      <pre>ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx</pre>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="snum">4</div>
+    <div>
+      <h3>Estructura de archivos</h3>
+      <div class="folder">
+        <div><span class="dir">langchain-chatbot-memoria/</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># API key</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">.gitignore</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">requirements.txt</span></div>
+        <div>&nbsp;&nbsp;├── <span class="dir">memoria/</span></div>
+        <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="file">historial.py</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># gestión de sesiones</span></div>
+        <div>&nbsp;&nbsp;├── <span class="file">chatbot.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># chain principal con memoria</span></div>
+        <div>&nbsp;&nbsp;└── <span class="file">main.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># loop de consola</span></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="nextbtn" onclick="go(5)">Siguiente: Código →</button>
+</section>
+
+<!-- 5 CODIGO -->
+<section class="sec" id="s5">
+  <h1>Código completo y explicado</h1>
+
+  <h2>1. <code>memoria/historial.py</code></h2>
+  <pre><span style="color:#B4B2A9"># memoria/historial.py
+# Gestiona las sesiones de conversación en memoria</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_community.chat_message_histories</span> <span style="color:#AFA9EC">import</span> ChatMessageHistory
+
+<span style="color:#B4B2A9"># Diccionario global que mapea session_id → historial</span>
+<span style="color:#FAC775">_sesiones</span>: dict[str, ChatMessageHistory] = {}
+
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">get_session_history</span>(session_id: str) -> ChatMessageHistory:
+    <span style="color:#C0DD97">"""Retorna el historial de una sesión, creándolo si no existe."""</span>
+    <span style="color:#AFA9EC">if</span> session_id <span style="color:#AFA9EC">not in</span> _sesiones:
+        _sesiones[session_id] = ChatMessageHistory()
+    <span style="color:#AFA9EC">return</span> _sesiones[session_id]
+
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">limpiar_sesion</span>(session_id: str) -> None:
+    <span style="color:#C0DD97">"""Borra el historial de una sesión (nuevo chat)."""</span>
+    <span style="color:#AFA9EC">if</span> session_id <span style="color:#AFA9EC">in</span> _sesiones:
+        _sesiones[session_id].clear()
+
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">contar_mensajes</span>(session_id: str) -> int:
+    <span style="color:#C0DD97">"""Retorna cuántos mensajes tiene la sesión."""</span>
+    hist = get_session_history(session_id)
+    <span style="color:#AFA9EC">return</span> len(hist.messages)</pre>
+
+  <div class="lb"><code>_sesiones: dict[str, ChatMessageHistory]</code><p>Diccionario en memoria que mapea cada session_id a su historial. En producción esto sería Redis o una base de datos.</p></div>
+  <div class="lb lb-p"><code>if session_id not in _sesiones: crear</code><p>Patrón "get or create": si la sesión no existe, se crea vacía. Si ya existe, se retorna la existente con todo el historial.</p></div>
+
+  <h2>2. <code>chatbot.py</code> — la chain con memoria</h2>
+  <pre><span style="color:#B4B2A9"># chatbot.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">dotenv</span> <span style="color:#AFA9EC">import</span> load_dotenv
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_anthropic</span> <span style="color:#AFA9EC">import</span> ChatAnthropic
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.prompts</span> <span style="color:#AFA9EC">import</span> ChatPromptTemplate, MessagesPlaceholder
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.output_parsers</span> <span style="color:#AFA9EC">import</span> StrOutputParser
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">langchain_core.runnables.history</span> <span style="color:#AFA9EC">import</span> RunnableWithMessageHistory
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">memoria.historial</span> <span style="color:#AFA9EC">import</span> get_session_history
+
+load_dotenv()
+
+<span style="color:#B4B2A9"># ── 1. Modelo ────────────────────────────────────────────</span>
+model = ChatAnthropic(
+    model=<span style="color:#C0DD97">"claude-3-5-haiku-20241022"</span>,
+    temperature=<span style="color:#FAC775">0.7</span>,
+)
+
+<span style="color:#B4B2A9"># ── 2. Prompt con MessagesPlaceholder ────────────────────</span>
+prompt = ChatPromptTemplate.from_messages([
+    (<span style="color:#C0DD97">"system"</span>, <span style="color:#C0DD97">"""Eres un asistente amigable y con buena memoria.
+Recuerda todo lo que el usuario te ha contado en esta conversación.
+Haz referencias naturales al contexto cuando sea relevante."""</span>),
+    MessagesPlaceholder(variable_name=<span style="color:#C0DD97">"historial"</span>),
+    (<span style="color:#C0DD97">"human"</span>, <span style="color:#C0DD97">"{mensaje}"</span>),
+])
+
+<span style="color:#B4B2A9"># ── 3. Chain base ────────────────────────────────────────</span>
+chain_base = prompt | model | StrOutputParser()
+
+<span style="color:#B4B2A9"># ── 4. Envolver con gestión automática de historial ──────</span>
+chatbot = RunnableWithMessageHistory(
+    chain_base,
+    get_session_history,          <span style="color:#B4B2A9"># cómo obtener/crear el historial</span>
+    input_messages_key=<span style="color:#C0DD97">"mensaje"</span>,  <span style="color:#B4B2A9"># nombre del input del usuario</span>
+    history_messages_key=<span style="color:#C0DD97">"historial"</span>, <span style="color:#B4B2A9"># variable en el prompt</span>
+)
+
+<span style="color:#B4B2A9"># ── 5. Función pública ───────────────────────────────────</span>
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">chat</span>(mensaje: str, session_id: str = <span style="color:#C0DD97">"default"</span>) -> str:
+    <span style="color:#AFA9EC">return</span> chatbot.invoke(
+        {<span style="color:#C0DD97">"mensaje"</span>: mensaje},
+        config={<span style="color:#C0DD97">"configurable"</span>: {<span style="color:#C0DD97">"session_id"</span>: session_id}},
+    )</pre>
+
+  <div class="lb lb-b"><code>MessagesPlaceholder(variable_name="historial")</code><p>El marcador en el prompt donde se insertará el historial. El nombre debe coincidir exactamente con <code>history_messages_key</code> del RunnableWithMessageHistory.</p></div>
+  <div class="lb lb-a"><code>RunnableWithMessageHistory(chain_base, get_session_history, ...)</code><p>Envuelve la chain base con gestión automática de historial. Antes de cada llamada, obtiene el historial e inyecta en el prompt. Después, guarda la respuesta del LLM en el historial.</p></div>
+  <div class="lb lb-g"><code>config={"configurable": {"session_id": ...}}</code><p>Así se especifica qué sesión usar. <code>RunnableWithMessageHistory</code> llama a <code>get_session_history(session_id)</code> internamente con este valor.</p></div>
+
+  <h2>3. <code>main.py</code></h2>
+  <pre><span style="color:#B4B2A9"># main.py</span>
+
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">chatbot</span> <span style="color:#AFA9EC">import</span> chat
+<span style="color:#AFA9EC">from</span> <span style="color:#5DCAA5">memoria.historial</span> <span style="color:#AFA9EC">import</span> limpiar_sesion, contar_mensajes
+
+SESSION_ID = <span style="color:#C0DD97">"sesion_principal"</span>
+
+<span style="color:#AFA9EC">def</span> <span style="color:#5DCAA5">main</span>():
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"🧠 Chatbot con Memoria — LangChain"</span>)
+    <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"Comandos: 'limpiar' = nueva sesión | 'salir' = terminar\n"</span>)
+
+    <span style="color:#AFA9EC">while</span> <span style="color:#FAC775">True</span>:
+        n = contar_mensajes(SESSION_ID)
+        prefijo = <span style="color:#C0DD97">f"[{n} msgs] Tú"</span>
+        msg = input(<span style="color:#C0DD97">f"\n{prefijo}: "</span>).strip()
+
+        <span style="color:#AFA9EC">if not</span> msg:
+            <span style="color:#AFA9EC">continue</span>
+        <span style="color:#AFA9EC">if</span> msg.lower() == <span style="color:#C0DD97">"salir"</span>:
+            <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"¡Hasta luego!"</span>)
+            <span style="color:#AFA9EC">break</span>
+        <span style="color:#AFA9EC">if</span> msg.lower() == <span style="color:#C0DD97">"limpiar"</span>:
+            limpiar_sesion(SESSION_ID)
+            <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">"🗑️ Historial borrado. Nueva sesión iniciada."</span>)
+            <span style="color:#AFA9EC">continue</span>
+
+        respuesta = chat(msg, SESSION_ID)
+        <span style="color:#AFA9EC">print</span>(<span style="color:#C0DD97">f"Asistente: {respuesta}"</span>)
+
+<span style="color:#AFA9EC">if</span> __name__ == <span style="color:#C0DD97">"__main__"</span>:
+    <span style="color:#5DCAA5">main</span>()</pre>
+
+  <div class="lb lb-c"><code>[{n} msgs] Tú:</code><p>El prefijo muestra cuántos mensajes tiene el historial actualmente. Es un recordatorio visual de que la memoria está creciendo.</p></div>
+
+  <button class="nextbtn" onclick="go(6)">Siguiente: Demo →</button>
+</section>
+
+<!-- 6 DEMO -->
+<section class="sec" id="s6">
+  <h1>Demo — chatbot con memoria simulada</h1>
+  <p>Escribe mensajes y observa cómo el historial crece. El chatbot "recuerda" lo que le has dicho. Prueba decir tu nombre y luego preguntarle cómo te llamas.</p>
+
+  <div class="chat-wrap">
+    <div class="chat-hdr">
+      <div class="chat-avatar">🧠</div>
+      <div>
+        <div class="chat-hdr-name">Asistente con Memoria</div>
+        <div class="chat-hdr-mem" id="mem-status">0 mensajes en historial</div>
+      </div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="msg-row bot">
+        <div class="msg-av bot">AI</div>
+        <div class="msg-bubble">¡Hola! Soy un chatbot con memoria. Todo lo que me cuentes en esta sesión lo recordaré. ¿En qué te puedo ayudar?</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-in" type="text" placeholder="Escribe tu mensaje..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="chat-send" onclick="sendMsg()">Enviar</button>
+      <button onclick="clearChat()" style="padding:8px 12px;background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:8px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);font-family:inherit">Limpiar</button>
+    </div>
+  </div>
+
+  <div class="mem-vis">
+    <div class="mem-vis-hdr">Estado del historial (lo que se envía al LLM en cada llamada)</div>
+    <div class="mem-vis-body" id="mem-vis-body">
+      <span class="mem-empty">— historial vacío —</span>
+    </div>
+  </div>
+
+  <h2>Flujo paso a paso</h2>
+  <p>Haz clic en cada paso para ver qué ocurre internamente:</p>
+  <div id="flow-steps"></div>
+
+  <button class="nextbtn" onclick="go(7)">Siguiente: Límites y Mejoras →</button>
+</section>
+
+<!-- 7 LIMITES -->
+<section class="sec" id="s7">
+  <h1>Limitaciones y cómo mejorar el chatbot</h1>
+
+  <h2>Limitaciones actuales</h2>
+
+  <div class="err-card">
+    <div class="err-t">Memoria solo dura la sesión</div>
+    <div class="err-c">Cuando el proceso termina, el historial se pierde. Reiniciar el programa = conversación nueva desde cero.</div>
+    <div class="err-f">Solución: persistir el historial en SQLite, Redis o PostgreSQL con los adaptadores de LangChain.</div>
+  </div>
+  <div class="err-card">
+    <div class="err-t">Costo crece con la conversación</div>
+    <div class="err-c">Cada mensaje envía todo el historial anterior. Una conversación de 100 turnos envía ~100x más tokens que el primer mensaje.</div>
+    <div class="err-f">Solución: ventana deslizante (últimos N mensajes) o resumen periódico del historial.</div>
+  </div>
+  <div class="err-card">
+    <div class="err-t">Un solo usuario / sesión hardcodeada</div>
+    <div class="err-c">El código actual usa un <code>SESSION_ID</code> fijo. No escala a múltiples usuarios concurrentes.</div>
+    <div class="err-f">Solución: generar session_id dinámico por usuario (<code>uuid.uuid4()</code>) al iniciar cada sesión.</div>
+  </div>
+  <div class="err-card">
+    <div class="err-t">Sin persistencia entre reinicios</div>
+    <div class="err-c"><code>ChatMessageHistory</code> vive en memoria RAM — si el servidor cae, se pierde todo.</div>
+    <div class="err-f">Solución: <code>SQLChatMessageHistory</code> de <code>langchain-community</code> guarda en SQLite automáticamente.</div>
+  </div>
+
+  <h2>Cómo mejorar el chatbot</h2>
+  <div class="scale-row">
+    <span class="sl-lv bt">Mejora 1</span>
+    <div class="sl-body"><h3>Persistencia con SQLite</h3><p>Reemplaza <code>ChatMessageHistory</code> por <code>SQLChatMessageHistory(session_id, connection="sqlite:///chat.db")</code>. Historial que sobrevive reinicios.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv bp">Mejora 2</span>
+    <div class="sl-body"><h3>Ventana deslizante</h3><p>Antes de inyectar el historial, filtra solo los últimos 20 mensajes: <code>history.messages[-20:]</code>. Control del costo sin perder contexto reciente.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv bb">Mejora 3</span>
+    <div class="sl-body"><h3>Resumen automático</h3><p>Cada 30 mensajes, usa el LLM para resumir la conversación y reemplaza los mensajes viejos por el resumen. Contexto comprimido y económico.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv ba">Mejora 4</span>
+    <div class="sl-body"><h3>API con FastAPI + sesiones por usuario</h3><p>Expón el chatbot como <code>POST /chat</code> con <code>{"session_id": "...", "mensaje": "..."}</code>. Cada usuario tiene su propio historial.</p></div>
+  </div>
+  <div class="scale-row">
+    <span class="sl-lv bc">Mejora 5</span>
+    <div class="sl-body"><h3>Interfaz Streamlit con historial visible</h3><p>Usa <code>st.chat_message()</code> de Streamlit para renderizar la conversación con burbuja de chat y mostrar el historial en tiempo real.</p></div>
+  </div>
+
+  <button class="nextbtn" onclick="go(8)">Siguiente: Practica →</button>
+</section>
+
+<!-- 8 PRACTICA -->
+<section class="sec" id="s8">
+  <h1>Practica y autoevaluación</h1>
+
+  <h2>Resumen de lo aprendido</h2>
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-lbl">Conceptos clave</div><div class="stat-val">6</div></div>
+    <div class="stat"><div class="stat-lbl">Tipos de memoria</div><div class="stat-val">4</div></div>
+    <div class="stat"><div class="stat-lbl">Componentes nuevos</div><div class="stat-val">3</div></div>
+    <div class="stat"><div class="stat-lbl">Nivel</div><div class="stat-val" style="color:#854F0B;font-size:14px">Medio</div></div>
+  </div>
+  <div class="card" style="font-size:13px;line-height:1.75;color:var(--color-text-secondary)">
+    Aprendiste que los LLMs son <strong>stateless por defecto</strong> y que la "memoria" es en realidad <strong>historial acumulado que se envía en cada llamada</strong>. Usaste <code>MessagesPlaceholder</code> para crear un hueco en el prompt donde va el historial, y <code>RunnableWithMessageHistory</code> para automatizar su gestión. Entendiste las limitaciones de costo y cómo la ventana de contexto crece con cada turno.
+  </div>
+
+  <h2>5 Ejercicios para practicar</h2>
+  <div class="ex-card"><div class="ex-n">Ejercicio 1</div><div class="ex-t">Implementar ventana deslizante</div><div class="ex-d">Modifica <code>get_session_history()</code> para que retorne solo los últimos 10 mensajes del historial. Prueba que la conversación funciona bien y observa que pierde contexto lejano.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 2</div><div class="ex-t">Persistencia con SQLite</div><div class="ex-d">Reemplaza <code>ChatMessageHistory</code> por <code>SQLChatMessageHistory</code> de <code>langchain-community</code>. Verifica que el historial se mantiene al reiniciar el proceso.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 3</div><div class="ex-t">Múltiples sesiones simultáneas</div><div class="ex-d">Modifica <code>main.py</code> para pedir un nombre de usuario al inicio y usar ese nombre como <code>session_id</code>. Ejecuta el programa dos veces con distintos nombres y verifica que los historiales son independientes.</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 4</div><div class="ex-t">Mostrar el historial al usuario</div><div class="ex-d">Agrega el comando <code>"historial"</code> en el menú de <code>main.py</code> que imprima todos los mensajes guardados con su rol (Tú / Asistente).</div></div>
+  <div class="ex-card"><div class="ex-n">Ejercicio 5</div><div class="ex-t">Chatbot con personalidad configurable</div><div class="ex-d">Agrega una variable <code>{personalidad}</code> al system prompt y permite que el usuario la defina al inicio: "tutor", "amigo", "experto técnico". La personalidad debe mantenerse en toda la sesión.</div></div>
+
+  <h2 style="margin-top:20px">3 Mejoras para subir de nivel</h2>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bt" style="flex-shrink:0;margin-top:2px">Nivel 3</span>
+      <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Resumen automático del historial</div><div style="font-size:12px;color:var(--color-text-secondary)">Cada 20 mensajes, invoca un segundo LLM call que resume la conversación hasta ese punto. Reemplaza los mensajes viejos por el resumen — contexto infinito a costo controlado.</div></div>
+    </div>
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bb" style="flex-shrink:0;margin-top:2px">Nivel 4</span>
+      <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">API REST con FastAPI y WebSockets</div><div style="font-size:12px;color:var(--color-text-secondary)">Expón el chatbot como WebSocket para streaming de respuestas token por token. Cada cliente tiene su propio <code>session_id</code> generado con UUID al conectarse.</div></div>
+    </div>
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">
+      <span class="badge bp" style="flex-shrink:0;margin-top:2px">Nivel 5</span>
+      <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Memoria semántica con vectores</div><div style="font-size:12px;color:var(--color-text-secondary)">Extrae hechos clave de la conversación (nombre, preferencias, contexto) y guárdalos como embeddings en FAISS. Recupera solo los hechos relevantes para cada mensaje en lugar de enviar el historial completo.</div></div>
+    </div>
+  </div>
+
+  <h2>Autoevaluación</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Por qué un LLM "olvida" entre llamadas si no implementas memoria?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Porque los LLMs son stateless — cada llamada a la API es completamente independiente. El modelo no guarda ningún estado entre requests. Si no envías el historial anterior en cada llamada, el LLM no tiene información sobre lo que se dijo antes.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Qué hace exactamente <code>MessagesPlaceholder</code> en el prompt?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Es un marcador de posición en el <code>ChatPromptTemplate</code> que se reemplaza con la lista real de mensajes del historial al momento de ejecutar la chain. El nombre del placeholder debe coincidir con el <code>history_messages_key</code> del <code>RunnableWithMessageHistory</code>.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Cuál es la diferencia entre historial completo y ventana deslizante?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">El historial completo guarda y envía todos los mensajes de la sesión — contexto máximo pero costo creciente. La ventana deslizante solo envía los últimos N mensajes — costo controlado pero pierde contexto lejano. Se elige según la naturaleza del uso: conversaciones cortas → completo, conversaciones largas → ventana.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Para qué sirve el <code>session_id</code> en <code>RunnableWithMessageHistory</code>?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Para identificar qué historial usar. Permite que múltiples usuarios (o conversaciones) tengan sus propios historiales completamente separados. <code>RunnableWithMessageHistory</code> llama a <code>get_session_history(session_id)</code> con ese valor para obtener o crear el historial correspondiente.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="tqa(this)"><span>¿Cuándo NO conviene usar memoria conversacional?</span><span class="qa-arr">›</span></div>
+    <div class="qa-a">Cuando cada llamada es independiente por naturaleza (clasificador, traductor, extractor de datos), cuando el costo es crítico y el historial sería irrelevante, cuando hay alta concurrencia y el historial crecería muy rápido, o cuando la reproducibilidad es importante (el historial puede cambiar el comportamiento del modelo de forma impredecible).</div>
+  </div>
+
+  <div class="card" style="background:#E1F5EE;border-color:#5DCAA5;margin-top:20px">
+    <p style="color:#0F6E56;font-size:13px;margin:0"><strong style="font-weight:500;color:#04342C">Tutorial completado.</strong> Ahora tienes las bases para construir chatbots con memoria real. El siguiente paso es agregar persistencia con SQLite y exponer el chatbot como API REST.</p>
+  </div>
+</section>
+
+<script>
+const TOTAL=9;
+function go(i){
+  document.querySelectorAll('.sec').forEach((s,j)=>s.classList.toggle('active',j===i));
+  document.querySelectorAll('.nb').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('pbar').style.width=((i+1)/TOTAL*100)+'%';
+  document.getElementById('prog-txt').textContent=(i+1)+' / '+TOTAL;
+  window.scrollTo(0,0);
+}
+function tqa(el){
+  const a=el.nextElementSibling,arr=el.querySelector('.qa-arr'),open=a.classList.toggle('open');
+  arr.style.transform=open?'rotate(90deg)':'';
+}
+function updateCtx(v){
+  v=parseInt(v);
+  document.getElementById('ctx-turn-n').textContent=v;
+  const sys=1,hist=Math.min(v*0.4,15),cur=0.3,total=200;
+  const free=total-sys-hist-cur;
+  document.getElementById('ctx-sys').style.width=(sys/total*100)+'%';
+  document.getElementById('ctx-hist').style.width=(hist/total*100)+'%';
+  document.getElementById('ctx-cur').style.width=(cur/total*100)+'%';
+  document.getElementById('ctx-free').style.width=(free/total*100)+'%';
+  const tokens=Math.round(150+v*200);
+  document.getElementById('ctx-tokens').textContent='~'+tokens.toLocaleString();
+}
+
+// Chat simulator
+const chatHistory=[];
+const RESPONSES={
+  nombre:[/me llamo|soy ([a-záéíóúñ]+)|mi nombre es/i,
+    m=>{const n=m[1]||'';return `¡Hola${n?' '+n:''}! Un placer conocerte. Ya tengo tu nombre guardado.`}],
+  origen:[/soy de|vivo en|vengo de/i,
+    _=>'¡Qué interesante lugar! Tendré en cuenta de dónde eres.'],
+  trabajo:[/trabajo|trabajo en|soy desarrollador|programador|ingeniero/i,
+    _=>'Genial, entiendo tu contexto profesional. Lo recordaré.'],
+  recordar:[/cómo me llamo|cuál es mi nombre|recuerdas mi nombre/i,
+    _=>{
+      const nmsg=chatHistory.find(m=>m.role==='user'&&/me llamo|mi nombre es/i.test(m.content));
+      if(nmsg){const match=nmsg.content.match(/me llamo (\w+)|mi nombre es (\w+)/i);const n=match&&(match[1]||match[2]);return n?`Te llamas ${n}, me lo dijiste antes en esta conversación.`:'Me mencionaste tu nombre antes, pero no lo capturé con claridad.'}
+      return 'Aún no me has dicho cómo te llamas en esta sesión.';
+    }],
+  origen2:[/de dónde soy|de dónde vengo|dónde vivo/i,
+    _=>{
+      const omsg=chatHistory.find(m=>m.role==='user'&&/soy de|vivo en|vengo de/i.test(m.content));
+      if(omsg){const match=omsg.content.match(/soy de (\w+)|vivo en (\w+)|vengo de (\w+)/i);const l=match&&(match[1]||match[2]||match[3]);return l?`Eres de ${l}, me lo contaste en esta conversación.`:'Me mencionaste tu origen antes.'}
+      return 'Aún no me has dicho de dónde eres.';
+    }],
+  resumen:[/qué sabes de mí|qué recuerdas|cuéntame lo que sabes/i,
+    _=>{
+      const facts=chatHistory.filter(m=>m.role==='user').map(m=>m.content).join(' ');
+      return `Con base en nuestra conversación sé esto sobre ti: ${facts.slice(0,120)}...`;
+    }],
+};
+const genericResponses=[
+  'Entendido, lo tengo presente.',
+  'Interesante, sigo aprendiendo sobre ti.',
+  'Anotado. ¿Hay algo más que quieras contarme?',
+  'Perfecto. Recuerdo todo lo que me has dicho hasta ahora.',
+  'Gracias por contarme eso. Lo tendré en cuenta.',
+];
+function getBotResponse(msg){
+  for(const[,[ rx, fn]] of Object.entries(RESPONSES)){
+    const m=msg.match(rx);if(m)return fn(m);
+  }
+  return genericResponses[Math.floor(Math.random()*genericResponses.length)];
+}
+function addMsg(role,content){
+  chatHistory.push({role,content});
+  const msgs=document.getElementById('chat-msgs');
+  const row=document.createElement('div');
+  row.className='msg-row '+role;
+  const av=document.createElement('div');
+  av.className='msg-av '+(role==='user'?'user':'bot');
+  av.textContent=role==='user'?'Tú':'AI';
+  const bubble=document.createElement('div');
+  bubble.className='msg-bubble';
+  bubble.textContent=content;
+  if(role==='user'){row.appendChild(bubble);row.appendChild(av);}
+  else{row.appendChild(av);row.appendChild(bubble);}
+  msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+  updateMemVis();
+  document.getElementById('mem-status').textContent=chatHistory.length+' mensaje'+(chatHistory.length!==1?'s':'')+' en historial';
+}
+function updateMemVis(){
+  const el=document.getElementById('mem-vis-body');
+  if(!chatHistory.length){el.innerHTML='<span class="mem-empty">— historial vacío —</span>';return;}
+  el.innerHTML='<span class="mem-sys">SystemMessage: "Eres un asistente amigable con buena memoria..."</span>\n'+
+    chatHistory.map(m=>{
+      if(m.role==='user') return `<span class="mem-hu">HumanMessage: "${m.content}"</span>`;
+      return `<span class="mem-ai">AIMessage: "${m.content.slice(0,60)}${m.content.length>60?'...':''}"</span>`;
+    }).join('\n');
+}
+function sendMsg(){
+  const inp=document.getElementById('chat-in');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addMsg('user',msg);
+  setTimeout(()=>addMsg('bot',getBotResponse(msg)),600);
+}
+function clearChat(){
+  chatHistory.length=0;
+  document.getElementById('chat-msgs').innerHTML='<div class="msg-row bot"><div class="msg-av bot">AI</div><div class="msg-bubble">Historial borrado. ¡Empecemos de nuevo! ¿En qué te puedo ayudar?</div></div>';
+  updateMemVis();
+  document.getElementById('mem-status').textContent='0 mensajes en historial';
+}
+
+// Flow steps
+const FLOWS=[
+  {icon:'📝',title:'Usuario escribe mensaje',sub:'input("Tú: ").strip()',detail:'El loop de consola captura la entrada del usuario. Antes de llamar a <code>chat()</code>, se muestra cuántos mensajes hay en el historial actual.'},
+  {icon:'🔍',title:'RunnableWithMessageHistory obtiene el historial',sub:'get_session_history(session_id)',detail:'El wrapper busca el historial de la sesión en el diccionario <code>_sesiones</code>. Si no existe, lo crea vacío. El historial puede tener 0 mensajes (primer turno) o N mensajes (turnos posteriores).'},
+  {icon:'📋',title:'MessagesPlaceholder inyecta el historial',sub:'prompt.format(historial=history.messages, mensaje=...)',detail:'El <code>ChatPromptTemplate</code> reemplaza <code>MessagesPlaceholder("historial")</code> con la lista real de mensajes. El resultado es: [SystemMessage, HumanMsg1, AIMsg1, ..., HumanMsgN (actual)].'},
+  {icon:'🤖',title:'LLM genera respuesta con contexto completo',sub:'ChatAnthropic.invoke(messages)',detail:'El LLM recibe toda la conversación anterior más el mensaje actual. Tiene acceso completo al contexto — por eso puede referenciar lo dicho en turnos anteriores.'},
+  {icon:'💾',title:'RunnableWithMessageHistory guarda ambos mensajes',sub:'history.add_user_message() + history.add_ai_message()',detail:'Automáticamente, el wrapper agrega el mensaje del usuario y la respuesta del LLM al historial de la sesión. No tienes que hacerlo manualmente — es lo que hace <code>RunnableWithMessageHistory</code> por ti.'},
+  {icon:'📤',title:'Respuesta llega al usuario',sub:'print(f"Asistente: {respuesta}")',detail:'La respuesta se muestra en consola. El historial ahora tiene 2 mensajes más (el del usuario y el del LLM). En el siguiente turno, ambos estarán disponibles como contexto.'},
+];
+const fc=document.getElementById('flow-steps');
+FLOWS.forEach((f,i)=>{
+  const step=document.createElement('div');step.className='flow-step';
+  step.innerHTML=`<div class="flow-icon" style="background:var(--color-background-secondary)">${f.icon}</div><div><div class="flow-title">${f.title}</div><div class="flow-sub"><code>${f.sub}</code></div></div>`;
+  const detail=document.createElement('div');detail.className='flow-detail';detail.innerHTML=f.detail;
+  step.onclick=()=>{
+    document.querySelectorAll('.flow-step').forEach(s=>s.classList.remove('hl'));
+    document.querySelectorAll('.flow-detail').forEach(d=>d.classList.remove('on'));
+    step.classList.add('hl');detail.classList.add('on');
+  };
+  fc.appendChild(step);fc.appendChild(detail);
+  if(i<FLOWS.length-1){const arr=document.createElement('div');arr.style.cssText='text-align:left;padding-left:30px;color:var(--color-text-secondary);font-size:18px;margin:-6px 0';arr.textContent='↓';fc.appendChild(arr);}
+});
+</script>
+</body>
+</html>

